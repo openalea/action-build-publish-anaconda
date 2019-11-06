@@ -23,14 +23,20 @@ check_if_meta_yaml_file_exists() {
     fi
 }
 
+build_package(){
+    conda build --output-folder . .
+    conda convert -p osx-64 linux-64/*.tar.bz2
+}
+
 upload_package(){
-    conda config --set anaconda_upload yes
     anaconda login --username $INPUT_ANACONDAUSERNAME --password $INPUT_ANACONDAPASSWORD
-    conda build .
+    anaconda upload linux-64/*.tar.bz2
+    anaconda upload osx-64/*.tar.bz2
     anaconda logout
 }
 
 go_to_build_dir
 check_if_setup_file_exists
 check_if_meta_yaml_file_exists
+build_package
 upload_package
