@@ -2,8 +2,9 @@
 A Github Action to publish your Python package to Anaconda repository.
 
 ### Example workflow
+
 ```yaml
-name: Publish
+name: publish_conda
 
 on: [release]
 
@@ -13,9 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: publish-to-conda
-      uses: m0nhawk/conda-package-publish-action@master
+      uses: maxibor/conda-package-publish-action@master
       with:
-        subDir: '.'
-        AnacondaUsername: ${{ secrets.ANACONDA_PASSWORD }}
-        AnacondaPassword: ${{ secrets.ANACONDA_USERNAME }}
+        subDir: 'conda'
+        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
 ```
+Get an Anaconda token (with read and write API access) at anaconda.org/username/settings/access and add it to the Secrets of the Github repository as `ANACONDA_TOKEN`
