@@ -22,10 +22,9 @@ build_package(){
 }
 
 upload_package(){
-    anaconda login --username $INPUT_ANACONDAUSERNAME --password $INPUT_ANACONDAPASSWORD
+    export ANACONDA_API_TOKEN=$INPUT_ANACONDATOKEN
     anaconda upload linux-64/*.tar.bz2
     anaconda upload osx-64/*.tar.bz2
-    anaconda logout
 }
 
 go_to_build_dir

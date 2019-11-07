@@ -8,10 +8,8 @@ inputs:
   subDir:
     description: 'Sub-directory with project'
     default: '.'
-  AnacondaUsername:
-    description: 'Anaconda Username'
-  AnacondaPassword:
-    description: 'Anaconda Password'
+  AnacondaToken:
+    description: 'Anaconda access Token'
 runs:
   using: 'docker'
   image: 'Dockerfile'
