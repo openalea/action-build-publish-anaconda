@@ -7,8 +7,10 @@ A Github Action to publish your software package to an Anaconda repository.
 ```yaml
 name: publish_conda
 
-on: [release]
-
+on:
+  release:
+    types: [published]
+    
 jobs:
   publish:
     runs-on: ubuntu-latest
