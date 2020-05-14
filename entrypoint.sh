@@ -17,7 +17,7 @@ check_if_meta_yaml_file_exists() {
 }
 
 build_package(){
-    conda build -c conda-forge --output-folder . .
+    conda build -c conda-forge -c bioconda --output-folder . .
     conda convert -p osx-64 linux-64/*.tar.bz2
 }
 
