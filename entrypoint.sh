@@ -4,8 +4,8 @@ set -ex
 set -o pipefail
 
 go_to_build_dir() {
-    if [ ! -z $INPUT_CONDADIR ]; then
-        cd $INPUT_CONDADIR
+    if [ ! -z $INPUT_CONDABUILDDIR ]; then
+        cd $INPUT_CONDABUILDDIR
     fi
 }
 

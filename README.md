@@ -50,7 +50,7 @@ jobs:
 2. Add it to the Secrets of the Github repository as `ANACONDA_TOKEN`
 
 ### Actions inputs
-`condaDir`: Directory with conda recipe. Default `.`.
+`condaBuildDir`: Directory with conda recipe. Default `.`.
 
 `pythonVersion`: Python version used for building. Defaults 3.9
 
