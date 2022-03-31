@@ -27,3 +27,9 @@ inputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  args:
+    - ${{ inputs.condaBuildDir }}
+    - ${{ inputs.pythonVersion }}
+    - ${{ inputs.anacondaToken }}
+    - ${{ inputs.channels }}
+    - ${{ inputs.publishChannel }}            
