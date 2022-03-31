@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: publish-to-conda
-      uses: maxibor/conda-package-publish-action@v1.1
+      uses: thomasarsouze/conda-package-publish-action@v1.1
       with:
         subDir: 'conda'
         AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
@@ -46,5 +46,11 @@ jobs:
 1. Get an Anaconda token (with read and write API access) at `anaconda.org/USERNAME/settings/access` 
 2. Add it to the Secrets of the Github repository as `ANACONDA_TOKEN`
 
-### Build Channels
-By Default, this Github Action will search for conda build dependancies (on top of the standard channels) in `conda-forge` and `bioconda`
+### Actions inputs
+`condaDir`: Directory with conda recipe. Default `.`.
+
+`anacondaToken`: Anaconda access Token. Required.
+
+`channels`: Optional Extra anaconda channels to use. Default conda-forge.
+
+`publishChannel`: Optional Channel to publish the anaconda package. Default conda-forge.
