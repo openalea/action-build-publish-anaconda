@@ -9,6 +9,10 @@ inputs:
     description: 'Directory with conda recipe. Default . .'
     required: false
     default: '.'
+  pythonVersion:
+    description: 'Python version used for building. Defaults 3.9.'
+    required: false
+    default: '3.9'
   anacondaToken:
     description: 'Anaconda access Token (required)'
     required: true

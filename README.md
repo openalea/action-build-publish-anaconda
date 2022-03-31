@@ -17,10 +17,13 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: publish-to-conda
-      uses: thomasarsouze/conda-package-publish-action@v1.1
+      uses: thomasarsouze/conda-package-publish-action@v1
       with:
-        subDir: 'conda'
-        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+        condaDir: 'conda'
+        pythonVersion: 3.9
+        anacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+        channels: conda-forge, openalea
+        publishChannel: openalea
 ```
 
 ### Example project structure
@@ -48,6 +51,8 @@ jobs:
 
 ### Actions inputs
 `condaDir`: Directory with conda recipe. Default `.`.
+
+`pythonVersion`: Python version used for building. Defaults 3.9
 
 `anacondaToken`: Anaconda access Token. Required.
 
