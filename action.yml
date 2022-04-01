@@ -1,4 +1,4 @@
-name: 'Anaconda Build and Publish'
+name: 'build-and-publish-anaconda'
 description: 'Build and Publish conda package'
 author: 'Andrew Prokhorenkov, Maxime Borry, Thomas Arsouze'
 branding:
