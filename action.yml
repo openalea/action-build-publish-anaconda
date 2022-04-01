@@ -5,7 +5,7 @@ branding:
   icon: 'package'  
   color: 'purple'
 inputs:
-  condaBuildDir:
+  condaDir:
     description: 'Directory with conda recipe. Default . .'
     required: false
     default: '.'
