@@ -5,33 +5,38 @@ branding:
   icon: 'package'  
   color: 'purple'
 inputs:
-  condaDir:
+  conda:
     description: 'Directory with conda recipe. Default . .'
     required: false
     default: '.'
-  pythonVersion:
+  python:
     description: 'Python version used for building. Defaults 3.9.'
     required: false
     default: '3.9'
-  anacondaToken:
+  token:
     description: 'Anaconda access Token (required)'
     required: true
   channels:
     description: 'Optional Extra anaconda channels to use. Default conda-forge.'
     required: false
     default: 'conda-forge'
-  publishChannel:
+  upload:
     description: 'Optional Channel to publish the anaconda package. Default conda-forge.'
     required: false
     default: 'conda-forge'
 runs:
   using: "composite"
   steps:
-    - run: echo $GITHUB_ACTION_PATH
+    - run: cd ${{ inputs.conda }}
       shell: bash
-    - run: echo ${{ inputs.condaDir }}
+    - run: |
+        channels=${{ inputs.channels }}
+        IFS=', ' read -r -a arr_channels<<<"${channels:1:-1}"
+        channels="" 
+        for c in "${arr_channels[@]}"; do channels+="-c $c "; done
+        conda build ${channels} --python=${{ inputs.python }} --output-folder . .
       shell: bash
-    - run: echo ${{ inputs.pythonVersion }}
-      shell: bash      
-    - run: $GITHUB_ACTION_PATH/workflow.sh
+    - run: | 
+        export ANACONDA_API_TOKEN=${{ inputs.token }}
+        anaconda upload --skip-existing --no-progress -u ${{ inputs.upload }}      
       shell: bash 
