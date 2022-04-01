@@ -27,9 +27,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: pwd
+    - run: echo $GITHUB_ACTION_PATH
       shell: bash
-    - run: ls
+    - run: echo ${{ inputs.condaDir }}
       shell: bash
+    - run: echo ${{ inputs.pythonVersion }}
+      shell: bash      
     - run: $GITHUB_ACTION_PATH/workflow.sh
       shell: bash 
