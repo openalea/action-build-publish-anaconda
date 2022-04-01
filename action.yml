@@ -25,11 +25,7 @@ inputs:
     required: false
     default: 'conda-forge'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ inputs.condaBuildDir }}
-    - ${{ inputs.pythonVersion }}
-    - ${{ inputs.anacondaToken }}
-    - ${{ inputs.channels }}
-    - ${{ inputs.publishChannel }}            
+  using: 'composite'
+  steps:
+    - run: workflow.sh
+      shell: bash 

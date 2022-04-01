@@ -4,8 +4,8 @@ set -ex
 set -o pipefail
 
 go_to_build_dir() {
-    if [ ! -z $1 ]; then
-        cd $1
+    if [ ! -z $INPUT_CONDADIR ]; then
+        cd $INPUT_CONDADIR
     fi
 }
 
@@ -17,14 +17,14 @@ check_if_meta_yaml_file_exists() {
 }
 
 build_package(){
-    IFS=','; read -a arr_channels<<<"$4"; unset IFS;
+    IFS=','; read -a arr_channels<<<"$INPUT_CHANNELS"; unset IFS;
     channels=""; for c in "${arr_channels[@]}"; do channels+="-c $c "; done
-    conda build ${channels} --python=$2 --output-folder . .
+    conda build ${channels} --python=$INPUT_PYTHONVERSION --output-folder . .
 }
 
 upload_package(){
-    export ANACONDA_API_TOKEN=$3
-    anaconda upload --skip-existing --no-progress -u $5
+    export ANACONDA_API_TOKEN=$INPUT_ANACONDATOKEN
+    anaconda upload --skip-existing --no-progress -u $INPUT_PUBLISHCHANNEL
 }
 
 go_to_build_dir
