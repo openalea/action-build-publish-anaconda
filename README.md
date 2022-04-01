@@ -1,6 +1,6 @@
-# Publish Anaconda Package
+# Build and Publish Anaconda Package
 
-A Github Action to publish your software package to an Anaconda repository.
+A Github Action to build publish your software package to an Anaconda repository.
 
 ### Example workflow to publish to conda every time you make a new release
 
@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: publish-to-conda
-      uses: thomasarsouze/conda-package-publish-action@v1
+      uses: thomasarsouze/Anaconda-build-and-publish@v1
       with:
         condaDir: 'conda'
         pythonVersion: 3.9

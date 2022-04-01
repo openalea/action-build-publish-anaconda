@@ -25,7 +25,7 @@ inputs:
     required: false
     default: 'conda-forge'
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - run: workflow.sh
       shell: bash 
