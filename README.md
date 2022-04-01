@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: publish-to-conda
-      uses: thomasarsouze/Anaconda-build-and-publish@v1
+      uses: thomasarsouze/build-and-publish-anaconda@v1
       with:
         condaDir: 'conda'
         pythonVersion: 3.9
