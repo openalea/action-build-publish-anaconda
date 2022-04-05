@@ -1,5 +1,5 @@
-name: 'build-and-publish-anaconda'
-description: 'Build and Publish conda package'
+name: 'build-publish-anaconda'
+description: 'Build and Publish anaconda package'
 author: 'Thomas Arsouze'
 branding:
   icon: 'package'  
