@@ -79,8 +79,8 @@ runs:
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*; do
           if [ "${BUILD_FILE: -8}" == ".tar.bz2" ]; then
-            echo "Upload package ${BUILD_FILE} to anaconda with label $label on channel associated to the given token."
-            anaconda upload --skip-existing --no-progress --label $label ${BUILD_FILE}
+            echo "Upload package ${BUILD_FILE} to anaconda with label ${{ inputs.label }} on channel associated to the given token."
+            anaconda upload --skip-existing --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
           fi
         done
         echo "::endgroup::"   
