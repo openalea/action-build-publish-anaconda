@@ -40,7 +40,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1
+      uses: openalea/action-build-publish-anaconda@v0.1.0
       with:
         conda: conda
         python: ${{ matrix.python-minor-version }}
