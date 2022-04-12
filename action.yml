@@ -9,6 +9,10 @@ inputs:
     description: "Directory with conda recipe. Default `.` ."
     required: false
     default: '.'
+  mamba:
+    description: "Uses mamba to setup miniconda and install in a faster way or not. Uses the latest available version. Default `false`."
+    required: false
+    default: 'false'
   python:
     description: 'Python3 minor version used for building. Default `9`.'
     required: false
@@ -17,9 +21,13 @@ inputs:
     description: 'Anaconda access Token (required)'
     required: true
   channels:
-    description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default conda-forge.'
+    description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
     default: 'conda-forge'
+  publish:
+    description: 'Wether we publish the package build on anaconda cloud or not. Default `true`.'
+    required: false
+    default: 'true'
   label:
     description: Label of conda package published. Default `main`.
     required: false
@@ -45,7 +53,7 @@ runs:
       with:
         python-version: 3.${{ inputs.python }}
         channels: ${{ inputs.channels }}
-        auto-update-conda: False
+        auto-update-conda: false        
     - run: conda install conda-build anaconda-client
       shell: bash -l {0}
     - name: Package compilation
@@ -73,14 +81,15 @@ runs:
       shell: bash -l {0}
     - name: Package uploading
       id: package-uploading
+      if: ${{ inputs.publish == 'true' }}
       working-directory: ./${{ inputs.conda }}
       run: | 
         echo "::group::Conda packages uploading"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*; do
           if [ "${BUILD_FILE: -8}" == ".tar.bz2" ]; then
-            echo "Upload package ${BUILD_FILE} to anaconda with label $label on channel associated to the given token."
-            anaconda upload --skip-existing --no-progress --label $label ${BUILD_FILE}
+            echo "Upload package ${BUILD_FILE} to anaconda with label ${{ inputs.label }} on channel associated to the given token."
+            anaconda upload --skip-existing --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
           fi
         done
         echo "::endgroup::"   

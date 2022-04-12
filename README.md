@@ -24,28 +24,68 @@ This example builds your application on multiple plateforms, with multiple pytho
 name: build_publish_anaconda
 
 on:
-  release:
-    types: ['released']
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
     
 jobs:
   build-and-publish:
     name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       max-parallel: 3
       matrix:
         os: [ ubuntu-latest , macos-latest , windows-latest]
         python-minor-version: [7, 8, 9]
+        isMaster:
+          - ${{ github.ref == 'refs/heads/master' }}
+        exclude:
+          - isMaster: false
+            os: ubuntu-latest
+            python-minor-version: 7
+          - isMaster: false
+            os: ubuntu-latest
+            python-minor-version: 8
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 7
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 8
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 9
+          - isMaster: false
+            os: windows-latest
+            python-minor-version: 7
+          - isMaster: false
+            os: windows-latest
+            python-minor-version: 8
+          - isMaster: false
+            os: windows-latest
+            python-minor-version: 9            
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Chekout
+      uses: actions/checkout@v3
+    - name: Determine publish
+      uses: haya14busa/action-cond@v1
+      id: publish
+      with:
+        cond: ${{ contains(github.ref, 'stable') || startsWith(github.ref, 'refs/heads/v') }}
+        if_true: 'true'
+        if_false: 'false'
     - name: Build and Publish
       uses: openalea/action-build-publish-anaconda@v0.1
       with:
         conda: conda
+        mamba: true
         python: ${{ matrix.python-minor-version }}
         channels: openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
+        publish: ${{ steps.publish.outputs.value }}
         label: main
 ```
 
@@ -81,6 +121,8 @@ The following inputs are available for this action:
 |------|-------------|----------|---------------|
 |`conda`| Directory with conda recipe (i.e. `meta.yml` file)| No | `.`|
 |`python`| Python3 minor version used for building | No | `9` |
+|`mamba`| Use mamba to setup miniconda and install in a faster way or not. Uses the latest available version. | No | `false`|
 |`token` | Anaconda access Token (cf. use process described [above](#anaconda_token))| Yes | |
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
+|`publish`| Wether we publish the package build on anaconda cloud or not | No | true |
 |`labels` | Label of conda package published | No |`main`|
