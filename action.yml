@@ -9,6 +9,10 @@ inputs:
     description: "Directory with conda recipe. Default `.` ."
     required: false
     default: '.'
+  mamba:
+    description: "Uses mamba to setup miniconda and install in a faster way or not. Uses the latest available version. Default `false`."
+    required: false
+    default: 'false'
   python:
     description: 'Python3 minor version used for building. Default `9`.'
     required: false
@@ -17,9 +21,13 @@ inputs:
     description: 'Anaconda access Token (required)'
     required: true
   channels:
-    description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default conda-forge.'
+    description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
     default: 'conda-forge'
+  publish:
+    description: 'Wether we publish the package build on anaconda cloud or not. Default `true`.'
+    required: false
+    default: 'true'
   label:
     description: Label of conda package published. Default `main`.
     required: false
@@ -42,10 +50,19 @@ runs:
       shell: bash
     - name: Setup Conda environment
       uses: conda-incubator/setup-miniconda@v2
+      if: ${{ inputs.mamba }} != true
       with:
         python-version: 3.${{ inputs.python }}
         channels: ${{ inputs.channels }}
-        auto-update-conda: False
+        auto-update-conda: false        
+    - name: Setup Mamba environment
+      uses: conda-incubator/setup-miniconda@v2
+      if: ${{ inputs.mamba }} == true
+      with:
+        python-version: 3.${{ inputs.python }}
+        channels: ${{ inputs.channels }}
+        auto-update-conda: false
+        mamba-version: "*"     
     - run: conda install conda-build anaconda-client
       shell: bash -l {0}
     - name: Package compilation
@@ -54,13 +71,13 @@ runs:
       run: | 
         echo "::group::Conda packages building"
         echo "Associate numpy version to python version provided"
-        PYTHON_VERSION="3.${{ inputs.python }}"
-        if [ ${PYTHON_VERSION="3.7"} ]; then
-          NUMPY_VERSION="1.11"
-        elif [ ${PYTHON_VERSION="3.8"} ]; then
-          NUMPY_VERSION="1.16"
-        elif [ ${PYTHON_VERSION="3.9"} ]; then
-          NUMPY_VERSION="1.19"
+        export PYTHON_VERSION="3.${{ inputs.python }}"
+        if [[ ${PYTHON_VERSION} = "3.7" ]]; then
+          export NUMPY_VERSION="1.11"
+        elif [[ ${PYTHON_VERSION} = "3.8" ]]; then
+          export NUMPY_VERSION="1.16"
+        elif [[ ${PYTHON_VERSION} = "3.9" ]]; then
+          export NUMPY_VERSION="1.19"
         else
           echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 7, 8 or 9"
           exit 1
@@ -73,6 +90,7 @@ runs:
       shell: bash -l {0}
     - name: Package uploading
       id: package-uploading
+      if: ${{ inputs.publish == 'true' }}
       working-directory: ./${{ inputs.conda }}
       run: | 
         echo "::group::Conda packages uploading"
