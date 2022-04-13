@@ -40,7 +40,7 @@ jobs:
         os: [ ubuntu-latest , macos-latest , windows-latest]
         python-minor-version: [7, 8, 9]
         isMaster:
-          - ${{ github.ref == 'refs/heads/master' }}
+          - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
         exclude:
           - isMaster: false
             os: ubuntu-latest
@@ -78,7 +78,7 @@ jobs:
         if_true: 'true'
         if_false: 'false'
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1.1
+      uses: openalea/action-build-publish-anaconda@v0.1.2
       with:
         conda: conda
         mamba: true
