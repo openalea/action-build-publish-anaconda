@@ -17,6 +17,10 @@ inputs:
     description: 'Python3 minor version used for building. Default `9`.'
     required: false
     default: '9'
+  numpy:
+    description: 'Numpy minor version used for building. Default is fixed by Python version.'
+    required: false
+    default: ''
   token:
     description: 'Anaconda access Token (required)'
     required: true
@@ -70,17 +74,22 @@ runs:
       working-directory: ./${{ inputs.conda }}
       run: | 
         echo "::group::Conda packages building"
-        echo "Associate numpy version to python version provided"
-        export PYTHON_VERSION="3.${{ inputs.python }}"
-        if [[ ${PYTHON_VERSION} = "3.7" ]]; then
-          export NUMPY_VERSION="1.11"
-        elif [[ ${PYTHON_VERSION} = "3.8" ]]; then
-          export NUMPY_VERSION="1.16"
-        elif [[ ${PYTHON_VERSION} = "3.9" ]]; then
-          export NUMPY_VERSION="1.19"
+        if ${{ inputs.numpy }} = ''; then
+          echo "Associate numpy version to python version provided"
+          export PYTHON_VERSION="3.${{ inputs.python }}"
+          if [[ ${PYTHON_VERSION} = "3.7" ]]; then
+            export NUMPY_VERSION="1.11"
+          elif [[ ${PYTHON_VERSION} = "3.8" ]]; then
+            export NUMPY_VERSION="1.16"
+          elif [[ ${PYTHON_VERSION} = "3.9" ]]; then
+            export NUMPY_VERSION="1.19"
+          else
+            echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 7, 8 or 9"
+            exit 1
+          fi
         else
-          echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 7, 8 or 9"
-          exit 1
+          export NUMPY_VERSION="1.${{ inputs.numpy }}"
+          echo "Numpy version provided is ${NUMPY_VERSION}"
         fi
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"  
