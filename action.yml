@@ -74,7 +74,7 @@ runs:
       working-directory: ./${{ inputs.conda }}
       run: | 
         echo "::group::Conda packages building"
-        if ${{ inputs.numpy }} = ''; then
+        if [[ ${{ inputs.numpy }} = '' ]]; then
           echo "Associate numpy version to python version provided"
           export PYTHON_VERSION="3.${{ inputs.python }}"
           if [[ ${PYTHON_VERSION} = "3.7" ]]; then
