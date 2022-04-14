@@ -9,7 +9,7 @@ In details, this action:
 1. Check if `meta.yml` exists in a directory provided in input
 2. Sets-up a basic conda environment with a python version specified in input (python 3 only). You can also specify a list of conda channels you migh need during the building process
 3. Installs necessary packages for building and publishing (namely `conda-build` and `anaconda-client`)
-4. Compiles the package with `conda build` using the `meta.yml` file rules. If your package uses the `numpy` library as a dependency, please be aware that library versions are tied to python version (so far, existing options are `python3.7`:`numpy1.11`, `python3.8`:`numpy1.16`, `python3.9`:`numpy1.19`)
+4. Compiles the package with `conda build` using the `meta.yml` file rules. If your package uses the `numpy` library as a dependency, please be aware that library versions are tied to python version at build time if expressed explicitely in the `meta.yml` file (so far, existing options are `python3.7`:`numpy1.11`, `python3.8`:`numpy1.16`, `python3.9`:`numpy1.19`). Otherwise, `numpy` minor version used at build time can be expressed explicitely in input (cf. bellow).
 5. Uploads the package on anaconda.org with `anaconda upload` using a token to access your repository or the one of your organization (cf. procedure [here](#anaconda_token))
 
 The only mandatory input is the anaconda token to access your anaconda repository.
@@ -83,6 +83,7 @@ jobs:
         conda: conda
         mamba: true
         python: ${{ matrix.python-minor-version }}
+        numpy: '20.0'
         channels: openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
         publish: ${{ steps.publish.outputs.value }}
@@ -121,6 +122,7 @@ The following inputs are available for this action:
 |------|-------------|----------|---------------|
 |`conda`| Directory with conda recipe (i.e. `meta.yml` file)| No | `.`|
 |`python`| Python3 minor version used for building | No | `9` |
+|`numpy`| Numpy minor version used for building | No | `''` (fixed by python version)|
 |`mamba`| Use mamba to setup miniconda and install in a faster way or not. Uses the latest available version. | No | `false`|
 |`token` | Anaconda access Token (cf. use process described [above](#anaconda_token))| Yes | |
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
