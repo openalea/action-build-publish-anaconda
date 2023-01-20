@@ -65,8 +65,9 @@ runs:
       with:
         python-version: 3.${{ inputs.python }}
         channels: ${{ inputs.channels }}
+        channel-priority: true
         auto-update-conda: false
-        mamba-version: "*"     
+        miniforge-variant: Mambaforge
     - run: conda install conda-build anaconda-client
       shell: bash -l {0}
     - name: Package compilation
