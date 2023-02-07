@@ -38,19 +38,19 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ ubuntu-latest , macos-latest , windows-latest]
-        python-minor-version: [7, 8, 9]
+        python-minor-version: [8, 9, 10, 11]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
         exclude:
           - isMaster: false
             os: ubuntu-latest
-            python-minor-version: 7
-          - isMaster: false
-            os: ubuntu-latest
             python-minor-version: 8
           - isMaster: false
-            os: macos-latest
-            python-minor-version: 7
+            os: ubuntu-latest
+            python-minor-version: 9
+          - isMaster: false
+            os: ubuntu-latest
+            python-minor-version: 10
           - isMaster: false
             os: macos-latest
             python-minor-version: 8
@@ -58,14 +58,24 @@ jobs:
             os: macos-latest
             python-minor-version: 9
           - isMaster: false
-            os: windows-latest
-            python-minor-version: 7
+            os: macos-latest
+            python-minor-version: 10
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 11
           - isMaster: false
             os: windows-latest
             python-minor-version: 8
           - isMaster: false
             os: windows-latest
-            python-minor-version: 9            
+            python-minor-version: 9
+          - isMaster: false
+            os: windows-latest
+            python-minor-version: 10            
+          - isMaster: false
+            os: windows-latest
+            python-minor-version: 11
+        
 
     steps:
     - name: Chekout
@@ -78,12 +88,12 @@ jobs:
         if_true: 'true'
         if_false: 'false'
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1.2
+      uses: openalea/action-build-publish-anaconda@v0.1.4
       with:
         conda: conda
         mamba: true
         python: ${{ matrix.python-minor-version }}
-        numpy: '20.0'
+        numpy: '22'
         channels: openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
         publish: ${{ steps.publish.outputs.value }}
