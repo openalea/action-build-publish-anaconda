@@ -68,7 +68,8 @@ runs:
         channel-priority: true
         auto-update-conda: false
         miniforge-variant: Mambaforge
-    - run: conda install conda-build anaconda-client
+    - name: Setup conda-build and anaconda-client
+      run: conda install -q conda-build anaconda-client
       shell: bash -l {0}
     - name: Package compilation
       id: package-compilation
