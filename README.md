@@ -18,7 +18,7 @@ This action is designed to be very generic and the workflow will work even for n
 
 ### Example workflow to build and publish to anaconda every time you make a new release
 
-This example builds your application on multiple plateforms, with multiple python versions. This is a template for your `.github/workflow/build_publish_anaconda.yml` in the [example project strcture](#example-project-structure) project structure.
+This example builds your application on multiple plateforms, with multiple python versions. This is a template for your `.github/workflow/build_publish_anaconda.yml` in the [example project structure](#example-project-structure).
 
 ```yaml
 name: build_publish_anaconda
