@@ -57,14 +57,14 @@ runs:
         echo "::endgroup::"
       shell: bash
     - name: Setup Conda environment
-      uses: conda-incubator/setup-miniconda@v2.2
+      uses: conda-incubator/setup-miniconda@v2.2.0
       if: ${{ inputs.mamba != 'true' }}
       with:
         python-version: 3.${{ inputs.python }}
         channels: ${{ inputs.channels }}
         auto-update-conda: false        
     - name: Setup Mamba environment
-      uses: conda-incubator/setup-miniconda@v2.2
+      uses: conda-incubator/setup-miniconda@v2.2.0
       if: ${{ inputs.mamba == 'true' }}
       with:
         python-version: 3.${{ inputs.python }}
