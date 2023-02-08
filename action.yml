@@ -36,6 +36,10 @@ inputs:
     description: Label of conda package published. Default `main`.
     required: false
     default: main
+  buildoptions:
+    description: Build options for conda build.
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -53,14 +57,14 @@ runs:
         echo "::endgroup::"
       shell: bash
     - name: Setup Conda environment
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v2.2
       if: ${{ inputs.mamba != 'true' }}
       with:
         python-version: 3.${{ inputs.python }}
         channels: ${{ inputs.channels }}
         auto-update-conda: false        
     - name: Setup Mamba environment
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v2.2
       if: ${{ inputs.mamba == 'true' }}
       with:
         python-version: 3.${{ inputs.python }}
@@ -94,8 +98,9 @@ runs:
           echo "Numpy version provided is ${NUMPY_VERSION}"
         fi
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
-        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"  
-        conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION}
+        export CONDA_OVERRIDE_CUDA=""
+        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
+        conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
         echo "::set-output name=out_dir::'$out_dir'"
         echo "::endgroup::"        
       shell: bash -l {0}
