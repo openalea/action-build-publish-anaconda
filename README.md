@@ -44,7 +44,7 @@ jobs:
         exclude:
           - isMaster: false
             python-minor-version: 7
-           - isMaster: false
+          - isMaster: false
             python-minor-version: 8
           - isMaster: false
             python-minor-version: 9
