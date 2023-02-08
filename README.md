@@ -18,7 +18,7 @@ This action is designed to be very generic and the workflow will work even for n
 
 ### Example workflow to build and publish to anaconda every time you make a new release
 
-This example builds your application on multiple plateforms, with multiple python versions. This is a template for your `.github/workflow/build_publish_anaconda.yml` in the [example project strcture](#example-project-structure) project structure.
+This example builds your application on multiple plateforms, with multiple python versions. This is a template for your `.github/workflow/build_publish_anaconda.yml` in the [example project structure](#example-project-structure).
 
 ```yaml
 name: build_publish_anaconda
@@ -38,37 +38,28 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ ubuntu-latest , macos-latest , windows-latest]
-        python-minor-version: [7, 8, 9]
+        python-minor-version: [7, 8, 9, 10, 11]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
         exclude:
           - isMaster: false
-            os: ubuntu-latest
             python-minor-version: 7
           - isMaster: false
-            os: ubuntu-latest
             python-minor-version: 8
           - isMaster: false
-            os: macos-latest
-            python-minor-version: 7
-          - isMaster: false
-            os: macos-latest
-            python-minor-version: 8
-          - isMaster: false
-            os: macos-latest
             python-minor-version: 9
           - isMaster: false
-            os: windows-latest
-            python-minor-version: 7
+            python-minor-version: 11
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 10
           - isMaster: false
             os: windows-latest
-            python-minor-version: 8
-          - isMaster: false
-            os: windows-latest
-            python-minor-version: 9            
+            python-minor-version: 10
+        
 
     steps:
-    - name: Chekout
+    - name: Checkout
       uses: actions/checkout@v3
     - name: Determine publish
       uses: haya14busa/action-cond@v1
@@ -78,12 +69,12 @@ jobs:
         if_true: 'true'
         if_false: 'false'
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1.2
+      uses: openalea/action-build-publish-anaconda@v0.1.4
       with:
         conda: conda
         mamba: true
         python: ${{ matrix.python-minor-version }}
-        numpy: '20.0'
+        numpy: '22'
         channels: openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
         publish: ${{ steps.publish.outputs.value }}
