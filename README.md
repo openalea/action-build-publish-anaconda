@@ -38,47 +38,28 @@ jobs:
       max-parallel: 3
       matrix:
         os: [ ubuntu-latest , macos-latest , windows-latest]
-        python-minor-version: [8, 9, 10, 11]
+        python-minor-version: [7, 8, 9, 10, 11]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
         exclude:
           - isMaster: false
-            os: ubuntu-latest
+            python-minor-version: 7
+           - isMaster: false
             python-minor-version: 8
           - isMaster: false
-            os: ubuntu-latest
             python-minor-version: 9
           - isMaster: false
-            os: ubuntu-latest
-            python-minor-version: 10
-          - isMaster: false
-            os: macos-latest
-            python-minor-version: 8
-          - isMaster: false
-            os: macos-latest
-            python-minor-version: 9
+            python-minor-version: 11
           - isMaster: false
             os: macos-latest
             python-minor-version: 10
           - isMaster: false
-            os: macos-latest
-            python-minor-version: 11
-          - isMaster: false
             os: windows-latest
-            python-minor-version: 8
-          - isMaster: false
-            os: windows-latest
-            python-minor-version: 9
-          - isMaster: false
-            os: windows-latest
-            python-minor-version: 10            
-          - isMaster: false
-            os: windows-latest
-            python-minor-version: 11
+            python-minor-version: 10
         
 
     steps:
-    - name: Chekout
+    - name: Checkout
       uses: actions/checkout@v3
     - name: Determine publish
       uses: haya14busa/action-cond@v1
