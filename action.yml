@@ -73,7 +73,10 @@ runs:
         auto-update-conda: false
         miniforge-variant: Mambaforge
     - name: Setup conda-build and anaconda-client
-      run: conda install -q conda-build anaconda-client
+      run:  | 
+        echo "::group::Setup conda-build and anaconda-client"
+        conda install -q conda-build anaconda-client
+        echo "::endgroup::"
       shell: bash -l {0}
     - name: Package compilation
       id: package-compilation
@@ -94,7 +97,7 @@ runs:
             exit 1
           fi
         else
-          export NPVERSION = ${{ inputs.numpy }}
+          export NPVERSION="${{ inputs.numpy }}"
           if [[ ${NPVERSION} > '20' ]]; then
             echo "With Python 3.7, Numpy can be only 1.20."
             export NPVERSION = '20'
