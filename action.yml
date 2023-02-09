@@ -107,7 +107,8 @@ runs:
           echo "Numpy version provided is ${NUMPY_VERSION}"
         fi
         echo "::set-output name=numpy_version::'$NUMPY_VERSION'"
-        echo "::endgroup::"    
+        echo "::endgroup::"
+      shell: bash -l {0}  
     - name: Package compilation
       id: package-compilation
       working-directory: ./${{ inputs.conda }}
