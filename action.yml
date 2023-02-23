@@ -106,7 +106,7 @@ runs:
           export NUMPY_VERSION="1.${NPVERSION}"
           echo "Numpy version provided is ${NUMPY_VERSION}"
         fi
-        echo "numpy_version='${PYTHON_VERSION}'" >> $GITHUB_OUTPUT
+        echo "numpy_version=${NUMPY_VERSION}" >> $GITHUB_OUTPUT
         echo "::endgroup::"
       shell: bash -l {0}  
     - name: Package compilation
@@ -114,6 +114,7 @@ runs:
       working-directory: ./${{ inputs.conda }}
       run: | 
         echo "::group::Conda packages building"
+        export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
         export CONDA_OVERRIDE_CUDA=""
