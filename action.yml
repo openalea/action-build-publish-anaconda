@@ -106,7 +106,7 @@ runs:
           export NUMPY_VERSION="1.${NPVERSION}"
           echo "Numpy version provided is ${NUMPY_VERSION}"
         fi
-        echo "::set-output name=numpy_version::'$NUMPY_VERSION'"
+        echo "numpy_version='${PYTHON_VERSION}'" >> $GITHUB_OUTPUT
         echo "::endgroup::"
       shell: bash -l {0}  
     - name: Package compilation
@@ -119,7 +119,7 @@ runs:
         export CONDA_OVERRIDE_CUDA=""
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
-        echo "::set-output name=out_dir::'$out_dir'"
+        echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
         echo "::endgroup::"        
       shell: bash -l {0}
     - name: Package uploading
