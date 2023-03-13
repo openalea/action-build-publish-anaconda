@@ -43,7 +43,7 @@ jobs:
         os: [ ubuntu-latest , macos-latest , windows-latest]
         python-minor-version: [7, 8, 9, 10, 11]
         isMaster:
-          - ${{ github.ref == 'refs/heads/master' }}
+          - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v') }}
         exclude:
           - isMaster: false
             python-minor-version: 7
@@ -68,7 +68,7 @@ jobs:
       uses: haya14busa/action-cond@v1
       id: publish
       with:
-        cond: ${{ startsWith(github.ref, 'refs/heads/v') }}
+        cond: ${{ startsWith(github.ref, 'refs/tags/v') }}
         if_true: 'true'
         if_false: 'false'
     - name: Build and Publish
