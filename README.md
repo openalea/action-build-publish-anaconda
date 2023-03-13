@@ -27,9 +27,11 @@ on:
   push:
     tags:
       - 'v*'
-    branches: [ master ]
+    branches:
+      - '**'
   pull_request:
-    branches: [ master ]
+    branches:
+      - '**'    
   workflow_dispatch: # allows you to trigger manually
     
 jobs:
@@ -43,7 +45,7 @@ jobs:
         os: [ ubuntu-latest , macos-latest , windows-latest]
         python-minor-version: [7, 8, 9, 10, 11]
         isMaster:
-          - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v') }}
+          - ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
         exclude:
           - isMaster: false
             python-minor-version: 7
