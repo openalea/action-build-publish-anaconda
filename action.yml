@@ -61,8 +61,8 @@ runs:
       if: ${{ inputs.publish == 'true' }}
       working-directory: ./${{ inputs.conda }}
       run: |
-        echo "::group::Checking the token variable is correclty set"
-        if [[ ${{ inputs.token }} = '' ]]; then
+        echo "::group::Checking if the token variable is correclty set"
+        if [[ "${{ inputs.token }}" == "" ]]; then
            echo "No token variable is set for upload."
            exit 1
         else
