@@ -56,6 +56,20 @@ runs:
         fi
         echo "::endgroup::"
       shell: bash
+    - name: Check if anaconda login information are available
+      id: check-login
+      if: ${{ inputs.publish == 'true' }}
+      working-directory: ./${{ inputs.conda }}
+      run: |
+        echo "::group::Checking the token variable is correclty set"
+        if [[ ${{ inputs.token }} = '' ]]; then
+           echo "No token variable is set for upload."
+           exit 1
+        else
+           echo "Token is correctly set."
+        fi
+        echo "::endgroup::"
+      shell: bash
     - name: Setup Conda environment
       uses: conda-incubator/setup-miniconda@v2.2.0
       if: ${{ inputs.mamba != 'true' }}
