@@ -14,9 +14,9 @@ inputs:
     required: false
     default: 'false'
   python:
-    description: 'Python3 minor version used for building. Default `9`.'
+    description: 'Python3 minor version used for building. Default `10`.'
     required: false
-    default: '9'
+    default: '10'
   numpy:
     description: 'Numpy minor version used for building. Default is fixed by Python version.'
     required: false
@@ -57,14 +57,14 @@ runs:
         echo "::endgroup::"
       shell: bash
     - name: Setup Conda environment
-      uses: conda-incubator/setup-miniconda@v2.2.0
+      uses: conda-incubator/setup-miniconda@v3.0.1
       if: ${{ inputs.mamba != 'true' }}
       with:
         python-version: 3.${{ inputs.python }}
         channels: ${{ inputs.channels }}
         auto-update-conda: false        
     - name: Setup Mamba environment
-      uses: conda-incubator/setup-miniconda@v2.2.0
+      uses: conda-incubator/setup-miniconda@v3.0.1
       if: ${{ inputs.mamba == 'true' }}
       with:
         python-version: 3.${{ inputs.python }}
@@ -85,18 +85,18 @@ runs:
         if [[ ${{ inputs.numpy }} = '' ]]; then
           echo "Associate numpy version to python version provided"
           export PYTHON_VERSION="3.${{ inputs.python }}"
-          if [[ ${PYTHON_VERSION} = "3.7" ]]; then
-            export NUMPY_VERSION="1.20"
-          elif [[ ${PYTHON_VERSION} = "3.8" ]]; then
+          if [[ ${PYTHON_VERSION} = "3.8" ]]; then
             export NUMPY_VERSION="1.22"
           elif [[ ${PYTHON_VERSION} = "3.9" ]]; then
             export NUMPY_VERSION="1.22"
           elif [[ ${PYTHON_VERSION} = "3.10" ]]; then
             export NUMPY_VERSION="1.22"
           elif [[ ${PYTHON_VERSION} = "3.11" ]]; then
-            export NUMPY_VERSION="1.24"
+            export NUMPY_VERSION="1.23"
+          elif [[ ${PYTHON_VERSION} = "3.12" ]]; then
+            export NUMPY_VERSION="1.26"
           else
-            echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 7, 8 or 9"
+            echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 8, 9, 10, 11 or 12"
             exit 1
           fi
         else
@@ -108,9 +108,15 @@ runs:
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.11" ]]; then
-            if [[ ${NPVERSION} < '24' ]]; then
-              echo "With Python 3.11, Numpy can be only 1.24."
-              export NPVERSION='24'
+            if [[ ${NPVERSION} < '23' ]]; then
+              echo "With Python 3.11, Numpy can be only 1.23."
+              export NPVERSION='23'
+            fi
+          fi
+          if [[ ${PYTHON_VERSION} = "3.12" ]]; then
+            if [[ ${NPVERSION} < '26' ]]; then
+              echo "With Python 3.12, Numpy can be only 1.26."
+              export NPVERSION='26'
             fi
           fi
           export NUMPY_VERSION="1.${NPVERSION}"
@@ -127,7 +133,6 @@ runs:
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
-        export CONDA_OVERRIDE_CUDA=""
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
         echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
