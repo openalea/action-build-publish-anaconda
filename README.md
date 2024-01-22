@@ -43,7 +43,7 @@ jobs:
       max-parallel: 6
       matrix:
         os: [ ubuntu-latest , macos-latest , windows-latest]
-        python-minor-version: [7, 8, 9, 10, 11]
+        python-minor-version: [8, 9, 10, 11, 12]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
         exclude:
@@ -55,6 +55,8 @@ jobs:
             python-minor-version: 9
           - isMaster: false
             python-minor-version: 11
+          - isMaster: false
+            python-minor-version: 12
           - isMaster: false
             os: macos-latest
             python-minor-version: 10
