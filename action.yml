@@ -13,6 +13,10 @@ inputs:
     description: "Uses mamba to setup miniconda and install in a faster way or not. Uses the latest available version. Default `false`."
     required: false
     default: 'false'
+  condapython:
+    description: 'Python3 minor version used for conda. Default `10`.'
+    required: false
+    default: '10'
   python:
     description: 'Python3 minor version used for building. Default `10`.'
     required: false
@@ -74,14 +78,14 @@ runs:
       uses: conda-incubator/setup-miniconda@v3.0.1
       if: ${{ inputs.mamba != 'true' }}
       with:
-        python-version: 3.${{ inputs.python }}
+        python-version: 3.${{ inputs.condapython }}
         channels: ${{ inputs.channels }}
         auto-update-conda: false        
     - name: Setup Mamba environment
       uses: conda-incubator/setup-miniconda@v3.0.1
       if: ${{ inputs.mamba == 'true' }}
       with:
-        python-version: 3.${{ inputs.python }}
+        python-version: 3.${{ inputs.condapython }}
         channels: ${{ inputs.channels }}
         channel-priority: true
         auto-update-conda: false
