@@ -99,10 +99,10 @@ runs:
     - name: Numpy selection
       id: numpy-selection
       run: | 
-        echo "::group::Numpy selection for Python 3.${{ inputs.python }}"
-        if [[ ${{ inputs.numpy }} = '' ]]; then
+        export PYTHON_VERSION="3.${{ inputs.python }}"
+        echo "::group::Numpy selection for Python ${PYTHON_VERSION}"
+        if [[ '${{ inputs.numpy }}' = '0' ]]; then
           echo "Associate numpy version to python version provided"
-          export PYTHON_VERSION="3.${{ inputs.python }}"
           if [[ ${PYTHON_VERSION} = "3.8" ]]; then
             export NUMPY_VERSION="1.22"
           elif [[ ${PYTHON_VERSION} = "3.9" ]]; then
@@ -122,25 +122,25 @@ runs:
           export NPVERSION="${{ inputs.numpy }}"
           if [[ ${PYTHON_VERSION} = "3.7" ]]; then
             if [[ ${NPVERSION} > '20' ]]; then
-              echo "With Python 3.7, Numpy can be only 1.20."
+              echo "With Python 3.7, Numpy version can only be 1.20."
               export NPVERSION='20'
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.11" ]]; then
             if [[ ${NPVERSION} < '23' ]]; then
-              echo "With Python 3.11, Numpy can be only 1.23."
+              echo "With Python 3.11, Numpy version can only be 1.23."
               export NPVERSION='23'
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.12" ]]; then
             if [[ ${NPVERSION} < '26' ]]; then
-              echo "With Python 3.12, Numpy can be only 1.26."
+              echo "With Python 3.12, Numpy version can only be 1.26."
               export NPVERSION='26'
             fi
           fi
           export NUMPY_VERSION="1.${NPVERSION}"
-          echo "Numpy version provided is ${NUMPY_VERSION}"
         fi
+        echo "Numpy version selected is ${NUMPY_VERSION}"
         echo "numpy_version=${NUMPY_VERSION}" >> $GITHUB_OUTPUT
         echo "::endgroup::"
       shell: bash -l {0}  
