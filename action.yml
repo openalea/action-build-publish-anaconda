@@ -99,7 +99,7 @@ runs:
     - name: Numpy selection
       id: numpy-selection
       run: | 
-        echo "::group::Numpy selection"
+        echo "::group::Numpy selection for Python 3.${{ inputs.python }}"
         if [[ ${{ inputs.numpy }} = '' ]]; then
           echo "Associate numpy version to python version provided"
           export PYTHON_VERSION="3.${{ inputs.python }}"
@@ -118,6 +118,7 @@ runs:
             exit 1
           fi
         else
+          echo "Numpy version 1.${{ inputs.numpy }} requested"
           export NPVERSION="${{ inputs.numpy }}"
           if [[ ${PYTHON_VERSION} = "3.7" ]]; then
             if [[ ${NPVERSION} > '20' ]]; then
