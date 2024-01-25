@@ -44,6 +44,14 @@ inputs:
     description: Build options for conda build.
     required: false
     default: ''
+  rtds_webhook_url:
+    description: Webhook url to generate the doc on readthedocs.
+    required: false
+    default: ''
+  rtds_webhook_token:
+    description: Webhook token to generate the doc on readthedocs.
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -172,3 +180,11 @@ runs:
         done
         echo "::endgroup::"   
       shell: bash -l {0}
+    - name: Trigger RTDs build
+      id: readthedocs-trigger
+      if: ${{ inputs.rtds_webhook_url != '' &&  inputs.rtds_webhook_token == ''}}
+      uses: dfm/rtds-action@v1
+      with:
+        webhook_url: ${{ inputs.rtds_webhook_url }}
+        webhook_token: ${{ rtds_webhook_url.rtds_webhook_token }}
+        commit_ref: ${{ github.ref }}
