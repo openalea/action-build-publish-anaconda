@@ -89,7 +89,7 @@ runs:
         channels: ${{ inputs.channels }}
         channel-priority: true
         auto-update-conda: false
-        miniforge-variant: Miniforge
+        miniforge-variant: Miniforge3
     - name: Setup conda-build and anaconda-client
       run:  | 
         echo "::group::Setup conda-build and anaconda-client"
