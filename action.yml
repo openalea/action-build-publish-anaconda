@@ -80,7 +80,9 @@ runs:
       with:
         python-version: 3.${{ inputs.condapython }}
         channels: ${{ inputs.channels }}
-        auto-update-conda: false        
+        auto-update-conda: false
+    - name: Set windows env before miniconda
+      uses: ilammy/msvc-dev-cmd@v1
     - name: Setup Mamba environment
       uses: conda-incubator/setup-miniconda@v3.0.1
       if: ${{ inputs.mamba == 'true' }}
