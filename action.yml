@@ -2,7 +2,7 @@ name: 'build-publish-anaconda'
 description: 'Build and Publish anaconda package'
 author: 'Thomas Arsouze'
 branding:
-  icon: 'package'  
+  icon: 'package'
   color: 'green'
 inputs:
   conda:
@@ -81,30 +81,32 @@ runs:
       run: rm /usr/bin/link
       shell: bash
     - name: Setup Conda environment
-      uses: conda-incubator/setup-miniconda@v3.0.1
+      uses: conda-incubator/setup-miniconda@v3
       if: ${{ inputs.mamba != 'true' }}
       with:
         python-version: 3.${{ inputs.condapython }}
         channels: ${{ inputs.channels }}
         auto-update-conda: false
+        miniforge-version: latest
     - name: Setup Mamba environment
-      uses: conda-incubator/setup-miniconda@v3.0.1
+      uses: conda-incubator/setup-miniconda@v3
       if: ${{ inputs.mamba == 'true' }}
       with:
         python-version: 3.${{ inputs.condapython }}
         channels: ${{ inputs.channels }}
         channel-priority: true
         auto-update-conda: false
-        miniforge-variant: Miniforge3
+        mamba-version: "*"
+        miniforge-version: latest
     - name: Setup conda-build and anaconda-client
-      run:  | 
+      run:  |
         echo "::group::Setup conda-build and anaconda-client"
         conda install -q conda-build anaconda-client
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Numpy selection
       id: numpy-selection
-      run: | 
+      run: |
         export PYTHON_VERSION="3.${{ inputs.python }}"
         echo "::group::Numpy selection for Python ${PYTHON_VERSION}"
         if [[ '${{ inputs.numpy }}' = '0' ]]; then
@@ -149,11 +151,11 @@ runs:
         echo "Numpy version selected is ${NUMPY_VERSION}"
         echo "numpy_version=${NUMPY_VERSION}" >> $GITHUB_OUTPUT
         echo "::endgroup::"
-      shell: bash -l {0}  
+      shell: bash -l {0}
     - name: Package compilation
       id: package-compilation
       working-directory: ./${{ inputs.conda }}
-      run: | 
+      run: |
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
@@ -161,13 +163,13 @@ runs:
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
         echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
-        echo "::endgroup::"        
+        echo "::endgroup::"
       shell: bash -l {0}
     - name: Package uploading
       id: package-uploading
       if: ${{ inputs.publish == 'true' }}
       working-directory: ./${{ inputs.conda }}
-      run: | 
+      run: |
         echo "::group::Conda packages uploading"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*; do
@@ -176,5 +178,5 @@ runs:
             anaconda upload --skip-existing --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
           fi
         done
-        echo "::endgroup::"   
+        echo "::endgroup::"
       shell: bash -l {0}
