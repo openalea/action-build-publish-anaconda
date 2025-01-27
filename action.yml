@@ -88,6 +88,7 @@ runs:
         channels: ${{ inputs.channels }}
         auto-update-conda: false
         miniforge-version: latest
+        conda-remove-defaults: "true"
     - name: Setup Mamba environment
       uses: conda-incubator/setup-miniconda@v3
       if: ${{ inputs.mamba == 'true' }}
@@ -98,6 +99,7 @@ runs:
         auto-update-conda: false
         mamba-version: "*"
         miniforge-version: latest
+        conda-remove-defaults: "true"
     - name: Setup conda-build and anaconda-client
       run:  |
         echo "::group::Setup conda-build and anaconda-client"
