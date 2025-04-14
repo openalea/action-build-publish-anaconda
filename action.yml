@@ -33,7 +33,7 @@ inputs:
     required: false
     default: 'conda-forge'
   publish:
-    description: 'Wether we publish the package build on anaconda cloud or not. Default `true`.'
+    description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
     required: false
     default: 'true'
   label:
@@ -74,6 +74,8 @@ runs:
         fi
         echo "::endgroup::"
       shell: bash
+    - name: get_version
+      uses: battila7/get-version-action@v2
     - name: Set windows env before miniconda
       uses: ilammy/msvc-dev-cmd@v1
     - name: remove /usr/bin/link that shadow ms link.exe on windows runners
@@ -161,9 +163,9 @@ runs:
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
-        export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0)
+        export GIT_DESCRIBE_TAG=${{ steps.get_version.outputs.version-without-v }}
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
-        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
+        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
         echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
         echo "::endgroup::"
