@@ -161,6 +161,7 @@ runs:
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
+        export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0)
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
