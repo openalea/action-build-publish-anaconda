@@ -123,8 +123,10 @@ runs:
             export NUMPY_VERSION="1.23"
           elif [[ ${PYTHON_VERSION} = "3.12" ]]; then
             export NUMPY_VERSION="1.26"
+          elif [[ ${PYTHON_VERSION} = "3.13" ]]; then
+            export NUMPY_VERSION="2"
           else
-            echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 8, 9, 10, 11 or 12"
+            echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 8, 9, 10, 11, 12, 13"
             exit 1
           fi
         else
@@ -133,22 +135,25 @@ runs:
           if [[ ${PYTHON_VERSION} = "3.7" ]]; then
             if [[ ${NPVERSION} > '20' ]]; then
               echo "With Python 3.7, Numpy version can only be 1.20."
-              export NPVERSION='20'
+              export NUMPY_VERSION='1.20'
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.11" ]]; then
             if [[ ${NPVERSION} < '23' ]]; then
               echo "With Python 3.11, Numpy version can only be 1.23."
-              export NPVERSION='23'
+              export NUMPY_VERSION='1.23'
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.12" ]]; then
             if [[ ${NPVERSION} < '26' ]]; then
               echo "With Python 3.12, Numpy version can only be 1.26."
-              export NPVERSION='26'
+              export NUMPY_VERSION='1.26'
             fi
           fi
-          export NUMPY_VERSION="1.${NPVERSION}"
+          if [[ ${PYTHON_VERSION} = "3.13" ]]; then
+            echo "With Python 3.13, Numpy version can only be 2."
+            export NUMPY_VERSION='2'
+          fi
         fi
         echo "Numpy version selected is ${NUMPY_VERSION}"
         echo "numpy_version=${NUMPY_VERSION}" >> $GITHUB_OUTPUT
@@ -161,7 +166,6 @@ runs:
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
-        export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0)
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
