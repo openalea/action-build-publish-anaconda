@@ -132,6 +132,7 @@ runs:
         else
           echo "Numpy version 1.${{ inputs.numpy }} requested"
           export NPVERSION="${{ inputs.numpy }}"
+          export NUMPY_VERSION="1.${NPVERSION}"
           if [[ ${PYTHON_VERSION} = "3.7" ]]; then
             if [[ ${NPVERSION} > '20' ]]; then
               echo "With Python 3.7, Numpy version can only be 1.20."
