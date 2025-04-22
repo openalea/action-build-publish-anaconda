@@ -74,16 +74,6 @@ runs:
         fi
         echo "::endgroup::"
       shell: bash
-    - name: Set windows env before miniconda
-      if: matrix.os == 'windows-latest'
-      uses: TheMrMilchmann/setup-msvc-dev@v3
-      with:
-        arch: x64
-        sdk: 10.0.22000.0
-    - name: remove /usr/bin/link that shadow ms link.exe on windows runners
-      if: matrix.os == 'windows-latest'
-      run: rm /usr/bin/link
-      shell: bash
     - name: Setup Conda environment
       uses: conda-incubator/setup-miniconda@v3
       if: ${{ inputs.mamba != 'true' }}
