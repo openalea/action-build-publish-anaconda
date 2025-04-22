@@ -75,6 +75,7 @@ runs:
         echo "::endgroup::"
       shell: bash
     - name: Set windows env before miniconda
+      if: matrix.os == 'windows-latest'
       uses: TheMrMilchmann/setup-msvc-dev@v3
       with:
         arch: x64
