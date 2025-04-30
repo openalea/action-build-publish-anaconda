@@ -22,7 +22,7 @@ inputs:
     required: false
     default: '10'
   numpy:
-    description: 'Numpy minor version used for building. Default is fixed by Python version.'
+    description: 'Numpy (full, i.e. x.x) version used for building. Default is fixed by Python version.'
     required: false
     default: ''
   token:
@@ -124,36 +124,31 @@ runs:
           elif [[ ${PYTHON_VERSION} = "3.12" ]]; then
             export NUMPY_VERSION="1.26"
           elif [[ ${PYTHON_VERSION} = "3.13" ]]; then
-            export NUMPY_VERSION="2"
+            export NUMPY_VERSION="2.0"
           else
             echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 8, 9, 10, 11, 12, 13"
             exit 1
           fi
         else
-          echo "Numpy version 1.${{ inputs.numpy }} requested"
-          export NPVERSION="${{ inputs.numpy }}"
-          export NUMPY_VERSION="1.${NPVERSION}"
-          if [[ ${PYTHON_VERSION} = "3.7" ]]; then
-            if [[ ${NPVERSION} > '20' ]]; then
-              echo "With Python 3.7, Numpy version can only be 1.20."
-              export NUMPY_VERSION='1.20'
-            fi
-          fi
+          echo "Numpy version ${{ inputs.numpy }} requested"
+          export NUMPY_VERSION="${{ inputs.numpy }}"
           if [[ ${PYTHON_VERSION} = "3.11" ]]; then
-            if [[ ${NPVERSION} < '23' ]]; then
+            if [[ ${NUMPY_VERSION} < '1.23' ]]; then
               echo "With Python 3.11, Numpy version can only be 1.23."
               export NUMPY_VERSION='1.23'
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.12" ]]; then
-            if [[ ${NPVERSION} < '26' ]]; then
+            if [[ ${NUMPY_VERSION} < '1.26' ]]; then
               echo "With Python 3.12, Numpy version can only be 1.26."
               export NUMPY_VERSION='1.26'
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.13" ]]; then
-            echo "With Python 3.13, Numpy version can only be 2."
-            export NUMPY_VERSION='2.*'
+            if [[ ${NUMPY_VERSION} < '2.0' ]]; then
+              echo "With Python 3.13, Numpy version can only be 2."
+              export NUMPY_VERSION='2.0'
+            fi
           fi
         fi
         echo "Numpy version selected is ${NUMPY_VERSION}"
