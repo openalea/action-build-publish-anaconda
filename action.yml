@@ -124,7 +124,7 @@ runs:
           elif [[ ${PYTHON_VERSION} = "3.12" ]]; then
             export NUMPY_VERSION="1.26"
           elif [[ ${PYTHON_VERSION} = "3.13" ]]; then
-            export NUMPY_VERSION="2.0"
+            export NUMPY_VERSION="2.2"
           else
             echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 8, 9, 10, 11, 12, 13"
             exit 1
@@ -145,9 +145,9 @@ runs:
             fi
           fi
           if [[ ${PYTHON_VERSION} = "3.13" ]]; then
-            if [[ ${NUMPY_VERSION} < '2.0' ]]; then
-              echo "With Python 3.13, Numpy version can only be 2."
-              export NUMPY_VERSION='2.0'
+            if [[ ${NUMPY_VERSION} < '2.2' ]]; then
+              echo "With Python 3.13, Numpy version can only be 2.2."
+              export NUMPY_VERSION='2.2'
             fi
           fi
         fi
