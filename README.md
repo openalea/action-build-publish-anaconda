@@ -1,7 +1,7 @@
 # Build and Publish Anaconda Package
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Github Action to build your software package and publish to an Anaconda repository. 
+A Github Action to build your software package and publish to an Anaconda repository.
 
 This action has been developed for the needs of [`OpenAlea` project](https://openalea.readthedocs.io/en/latest/). It is mostly inspired by existing projects such as [build-and-upload-conda-packages](https://github.com/marketplace/actions/build-and-upload-conda-packages) or [Publish Conda package to Anaconda.org](https://github.com/marketplace/actions/publish-conda-package-to-anaconda-org) and uses [Setup Miniconda](https://github.com/marketplace/actions/setup-miniconda).
 
@@ -31,9 +31,9 @@ on:
       - '**'
   pull_request:
     branches:
-      - '**'    
+      - '**'
   workflow_dispatch: # allows you to trigger manually
-    
+
 jobs:
   build-and-publish:
     name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
@@ -63,7 +63,7 @@ jobs:
           - isMaster: false
             os: windows-latest
             python-minor-version: 10
-        
+
 
     steps:
     - name: Checkout
@@ -79,7 +79,6 @@ jobs:
       uses: openalea/action-build-publish-anaconda@v0.1.4
       with:
         conda: conda
-        mamba: true
         python: ${{ matrix.python-minor-version }}
         numpy: '22'
         channels: openalea3, conda-forge
@@ -109,7 +108,7 @@ jobs:
 
 ### ANACONDA_TOKEN
 
-This token's purpose is to let your github project access your anaconda repository to publish your package on your channel once it has been successfully built. 
+This token's purpose is to let your github project access your anaconda repository to publish your package on your channel once it has been successfully built.
 
 1. Get an Anaconda token (don't forget to specify the read and write API access) at `anaconda.org/USERNAME/settings/access` and copy it.
 2. Let the github repository of your project access to this token: Add it to the Secrets (`Settings`->`Secrets`->`Actions`->`New repository secret`) of the Github repository as `ANACONDA_TOKEN`
@@ -121,7 +120,6 @@ The following inputs are available for this action:
 |`conda`| Directory with conda recipe (i.e. `meta.yml` file)| No | `.`|
 |`python`| Python3 minor version used for building | No | `9` |
 |`numpy`| Numpy minor version used for building | No | `''` (fixed by python version)|
-|`mamba`| Use mamba to setup miniconda and install in a faster way or not. Uses the latest available version. | No | `false`|
 |`token` | Anaconda access Token (cf. use process described [above](#anaconda_token))| Yes | |
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
 |`publish`| Wether we publish the package build on anaconda cloud or not | No | true |

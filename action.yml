@@ -9,10 +9,6 @@ inputs:
     description: "Directory with conda recipe. Default `.` ."
     required: false
     default: '.'
-  mamba:
-    description: "Uses mamba to setup miniconda and install in a faster way or not. Uses the latest available version. Default `false`."
-    required: false
-    default: 'false'
   condapython:
     description: 'Python3 minor version used for conda. Default `10`.'
     required: false
@@ -82,22 +78,10 @@ runs:
       shell: bash
     - name: Setup Conda environment
       uses: conda-incubator/setup-miniconda@v3
-      if: ${{ inputs.mamba != 'true' }}
       with:
         python-version: 3.${{ inputs.condapython }}
         channels: ${{ inputs.channels }}
         auto-update-conda: false
-        miniforge-version: latest
-        conda-remove-defaults: "true"
-    - name: Setup Mamba environment
-      uses: conda-incubator/setup-miniconda@v3
-      if: ${{ inputs.mamba == 'true' }}
-      with:
-        python-version: 3.${{ inputs.condapython }}
-        channels: ${{ inputs.channels }}
-        channel-priority: true
-        auto-update-conda: false
-        mamba-version: "*"
         miniforge-version: latest
         conda-remove-defaults: "true"
     - name: Setup conda-build and anaconda-client
