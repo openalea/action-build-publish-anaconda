@@ -86,11 +86,12 @@ runs:
       run: |
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
+        export PYTHON_VARIANT="3.${{ inputs.python }}.* *_cpython"
         export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0 || echo "no-tag")
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with Python ${PYTHON_VERSION} and git tag ${GIT_DESCRIBE_TAG}"
-        conda build . --output-folder "$out_dir" --python "$PYTHON_VERSION" -m "$CONFIG" ${{ inputs.buildoptions }}
+        conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" -m "$CONFIG" ${{ inputs.buildoptions }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
