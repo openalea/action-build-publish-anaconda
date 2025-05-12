@@ -36,7 +36,7 @@ inputs:
     description: Label of conda package published. Default `main`.
     required: false
     default: main
-  buildoptions:
+  build-options:
     description: Build options for conda build.
     required: false
     default: ''
@@ -143,7 +143,7 @@ runs:
         export GIT_DESCRIBE_TAG=""
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG}"
-        conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.buildoptions }}
+        conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.build-options }}
         echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
         echo "::endgroup::"
       shell: bash -l {0}

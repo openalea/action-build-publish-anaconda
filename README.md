@@ -124,3 +124,4 @@ The following inputs are available for this action:
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
 |`publish`| Wether we publish the package build on anaconda cloud or not | No | true |
 |`labels` | Label of conda package published | No |`main`|
+|`build-options` | Extra options for conda build | No | `--no-test` |
