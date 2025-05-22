@@ -23,7 +23,7 @@ inputs:
   channels:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
-    default: 'conda-forge'
+    default: 'nodefault, openalea3, conda-forge'
   publish:
     description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
     required: false
