@@ -23,7 +23,7 @@ inputs:
   channels:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
-    default: 'nodefault, openalea3, conda-forge'
+    default: 'openalea3, conda-forge'
   publish:
     description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
     required: false
@@ -74,6 +74,7 @@ runs:
         auto-update-conda: false
         miniforge-version: latest
         conda-remove-defaults: "true"
+        channel-priority: strict
     - name: Setup conda-build and anaconda-client
       run:  |
         echo "::group::Setup conda-build and anaconda-client"
