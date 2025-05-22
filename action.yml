@@ -78,6 +78,7 @@ runs:
         auto-update-conda: false
         miniforge-version: latest
         conda-remove-defaults: "true"
+        channel-priority: strict
     - name: Setup conda-build and anaconda-client
       run:  |
         echo "::group::Setup conda-build and anaconda-client"
