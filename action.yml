@@ -106,7 +106,7 @@ runs:
         for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*; do
           if [ "${BUILD_FILE: -6}" == ".conda" ]; then
             echo "Upload package ${BUILD_FILE} to anaconda with label ${{ inputs.label }} on channel associated to the given token."
-            anaconda upload --skip-existing --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
+            anaconda upload --force --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
           fi
         done
         echo "::endgroup::"
