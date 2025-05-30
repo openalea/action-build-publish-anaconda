@@ -93,7 +93,7 @@ runs:
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export PYTHON_VARIANT="3.${{ inputs.python }}.* *_cpython"
         export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0 || echo "dev")
-        export BUILD_SUFFIX={{ inputs.suffix }}
+        export BUILD_SUFFIX="${{ inputs.suffix }}"
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and git version tag ${GIT_DESCRIBE_TAG} and build suffix ${BUILD_SUFFIX}"
