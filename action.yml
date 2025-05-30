@@ -32,7 +32,7 @@ inputs:
     description: Label of conda package published. Default `main`.
     required: false
     default: main
-  buildoptions:
+  build-options:
     description: Build options for conda build.
     required: false
     default: ''
