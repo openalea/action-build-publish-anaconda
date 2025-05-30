@@ -31,7 +31,11 @@ inputs:
   label:
     description: Label of conda package published. Default `main`.
     required: false
-    default: main
+    default: 'main'
+  suffix:
+    description: Suffix of conda package published. Default `` (no suffix).
+    required: false
+    default: '' 
   build-options:
     description: Build options for conda build.
     required: false
@@ -89,9 +93,10 @@ runs:
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export PYTHON_VARIANT="3.${{ inputs.python }}.* *_cpython"
         export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0 || echo "dev")
+        export BUILD_SUFFIX={{ inputs.suffix }}
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
-        echo "Running 'conda build' with Python ${PYTHON_VERSION} and git tag ${GIT_DESCRIBE_TAG}"
+        echo "Running 'conda build' with python ${PYTHON_VERSION} and git version tag ${GIT_DESCRIBE_TAG} and build suffix ${BUILD_SUFFIX}"
         conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" -m "$CONFIG" ${{ inputs.buildoptions }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
