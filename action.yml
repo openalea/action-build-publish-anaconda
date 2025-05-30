@@ -10,13 +10,13 @@ inputs:
     required: false
     default: '.'
   condapython:
-    description: 'Python3 minor version used for conda. Default `10`.'
+    description: 'Python3 minor version used for conda. Default `12`.'
     required: false
-    default: '10'
+    default: '12'
   python:
-    description: 'Python3 minor version used for building. Default `10`.'
+    description: 'Python3 minor version used for building. Default `12`.'
     required: false
-    default: '10'
+    default: '12'
   token:
     description: 'Anaconda access Token (required)'
     required: true
@@ -73,7 +73,7 @@ runs:
         channels: ${{ inputs.channels }}
         auto-update-conda: false
         miniforge-version: latest
-        conda-remove-defaults: "true"
+        conda-remove-defaults: true
         channel-priority: strict
     - name: Setup conda-build and anaconda-client
       run:  |
