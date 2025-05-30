@@ -35,7 +35,11 @@ inputs:
   label:
     description: Label of conda package published. Default `main`.
     required: false
-    default: main
+    default: 'main'
+  suffix:
+    description: Suffix of conda package published. Default `` (no suffix).
+    required: false
+    default: '' 
   build-options:
     description: Build options for conda build.
     required: false
@@ -143,6 +147,7 @@ runs:
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
         export GIT_DESCRIBE_TAG="dev"
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
+        export BUILD_SUFFIX={{ inputs.suffix }}
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.build-options }}
         echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
