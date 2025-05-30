@@ -146,7 +146,7 @@ runs:
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
         export GIT_DESCRIBE_TAG="dev"
-        export BUILD_SUFFIX={{ inputs.suffix }}
+        export BUILD_SUFFIX="${{ inputs.suffix }}"
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
         echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG} and build suffix ${BUILD_SUFFIX}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.build-options }}
