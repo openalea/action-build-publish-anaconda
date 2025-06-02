@@ -187,6 +187,6 @@ runs:
         export VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
         export PACKAGE_SPEC="openalea3/${PACKAGE_NAME}/${VERSION}"
         echo "Promoting package with spec : ${PACKAGE_SPEC}"
-        anaconda copy "${PACKAGE_SPEC}" --from-label latest --to-label main
+        anaconda copy "${PACKAGE_SPEC}" --from-label latest --to-label main --update
         echo "::endgroup::"
       shell: bash -l {0}
