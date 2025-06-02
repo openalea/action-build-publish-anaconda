@@ -184,9 +184,9 @@ runs:
         echo "::group::Conda packages promotion"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         export PACKAGE_NAME=$(grep '^name =' pyproject.toml | cut -d'"' -f2)
-        export VERSION=$(git describe --tags --abbrev=0)
-        export PACKAGE_SPEC="openalea3/${{ PACKAGE_NAME }}/${{ VERSION }}"
+        export VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+        export PACKAGE_SPEC="openalea3/${PACKAGE_NAME}/${VERSION}"
         echo "Promoting package with spec : ${PACKAGE_SPEC}"
-        anaconda copy ${{ PACKAGE_SPEC }} --from-label latest --to-label main
+        anaconda copy "${PACKAGE_SPEC}" --from-label latest --to-label main
         echo "::endgroup::"
       shell: bash -l {0}
