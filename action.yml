@@ -24,18 +24,26 @@ inputs:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
     default: 'openalea3, conda-forge'
+  build:
+    description: 'Whether we build the package or not. Default `true`.'
+    required: false
+    default: 'true'
   publish:
     description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
     required: false
     default: 'true'
   label:
-    description: Label of conda package published. Default `main`.
+    description: Label of conda package published. Default `latest`.
     required: false
-    default: 'main'
+    default: 'latest'
   suffix:
     description: Suffix of conda package published. Default `` (no suffix).
     required: false
-    default: '' 
+    default: ''
+  promote:
+    description: 'Whether we promote the package from latest to main. Default `false`.'
+    required: false
+    default: 'true'    
   build-options:
     description: Build options for conda build.
     required: false
@@ -87,6 +95,7 @@ runs:
       shell: bash -l {0}
     - name: Package compilation
       id: package-compilation
+      if: ${{ inputs.build == 'true' }}
       working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Conda packages building"
@@ -114,5 +123,18 @@ runs:
             anaconda upload --force --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
           fi
         done
+        echo "::endgroup::"
+      shell: bash -l {0}
+    - name: Package promotion
+      id: package-promotion
+      if: ${{ inputs.promote == 'true' }}
+      run: |
+        echo "::group::Conda packages promotion"
+        export ANACONDA_API_TOKEN=${{ inputs.token }}
+        export PACKAGE_NAME=$(grep '^name =' pyproject.toml | cut -d'"' -f2)
+        export VERSION=$(git describe --tags --abbrev=0)
+        export PACKAGE_SPEC="openalea3/${{ PACKAGE_NAME }}/${{ VERSION }}
+        echo "Promoting package with spec : ${PACKAGE_SPEC}"
+        anaconda copy ${{ PACKAGE_SPEC }} --from-label latest --to-label main
         echo "::endgroup::"
       shell: bash -l {0}
