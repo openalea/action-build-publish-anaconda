@@ -136,5 +136,6 @@ runs:
         export PACKAGE_SPEC="openalea3/${PACKAGE_NAME}/${VERSION}"
         echo "Promoting package with spec : ${PACKAGE_SPEC}"
         anaconda copy "${PACKAGE_SPEC}" --from-label latest --to-label main --replace
+        anaconda copy "${PACKAGE_SPEC}" --from-label main --to-label latest --update
         echo "::endgroup::"
       shell: bash -l {0}
