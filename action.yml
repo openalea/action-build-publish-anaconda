@@ -66,10 +66,10 @@ runs:
       run: |
         echo "::group::Checking the conda directory if the file meta.yaml exists"
         if [ ! -f meta.yaml ]; then
-           echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
-           exit 1
+          echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
+          exit 1
         else
-           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
+          echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
         fi
         echo "::endgroup::"
       shell: bash
@@ -80,10 +80,10 @@ runs:
       run: |
         echo "::group::Checking if the token variable is correclty set"
         if [[ "${{ inputs.token }}" == "" ]]; then
-           echo "No token variable is set for upload."
-           exit 1
+          echo "No token variable is set for upload."
+          exit 1
         else
-           echo "Token is correctly set."
+          echo "Token is correctly set."
         fi
         echo "::endgroup::"
       shell: bash
@@ -98,14 +98,14 @@ runs:
         channel-priority: strict
     - name: Setup anaconda-client
       if: ${{ inputs.publish == 'true' || inputs.skip_promote == 'false' }}
-      run:  |
+      run: |
         echo "::group::Setup anaconda-client"
         conda install -q anaconda-client
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Setup conda-build
       if: ${{ inputs.skip_build == 'false' }}
-      run:  |
+      run: |
         echo "::group::Setup conda-build"
         conda install -q conda-build conda-forge-pinning
     - name: Package compilation
@@ -136,7 +136,6 @@ runs:
           export BUILD_SUFFIX="${{ inputs.suffix_if_latest }}"
         fi
         export PYTHON_VERSION="3.${{ inputs.python }}"
-        
         for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda; do
           if [ -z "${BUILD_SUFFIX}" ]; then
             echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
@@ -159,7 +158,7 @@ runs:
       working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Upload copy on latest"
-        export ANACONDA_API_TOKEN=${{ inputs.token }}  
+        export ANACONDA_API_TOKEN=${{ inputs.token }}
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export BUILD_SUFFIX="${{ inputs.suffix_if_latest }}"
         export CONDA_PYTHON_VERSION="3.${{ inputs.condapython }}"
