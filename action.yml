@@ -6,9 +6,9 @@ branding:
   color: 'green'
 inputs:
   conda:
-    description: "Directory with conda recipe. Default `.` ."
+    description: "Sub_directory hosting conda recipe. Default `conda` ."
     required: false
-    default: '.'
+    default: 'conda'
   condapython:
     description: 'Python3 minor version used for conda. Default `12`.'
     required: false
@@ -28,30 +28,39 @@ inputs:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
     default: 'conda-forge'
-  build:
-    description: 'Whether we build the package or not. Default `true`.'
+  build-options:
+    description: 'Build options for conda build.'
     required: false
-    default: 'true'
-  publish:
-    description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
-    required: false
-    default: 'true'
+    default: '--no-test'
   label:
-    description: Label of conda package published. Default `latest`.
+    description: 'Label of conda package published. Default `latest`.'
     required: false
     default: 'latest'
-  suffix:
-    description: Suffix of conda package published. Default `` (no suffix).
+  suffix_if_latest:
+    description: 'Suffix to be added after build_string before uploading on latest. Default `_nightly`.'
     required: false
-    default: ''
-  promote:
-    description: 'Whether we promote the package from latest to main. Default `false`.'
+    default: '_nightly'
+  promote_from:
+    description: 'Label of Annaconda channel to promote from if promotion to main is activated. Default is "rc" (release candidate)'
+    default: 'rc'
     required: false
-    default: 'true'    
-  build-options:
-    description: Build options for conda build.
+  skip_build:
+    description: 'Whether conda build step should be skipped. Default is "false"'
+    default: 'false'
     required: false
-    default: ''
+  publish:
+    description: 'Whether Anaconda publication step should be run. Default is "true"'
+    default: 'true'
+    required: false
+  copy_on_latest:
+    description: 'Whether a publication on latest is required, in addition to publication on a different label. Default is "false"'
+    default: 'false'
+    required: false
+  skip_promote:
+    description: 'Whether promotion to label main should be skipped. Default is "true"'
+    default: 'true'
+    required: false
+
 runs:
   using: "composite"
   steps:
@@ -91,10 +100,18 @@ runs:
         miniforge-version: latest
         conda-remove-defaults: true
         channel-priority: strict
-    - name: Setup conda-build and anaconda-client
+    - name: Setup anaconda-client
+      if: ${{ (inputs.publish == 'true') || (inputs.skip_promote == 'false') }}
       run:  |
-        echo "::group::Setup conda-build and anaconda-client"
-        conda install -q conda-build anaconda-client
+        echo "::group::Setup anaconda-client"
+        conda install -q anaconda-client
+        echo "::endgroup::"
+      shell: bash -l {0}
+    - name: Setup conda-build
+      if: ${{ inputs.skip_build == 'false' }}
+      run:  |
+        echo "::group::Setup conda-build"
+        conda install -q conda-build
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Numpy selection
@@ -148,16 +165,15 @@ runs:
       shell: bash -l {0}
     - name: Package compilation
       id: package-compilation
-      if: ${{ inputs.build == 'true' }}
+      if: ${{ inputs.skip_build == 'false' }}
       working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
         export GIT_DESCRIBE_TAG="dev"
-        export BUILD_SUFFIX="${{ inputs.suffix }}"
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
-        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG} and build suffix ${BUILD_SUFFIX}"
+        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.build-options }}
         echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
         echo "::endgroup::"
@@ -169,17 +185,54 @@ runs:
       run: |
         echo "::group::Conda packages uploading"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*; do
-          if [ "${BUILD_FILE: -6}" == ".conda" ]; then
-            echo "Upload package ${BUILD_FILE} to anaconda with label ${{ inputs.label }} on channel associated to the given token."
-            anaconda upload --force --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
+        export BUILD_SUFFIX=""
+        if [ "${{ inputs.label }}" == "latest" ]; then
+          export BUILD_SUFFIX="${{ inputs.suffix_if_latest }}"
+        fi
+        export PYTHON_VERSION="3.${{ inputs.python }}"
+        
+        for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda; do
+          if [ -z "${BUILD_SUFFIX}" ]; then
+            echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
+            anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}"
+          else
+            DIRNAME=$(dirname "${BUILD_FILE}")
+            BASENAME=$(basename "${BUILD_FILE}" .conda)
+            SUFFIXED_FILE="${DIRNAME}/${BASENAME}${BUILD_SUFFIX}.conda"
+            echo "Creating suffixed file: ${SUFFIXED_FILE}"
+            cp "${BUILD_FILE}" "${SUFFIXED_FILE}"
+            echo "Upload file ${SUFFIXED_FILE} to Anaconda on label ${{ inputs.label }}"
+            anaconda upload --force --no-progress --label "${{ inputs.label }}" "${SUFFIXED_FILE}"
           fi
         done
         echo "::endgroup::"
       shell: bash -l {0}
+    - name: Copy on latest
+      id: copy-on-latest
+      if: ${{ inputs.copy_on_latest == 'true' }}
+      working-directory: ./${{ inputs.conda }}
+      run: |
+        echo "::group::Upload copy on latest"
+        export ANACONDA_API_TOKEN=${{ inputs.token }}  
+        export PYTHON_VERSION="3.${{ inputs.python }}"
+        export BUILD_SUFFIX="${{ inputs.suffix_if_latest }}"
+        export CONDA_PYTHON_VERSION="3.${{ inputs.condapython }}"
+        if [ "${PYTHON_VERSION}" == "${CONDA_PYTHON_VERSION}"]; then
+          for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda; do
+            DIRNAME=$(dirname "${BUILD_FILE}")
+            BASENAME=$(basename "${BUILD_FILE}" .conda)
+            SUFFIXED_FILE="${DIRNAME}/${BASENAME}${BUILD_SUFFIX}.conda"
+            echo "Creating a copy to send to latest: ${SUFFIXED_FILE}"
+            cp "${BUILD_FILE}" "${SUFFIXED_FILE}"
+            echo "Upload file ${SUFFIXED_FILE} to Anaconda on label latest"
+            anaconda upload --force --no-progress --label latest "${SUFFIXED_FILE}"
+          done
+        fi
+        echo "::endgroup::"
+      shell: bash -l {0}
     - name: Package promotion
       id: package-promotion
-      if: ${{ inputs.promote == 'true' }}
+      if: ${{ inputs.skip_promote == 'false' }}
       run: |
         echo "::group::Conda packages promotion"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
@@ -187,7 +240,6 @@ runs:
         export VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
         export PACKAGE_SPEC="openalea3/${PACKAGE_NAME}/${VERSION}"
         echo "Promoting package with spec : ${PACKAGE_SPEC}"
-        anaconda copy "${PACKAGE_SPEC}" --from-label latest --to-label main --replace
-        anaconda copy "${PACKAGE_SPEC}" --from-label main --to-label latest --update
+        anaconda copy "${PACKAGE_SPEC}" --from-label "${{ inputs.promote_from }}" --to-label main --replace
         echo "::endgroup::"
       shell: bash -l {0}
