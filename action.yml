@@ -120,7 +120,7 @@ runs:
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and git version tag ${GIT_DESCRIBE_TAG} and build suffix ${BUILD_SUFFIX}"
-        conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" -m "$CONFIG" ${{ inputs.buildoptions }}
+        conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" -m "$CONFIG" ${{ inputs.build-options }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
