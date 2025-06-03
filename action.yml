@@ -108,6 +108,8 @@ runs:
       run: |
         echo "::group::Setup conda-build"
         conda install -q conda-build conda-forge-pinning
+        echo "::endgroup::"
+      shell: bash -l {0}
     - name: Package compilation
       id: package-compilation
       if: ${{ inputs.skip_build == 'false' }}
