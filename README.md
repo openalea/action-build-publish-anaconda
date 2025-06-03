@@ -43,14 +43,10 @@ jobs:
       max-parallel: 6
       matrix:
         os: [ ubuntu-latest , macos-latest , windows-latest]
-        python-minor-version: [8, 9, 10, 11, 12]
+        python-minor-version: [9, 10, 11, 12]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
         exclude:
-          - isMaster: false
-            python-minor-version: 7
-          - isMaster: false
-            python-minor-version: 8
           - isMaster: false
             python-minor-version: 9
           - isMaster: false
@@ -117,11 +113,16 @@ This token's purpose is to let your github project access your anaconda reposito
 The following inputs are available for this action:
 | Name | Description | Required | Default value |
 |------|-------------|----------|---------------|
-|`conda`| Directory with conda recipe (i.e. `meta.yml` file)| No | `.`|
-|`python`| Python3 minor version used for building | No | `9` |
+|`conda`| Directory with conda recipe (i.e. `meta.yml` file)| No | `conda`|
+|`python`| Python3 minor version targeted for build | No | `12` |
 |`numpy`| Numpy minor version used for building | No | `''` (fixed by python version)|
 |`token` | Anaconda access Token (cf. use process described [above](#anaconda_token))| Yes | |
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
-|`publish`| Wether we publish the package build on anaconda cloud or not | No | true |
-|`labels` | Label of conda package published | No |`main`|
+|`publish`| Wether we publish the package build on anaconda cloud or not | No | 'true' |
+|`label` | Label of conda package published | No |`latest`|
+|`suffix_if_latest` | Suffix to be added after build_string on latest | No |`_nightly`|
+|`promote_from` | Label of Annaconda channel to promote from | No |`rc`|
+|`skip_build` | Whether conda build step should be skipped | No |`false`|
+|`copy_on_latest` | Whether a co-publication on latest is required | No |`false`|
+|`skip_promote` | Whether promotion to label main should be skipped | No |`true`|
 |`build-options` | Extra options for conda build | No | `--no-test` |
