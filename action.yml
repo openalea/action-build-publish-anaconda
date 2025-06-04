@@ -32,10 +32,10 @@ inputs:
     description: 'Label of conda package published. Default `latest`.'
     required: false
     default: 'latest'
-  suffix_if_latest:
-    description: 'Suffix to be added after build_string before uploading on latest. Default `_nightly`.'
+  suffix:
+    description: 'Suffix for package build_string. Default `` (no suffix).'
     required: false
-    default: '_nightly'
+    default: ''
   promote_from:
     description: 'Label of Annaconda channel to promote from if promotion to main is activated. Default is "rc" (release candidate)'
     default: 'rc'
@@ -60,7 +60,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Check if meta.yml exists in ${{ inputs.conda }} directory
+    - name: Check if a compliant meta.yml exists in ${{ inputs.conda }} directory
       id: check-meta
       working-directory: ./${{ inputs.conda }}
       run: |
@@ -70,6 +70,18 @@ runs:
           exit 1
         else
           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
+        fi
+        echo "Checking if meta.yaml uses expected build.string..."
+        if ! grep -q "string: py{{ PY_VER }}{{ build_suffix }}" meta.yaml; then
+          echo "ERROR: meta.yaml must include a build string using environ.get('BUILD_SUFFIX')."
+          echo "Example:"
+          echo "{% set build_suffix = environ.get('BUILD_SUFFIX', '') %}"
+          echo "  ..."
+          echo "  build:"
+          echo "    string: py{{ PY_VER }}{{ build_suffix }}"
+          exit 1
+        else
+          echo "Found build string using BUILD_SUFFIX."
         fi
         echo "::endgroup::"
       shell: bash
@@ -119,6 +131,7 @@ runs:
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export PYTHON_VARIANT="3.${{ inputs.python }}.* *_cpython"
         export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0 || echo "dev")
+        export BUILD_SUFFIX="${{ inputs.suffix }}"
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and git version tag ${GIT_DESCRIBE_TAG} and build suffix ${BUILD_SUFFIX}"
@@ -133,24 +146,10 @@ runs:
       run: |
         echo "::group::Conda packages uploading"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        export BUILD_SUFFIX=""
-        if [ "${{ inputs.label }}" == "latest" ]; then
-          export BUILD_SUFFIX="${{ inputs.suffix_if_latest }}"
-        fi
         export PYTHON_VERSION="3.${{ inputs.python }}"
         for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda; do
-          if [ -z "${BUILD_SUFFIX}" ]; then
-            echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
-            anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}"
-          else
-            DIRNAME=$(dirname "${BUILD_FILE}")
-            BASENAME=$(basename "${BUILD_FILE}" .conda)
-            SUFFIXED_FILE="${DIRNAME}/${BASENAME}${BUILD_SUFFIX}.conda"
-            echo "Creating suffixed file: ${SUFFIXED_FILE}"
-            cp "${BUILD_FILE}" "${SUFFIXED_FILE}"
-            echo "Upload file ${SUFFIXED_FILE} to Anaconda on label ${{ inputs.label }}"
-            anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}"
-          fi
+          echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
+          anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}"
         done
         echo "::endgroup::"
       shell: bash -l {0}
@@ -159,20 +158,14 @@ runs:
       if: ${{ inputs.copy_on_latest == 'true' }}
       working-directory: ./${{ inputs.conda }}
       run: |
-        echo "::group::Upload copy on latest"
+        echo "::group::Upload on latest"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         export PYTHON_VERSION="3.${{ inputs.python }}"
-        export BUILD_SUFFIX="${{ inputs.suffix_if_latest }}"
         export CONDA_PYTHON_VERSION="3.${{ inputs.condapython }}"
         if [ "${PYTHON_VERSION}" == "${CONDA_PYTHON_VERSION}" ]; then
           for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda; do
-            DIRNAME=$(dirname "${BUILD_FILE}")
-            BASENAME=$(basename "${BUILD_FILE}" .conda)
-            SUFFIXED_FILE="${DIRNAME}/${BASENAME}${BUILD_SUFFIX}.conda"
-            echo "Creating a copy to send to latest: ${SUFFIXED_FILE}"
-            cp "${BUILD_FILE}" "${SUFFIXED_FILE}"
-            echo "Upload file ${SUFFIXED_FILE} to Anaconda on label latest"
-            anaconda upload --force --no-progress --label latest "${SUFFIXED_FILE}"
+            echo "Upload file ${BUILD_FILE} to Anaconda on label latest"
+            anaconda upload --force --no-progress --label "latest" "${BUILD_FILE}"
           done
         fi
         echo "::endgroup::"
