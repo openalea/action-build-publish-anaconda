@@ -208,7 +208,7 @@ runs:
         export UPLOAD_LINE=$(echo "$UPLOAD_OUTPUT" | grep 'Uploading file "')
         echo "Found upload line: $UPLOAD_LINE"
         # Extract filename
-        export UPLOADED_FILE=$(echo "$UPLOAD_LINE" | sed -E 's/.*Uploading file "(.*)".*/\1/')
+        export UPLOADED_PATH=$(echo "$UPLOAD_LINE" | sed -E 's/.*Uploading file "(.*)".*/\1/')
         echo "Uploaded file path: $UPLOADED_PATH"
         # Export for later steps
         echo "uploaded_path=$UPLOADED_PATH" >> "$GITHUB_OUTPUT"
@@ -223,8 +223,8 @@ runs:
         NEW_LABEL: latest
       run: |
         echo "::group::Add label latest to uploaded file"
-        echo "Adding label '${NEW_LABEL}' to ${UPLOADED_PATH}..."
-        export BASENAME=$(basename "$uploaded_path")
+        export BASENAME="${UPLOADED_PATH##*/}"
+        echo "Adding label '${NEW_LABEL}' to ${BASENAME}..."
         curl -sSf -X POST \
           -H "Authorization: Bearer ${ANACONDA_TOKEN}" \
           "https://api.anaconda.org/labels/${UPLOADED_PATH}/add/${NEW_LABEL}" \
