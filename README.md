@@ -120,7 +120,7 @@ The following inputs are available for this action:
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
 |`publish`| Wether we publish the package build on anaconda cloud or not | No | 'true' |
 |`label` | Label of conda package published | No |`latest`|
-|`suffix_if_latest` | Suffix to be added after build_string on latest | No |`_nightly`|
+|`suffix` | Suffix to be added in build_string | No |``|
 |`promote_from` | Label of Annaconda channel to promote from | No |`rc`|
 |`skip_build` | Whether conda build step should be skipped | No |`false`|
 |`copy_on_latest` | Whether a co-publication on latest is required | No |`false`|
