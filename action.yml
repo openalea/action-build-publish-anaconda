@@ -175,7 +175,7 @@ runs:
         echo "Adding label '${NEW_LABEL}' to ${BASENAME}..."
         curl -sSf -X POST \
           -H "Authorization: Bearer ${ANACONDA_TOKEN}" \
-          "https://api.anaconda.org/labels/${UPLOADED_PATH}/add/${NEW_LABEL}" \
+          "https://api.anaconda.org/label/${NEW_LABEL}/add/${UPLOADED_PATH}" \
           -H "Content-Type: application/json" \
           -d "{\"distributions\": [\"${BASENAME}\"]}"
         echo "::endgroup::"
