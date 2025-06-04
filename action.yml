@@ -149,7 +149,7 @@ runs:
             echo "Creating suffixed file: ${SUFFIXED_FILE}"
             cp "${BUILD_FILE}" "${SUFFIXED_FILE}"
             echo "Upload file ${SUFFIXED_FILE} to Anaconda on label ${{ inputs.label }}"
-            anaconda upload --force --no-progress --label "${{ inputs.label }}" "${SUFFIXED_FILE}"
+            anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}"
           fi
         done
         echo "::endgroup::"
