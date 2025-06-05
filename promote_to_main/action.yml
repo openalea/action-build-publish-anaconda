@@ -9,21 +9,13 @@ inputs:
     description: 'Anaconda access Token (required)'
     required: true
   promote_from:
-    description: 'Whether Anaconda publication step should be run. Default is "true"'
-    default: 'rc'
-    required: false
-name: 'Promote Conda Package'
-description: 'Promote a Conda package from rc to main'
-inputs:
-  user:
-    description: 'Anaconda username/organization'
-    required: true
-  label_from:
     description: 'Source label'
     default: 'rc'
-  label_to:
+    required: false
+  promote_to:
     description: 'Target label'
     default: 'main'
+    required: false
 runs:
   using: 'composite'
   steps:
@@ -43,11 +35,11 @@ runs:
         echo "user=$USER" >> $GITHUB_OUTPUT
         echo "name=$NAME" >> $GITHUB_OUTPUT
         echo "version=$VERSION" >> $GITHUB_OUTPUT
-    - name: Promote files from ${{ inputs.label_from }} to ${{ inputs.label_to }}
+    - name: Promote files from ${{ inputs.promote_from }} to ${{ inputs.promote_to }}
       shell: bash
       run: |
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         anaconda move \
           ${{ steps.extract.outputs.user }}/${{ steps.extract.outputs.name }}/${{ steps.extract.outputs.version }}\
           --from-label ${{ inputs.promote_from }} \
-          --to-label main
+          --to-label ${{ inputs.promote_to }}
