@@ -6,9 +6,9 @@ branding:
   color: 'green'
 inputs:
   conda:
-    description: "Directory with conda recipe. Default `.` ."
+    description: "Sub_directory hosting conda recipe. Default `conda` ."
     required: false
-    default: '.'
+    default: 'conda'
   condapython:
     description: 'Python3 minor version used for conda. Default `12`.'
     required: false
@@ -17,42 +17,55 @@ inputs:
     description: 'Python3 minor version used for building. Default `12`.'
     required: false
     default: '12'
-  numpy:
-    description: 'Numpy (full, i.e. x.x) version used for building. Default is fixed by Python version.'
-    required: false
-    default: ''
   token:
     description: 'Anaconda access Token (required)'
     required: true
   channels:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
-    default: 'conda-forge'
-  publish:
-    description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
-    required: false
-    default: 'true'
-  label:
-    description: Label of conda package published. Default `main`.
-    required: false
-    default: main
+    default: 'openalea3, conda-forge'
   build-options:
-    description: Build options for conda build.
+    description: 'Build options for conda build.'
+    required: false
+    default: '--no-test'
+  label:
+    description: 'Label of conda package published. Default `main`.'
+    required: false
+    default: 'main'
+  suffix:
+    description: 'Suffix for package build_string. Default `` (no suffix).'
     required: false
     default: ''
+  publish:
+    description: 'Whether Anaconda publication step should be run. Default is "true"'
+    default: 'true'
+    required: false
+
 runs:
   using: "composite"
   steps:
-    - name: Check if meta.yml exists in ${{ inputs.conda }} directory
+    - name: Check if a compliant meta.yml exists in ${{ inputs.conda }} directory
       id: check-meta
       working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Checking the conda directory if the file meta.yaml exists"
         if [ ! -f meta.yaml ]; then
-           echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
-           exit 1
+          echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
+          exit 1
         else
-           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
+          echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
+        fi
+        echo "Checking if meta.yaml uses expected build.string..."
+        if ! grep -q "string: py{{ PY_VER }}{{ build_suffix }}" meta.yaml; then
+          echo "ERROR: meta.yaml must include a build string using environ.get('BUILD_SUFFIX')."
+          echo "Example:"
+          echo "{% set build_suffix = environ.get('BUILD_SUFFIX', '') %}"
+          echo "  ..."
+          echo "  build:"
+          echo "    string: py{{ PY_VER }}{{ build_suffix }}"
+          exit 1
+        else
+          echo "Found build string using BUILD_SUFFIX."
         fi
         echo "::endgroup::"
       shell: bash
@@ -63,10 +76,10 @@ runs:
       run: |
         echo "::group::Checking if the token variable is correclty set"
         if [[ "${{ inputs.token }}" == "" ]]; then
-           echo "No token variable is set for upload."
-           exit 1
+          echo "No token variable is set for upload."
+          exit 1
         else
-           echo "Token is correctly set."
+          echo "Token is correctly set."
         fi
         echo "::endgroup::"
       shell: bash
@@ -79,59 +92,17 @@ runs:
         miniforge-version: latest
         conda-remove-defaults: true
         channel-priority: strict
-    - name: Setup conda-build and anaconda-client
-      run:  |
-        echo "::group::Setup conda-build and anaconda-client"
-        conda install -q conda-build anaconda-client
+    - name: Setup conda-build
+      run: |
+        echo "::group::Setup conda-build"
+        conda install -q conda-build conda-forge-pinning
         echo "::endgroup::"
       shell: bash -l {0}
-    - name: Numpy selection
-      id: numpy-selection
+    - name: Setup anaconda-client
+      if: ${{ inputs.publish == 'true' }}
       run: |
-        export PYTHON_VERSION="3.${{ inputs.python }}"
-        echo "::group::Numpy selection for Python ${PYTHON_VERSION}"
-        if [[ '${{ inputs.numpy }}' = '0' ]]; then
-          echo "Associate numpy version to python version provided"
-          if [[ ${PYTHON_VERSION} = "3.8" ]]; then
-            export NUMPY_VERSION="1.22"
-          elif [[ ${PYTHON_VERSION} = "3.9" ]]; then
-            export NUMPY_VERSION="1.22"
-          elif [[ ${PYTHON_VERSION} = "3.10" ]]; then
-            export NUMPY_VERSION="1.22"
-          elif [[ ${PYTHON_VERSION} = "3.11" ]]; then
-            export NUMPY_VERSION="1.23"
-          elif [[ ${PYTHON_VERSION} = "3.12" ]]; then
-            export NUMPY_VERSION="1.26"
-          elif [[ ${PYTHON_VERSION} = "3.13" ]]; then
-            export NUMPY_VERSION="2.2"
-          else
-            echo "Unable to build the package with this version of python (yet). Please choose a subversion of Python3: 8, 9, 10, 11, 12, 13"
-            exit 1
-          fi
-        else
-          echo "Numpy version ${{ inputs.numpy }} requested"
-          export NUMPY_VERSION="${{ inputs.numpy }}"
-          if [[ ${PYTHON_VERSION} = "3.11" ]]; then
-            if [[ ${NUMPY_VERSION} < '1.23' ]]; then
-              echo "With Python 3.11, Numpy version can only be 1.23."
-              export NUMPY_VERSION='1.23'
-            fi
-          fi
-          if [[ ${PYTHON_VERSION} = "3.12" ]]; then
-            if [[ ${NUMPY_VERSION} < '1.26' ]]; then
-              echo "With Python 3.12, Numpy version can only be 1.26."
-              export NUMPY_VERSION='1.26'
-            fi
-          fi
-          if [[ ${PYTHON_VERSION} = "3.13" ]]; then
-            if [[ ${NUMPY_VERSION} < '2.2' ]]; then
-              echo "With Python 3.13, Numpy version can only be 2.2."
-              export NUMPY_VERSION='2.2'
-            fi
-          fi
-        fi
-        echo "Numpy version selected is ${NUMPY_VERSION}"
-        echo "numpy_version=${NUMPY_VERSION}" >> $GITHUB_OUTPUT
+        echo "::group::Setup anaconda-client"
+        conda install -q anaconda-client
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Package compilation
@@ -140,12 +111,14 @@ runs:
       run: |
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
-        export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
-        export GIT_DESCRIBE_TAG="dev"
-        out_dir=`mktemp -d conda-build-dir.XXXXXX`
-        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG}"
-        conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.build-options }}
-        echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
+        export PYTHON_VARIANT="3.${{ inputs.python }}.* *_cpython"
+        export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0 || echo "dev")
+        export BUILD_SUFFIX="${{ inputs.suffix }}"
+        export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
+        out_dir=$(mktemp -d conda-build-dir.XXXXXX)
+        echo "Running 'conda build' with python ${PYTHON_VERSION} and git version tag ${GIT_DESCRIBE_TAG} and build suffix ${BUILD_SUFFIX}"
+        conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" -m "$CONFIG" ${{ inputs.build-options }}
+        echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Package uploading
@@ -155,11 +128,10 @@ runs:
       run: |
         echo "::group::Conda packages uploading"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*; do
-          if [ "${BUILD_FILE: -6}" == ".conda" ]; then
-            echo "Upload package ${BUILD_FILE} to anaconda with label ${{ inputs.label }} on channel associated to the given token."
-            anaconda upload --skip-existing --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
-          fi
+        export PYTHON_VERSION="3.${{ inputs.python }}"
+        for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda; do
+          echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
+          anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}" 
         done
         echo "::endgroup::"
       shell: bash -l {0}
