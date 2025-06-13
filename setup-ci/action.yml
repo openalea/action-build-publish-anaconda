@@ -15,40 +15,40 @@ inputs:
     description: 'List of OS to build/deploy the package. Default is [ubuntu-latest, macos-latest, macos-13, windows-latest].'
     default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
     required: false
-  force-full-matrix:
-    description: 'Force full matrix execution whatever the context.'
+  force-build-matrix:
+    description: 'Force full input matrix builds whatever the context.'
     default: 'false'
     required: false
   dev-label:
-    description: 'Anaconda label for development versions.'
+    description: 'Anaconda label for uploading development builds'
     default: 'dev'
     required: false
   rc-label:
-    description: 'Anaconda label for release candidates.'
+    description: 'Anaconda label for uploading release candidates builds'
     default: 'rc'
     required: false
-  default-label:
-    description: 'Default Anaconda label.'
+  release-label:
+    description: 'Anaconda label for uploading release builds'
     default: 'main'
     required: false
-  force-default-label:
-    description: 'Force all publications on default label.'
+  force-label:
+    description: 'Force all uploads to this label, except if force-label=false (default)'
     default: 'false'
     required: false
-  force-no-promotion:
+  force-skip-promotion:
     description: 'Force skipping promotion.'
     default: 'false'
     required: false
-  force-no-publication:
+  force-skip-publish:
     description: 'Force skipping publication.'
     default: 'false'
     required: false
   simulated-ref:
-    description: '(debug) use this ref instead of actual context'
+    description: '(debug) use this ref instead of actual github.ref context. Leave empty for normal use'
     required: false
     default: ''
   simulated-event:
-    description: '(debug) use this event instead of actual context'
+    description: '(debug) use this event instead of actual github.event_name context Leave empty for normal use'
     required: false
     default: ''
     
@@ -96,27 +96,26 @@ runs:
       shell: bash
       run: |
         echo "::group::Determine context"
-        ref="${{ inputs.simulated-ref || env.GITHUB_REF }}"
-        event="${{ inputs.simulated-event || env.GITHUB_EVENT_NAME }}"
+        ref="${{ (inputs.simulated-ref != '') && inputs.simulated-ref || env.GITHUB_REF }}"
+        event="${{ (inputs.simulated-event != '') && inputs.simulated-event || env.GITHUB_EVENT_NAME }}"
         is_master=false
         is_branch=false
         is_release=false
         is_tag=false
         is_pr=false
-        if [[ "$event" == "pull_request" ]]; then
-          is_pr=true
-        fi
-        if [[ "$ref" == "refs/heads/master" || "$ref" == "refs/heads/main" ]]; then
-          is_master=true
-        fi
-        if [[ "$ref" == refs/heads/* && "$is_master" == false ]]; then
-          is_branch=true
-        fi
-        if [[ "$ref" == refs/tags/v* ]]; then
-          is_tag=true
-        fi
-        if [[ "$event" == "release" ]]; then
-          is_release=true
+        if [[ "$event" == "push" ]]; then
+          # pushing tag + commit together on master should result in is_tag=true, is_master=false (desired to avoid concurent builds)
+          if [[ "$ref" == refs/tags/v* ]]; then
+            is_tag=true
+          elif [[ "$ref" == "refs/heads/master" || "$ref" == "refs/heads/main" ]]; then
+            is_master=true
+          else
+            is_branch=true
+          fi
+        elif [[ "$event" == "pull_request" ]]; then
+            is_pr=true
+        elif [[ "$event" == "release" ]]; then
+            is_release=true
         fi
         echo "Context:"
         echo "  Push on branch: $is_branch"
@@ -137,16 +136,18 @@ runs:
         echo "::group::Determine build matrix"
         os="${{ inputs.operating-system }}"
         py="${{ inputs.python-minor-version }}"
-        force="${{ inputs.force-full-matrix }}"
+        force="${{ inputs.force-build-matrix }}"
         is_branch="${{ steps.context.outputs.is_branch }}"
         is_tag="${{ steps.context.outputs.is_tag }}"
         if [[ "$force" != "true" ]]; then
           if [[ "$is_branch" == "true" ]]; then
             os='["ubuntu-latest"]'
           fi
+          # only tags are built on multi py
           if [[ "$is_tag" != "true" ]]; then
             py='[12]'
           fi
+          # no build trigerred by release : promotion only
           if [[ "$is_release" == "true" ]]; then
             os='[]'
             py='[]'
