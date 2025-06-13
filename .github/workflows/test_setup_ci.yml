@@ -7,8 +7,8 @@ on:
         description: "Ref to simulate (e.g., refs/heads/main, refs/tags/v1.0.0)"
         required: false
         default: "refs/heads/feature/test"
-      event_name:
-        description: "Event name to simulate (e.g., push, pull_request)"
+      event:
+        description: "Event to simulate (e.g., push, pull_request)"
         required: false
         default: "push"
         
