@@ -170,44 +170,44 @@ runs:
         echo "build_os=$os" >> "$GITHUB_OUTPUT"
         echo "build_py=$py" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
-    -name: Set publication variables depending on event
-    id: set-pub
-    shell: bash
-    run: |
-      echo "::group::Determine publication steps"
-      publish=false
-      publish_on='main'
-      promote=false
-      promote_from='main'
-      promote_to='main'
-      if [[ "${{ inputs.force-skip-publication != "true" }} ]]; then
-        if [[ "${{ steps.context.outputs.is_master }}" == "true" ]]; then
-          publish=true
-          publish_on="${{ inputs.dev-label }}"
-        elif [[ "${{ steps.context.outputs.is_tag }}" == "true" ]]; then
-          publish=true
-          publish_on="${{ inputs.rc-label }}"
+    - name: Set publication variables depending on event
+      id: set-pub
+      shell: bash
+      run: |
+        echo "::group::Determine publication steps"
+        publish=false
+        publish_on='main'
+        promote=false
+        promote_from='main'
+        promote_to='main'
+        if [[ "${{ inputs.force-skip-publication != "true" }} ]]; then
+          if [[ "${{ steps.context.outputs.is_master }}" == "true" ]]; then
+            publish=true
+            publish_on="${{ inputs.dev-label }}"
+          elif [[ "${{ steps.context.outputs.is_tag }}" == "true" ]]; then
+            publish=true
+            publish_on="${{ inputs.rc-label }}"
+          fi
         fi
-      fi
-      if [[ "${{ inputs.force-skip-promotion != "true" }} ]]; then
-        if [[ "${{ steps.context.outputs.is_release }}" == "true" ]]; then
-          promote=true
-          promote_from="${{ inputs.rc-label }}"
-          promote_to="${{ inputs.release-label }}"
+        if [[ "${{ inputs.force-skip-promotion != "true" }} ]]; then
+          if [[ "${{ steps.context.outputs.is_release }}" == "true" ]]; then
+            promote=true
+            promote_from="${{ inputs.rc-label }}"
+            promote_to="${{ inputs.release-label }}"
+          fi
+          if [[ $promote_from == $promote_to ]]; then
+            promote=false
+          fi
         fi
-        if [[ $promote_from == $promote_to ]]; then
-          promote=false
-        fi
-      fi
-      echo "Publication setings:"
-      echo "  Publish: $publish"
-      echo "  Promote: $promote"
-      echo "  Publish on:   $publish_on"
-      echo "  Promote from: $promote_from"
-      echo "  Promote to: $promote_to"
-      echo "publish=$publish" >> "$GITHUB_OUTPUT"
-      echo "promote=$promote" >> "$GITHUB_OUTPUT"
-      echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
-      echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
-      echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
-      echo "::endgroup"
+        echo "Publication setings:"
+        echo "  Publish: $publish"
+        echo "  Promote: $promote"
+        echo "  Publish on:   $publish_on"
+        echo "  Promote from: $promote_from"
+        echo "  Promote to: $promote_to"
+        echo "publish=$publish" >> "$GITHUB_OUTPUT"
+        echo "promote=$promote" >> "$GITHUB_OUTPUT"
+        echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
+        echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
+        echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
+        echo "::endgroup"
