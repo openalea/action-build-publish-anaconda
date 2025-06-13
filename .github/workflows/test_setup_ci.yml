@@ -17,7 +17,8 @@ jobs:
             event: "push"
           - ref: "refs/tags/v1.0.0"
             event: "push"
-          - event: "release"
+          - ref: "refs/tags/v1.0.0"
+            event: "release"
     env:
       GITHUB_REF: ${{ github.ref }}
       GITHUB_EVENT_NAME: ${{ github.event }}
