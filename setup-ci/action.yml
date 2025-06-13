@@ -171,9 +171,9 @@ runs:
         echo "build_py=$py" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
     -name: Set publication variables depending on event
-    id: set-pub
-    shell: bash
-    run: |
+     id: set-pub
+     shell: bash
+     run: |
       echo "::group::Determine publication steps"
       publish=false
       publish_on='main'
