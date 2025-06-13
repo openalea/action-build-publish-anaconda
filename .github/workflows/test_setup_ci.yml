@@ -2,15 +2,6 @@ name: Test Composite Action setup-ci
 
 on:
   workflow_dispatch:
-    inputs:
-      simulated-ref:
-        description: "Ref to simulate (e.g., refs/heads/main, refs/tags/v1.0.0)"
-        required: false
-        default: "refs/heads/feature/test"
-      simulated-event:
-        description: "Event to simulate (e.g., push, pull_request)"
-        required: false
-        default: "push"
         
 jobs:
   test:
@@ -35,14 +26,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Run setup-ci for different scenarios
         id: setci
-        uses: openalea/action-build-publish-anaconda/setup-ci@setup_action
+        uses: ./setup-ci
         with:
           simulated-ref: ${{ matrix.ref }}
           simulated-event: ${{ matrix.event }}
-      - name: Print output
+      - name: Test results
         run: |
           echo "simulated ref: ${{ matrix.ref }}"
-          echo "GITHUB_EVENT_NAME: ${{ matrix.event }}"
+          echo "simulated event: ${{ matrix.event }}"
           echo "is_branch:  ${{ steps.setci.outputs.is_branch }}"
           echo "is_master:  ${{ steps.setci.outputs.is_master }}"
           echo "is_pr:      ${{ steps.setci.outputs.is_pr }}"

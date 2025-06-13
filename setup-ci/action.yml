@@ -68,12 +68,12 @@ outputs:
   is_pr:
     description: "True if the event is a pull request"
     value: ${{ steps.context.outputs.is_pr }}
-  os:
-    description: "Selected OS matrix"
-    value: ${{ steps.set-matrix.outputs.os }}
-  py:
-    description: "Selected Python matrix"
-    value: ${{ steps.set-matrix.outputs.py }}
+  build_os:
+    description: "Selected OS to build on"
+    value: ${{ steps.set-matrix.outputs.build_os }}
+  build_py:
+    description: "Selected Python minor versions to build on"
+    value: ${{ steps.set-matrix.outputs.build_py }}
 
 runs:
   using: "composite"
@@ -81,6 +81,7 @@ runs:
     - name: Check context requirements
       shell: bash
       run: |
+        echo "::group::Check context requirements"
         if [ -z "$GITHUB_EVENT_NAME" ]; then
           echo "GITHUB_EVENT_NAME is not set!"
           exit 1
@@ -89,10 +90,12 @@ runs:
           echo "GITHUB_REF is not set!"
           exit 1
         fi
+        echo "::endgroup::"
     - name: Detect Git Context
       id: context
       shell: bash
       run: |
+        echo "::group::Determine context"
         ref="${{ inputs.simulated-ref || env.GITHUB_REF }}"
         event="${{ inputs.simulated-event || env.GITHUB_EVENT_NAME }}"
         is_master=false
@@ -126,10 +129,12 @@ runs:
         echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
         echo "is_tag=$is_tag" >> "$GITHUB_OUTPUT"
         echo "is_pr=$is_pr" >> "$GITHUB_OUTPUT"
-    - name: Set OS × Python matrix depending on event
+        echo "::endgroup::"
+    - name: Set OS × Python build matrix depending on event
       id: set-matrix
       shell: bash
       run: |
+        echo "::group::Determine build matrix"
         os="${{ inputs.operating-system }}"
         py="${{ inputs.python-minor-version }}"
         force="${{ inputs.force-full-matrix }}"
@@ -142,12 +147,16 @@ runs:
           if [[ "$is_tag" != "true" ]]; then
             py='[12]'
           fi
+          if [[ "$is_release" == "true" ]]; then
+            os='[]'
+            py='[]'
+          fi
         fi
-        echo "Selected operating systems: $os"
-        echo "Selected Python minor versions: $py"
-        echo "os=$os" >> "$GITHUB_OUTPUT"
-        echo "py=$py" >> "$GITHUB_OUTPUT"
-
+        echo "Selected operating systems to build on: $os"
+        echo "Selected Python minor versions to build on: $py"
+        echo "build_os=$os" >> "$GITHUB_OUTPUT"
+        echo "build_py=$py" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
     # - name: Check if meta.yml exists in ${{ inputs.conda }} directory
       # id: check-meta
       # working-directory: ./${{ inputs.conda }}
