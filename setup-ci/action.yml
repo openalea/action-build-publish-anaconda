@@ -180,7 +180,7 @@ runs:
         promote=false
         promote_from='main'
         promote_to='main'
-        if [[ "${{ inputs.force-skip-publication != "true" }} ]]; then
+        if [[ "${{ inputs.force-skip-publication }}" != "true" }} ]]; then
           if [[ "${{ steps.context.outputs.is_master }}" == "true" ]]; then
             publish=true
             publish_on="${{ inputs.dev-label }}"
@@ -189,13 +189,13 @@ runs:
             publish_on="${{ inputs.rc-label }}"
           fi
         fi
-        if [[ "${{ inputs.force-skip-promotion != "true" }} ]]; then
+        if [[ "${{ inputs.force-skip-promotion }}" != "true" ]]; then
           if [[ "${{ steps.context.outputs.is_release }}" == "true" ]]; then
             promote=true
             promote_from="${{ inputs.rc-label }}"
             promote_to="${{ inputs.release-label }}"
           fi
-          if [[ $promote_from == $promote_to ]]; then
+          if [[ "$promote_from" == "$promote_to" ]]; then
             promote=false
           fi
         fi
