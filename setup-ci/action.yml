@@ -43,6 +43,37 @@ inputs:
     description: 'Force skipping publication.'
     default: 'false'
     required: false
+  simulated-ref:
+    description: '(debug) use this ref instead of actual context'
+    required: false
+    default: ''
+  simulated-event:
+    description: '(debug) use this event instead of actual context'
+    required: false
+    default: ''
+    
+outputs:
+  is_master:
+    description: "True if the ref is main or master"
+    value: ${{ steps.context.outputs.is_master }}
+  is_branch:
+    description: "True if the ref is a non-main branch"
+    value: ${{ steps.context.outputs.is_branch }}
+  is_release:
+    description: "True if the event is a GitHub release"
+    value: ${{ steps.context.outputs.is_release }}
+  is_tag:
+    description: "True if the ref is a version tag"
+    value: ${{ steps.context.outputs.is_tag }}
+  is_pr:
+    description: "True if the event is a pull request"
+    value: ${{ steps.context.outputs.is_pr }}
+  os:
+    description: "Selected OS matrix"
+    value: ${{ steps.set-matrix.outputs.os }}
+  py:
+    description: "Selected Python matrix"
+    value: ${{ steps.set-matrix.outputs.py }}
 
 runs:
   using: "composite"
@@ -62,8 +93,8 @@ runs:
       id: context
       shell: bash
       run: |
-        ref="${GITHUB_REF}"
-        event="${GITHUB_EVENT_NAME}"
+        ref="${{ inputs.simulated-ref || env.GITHUB_REF }}"
+        event="${{ inputs.simulated-event || env.GITHUB_EVENT_NAME }}"
         is_master=false
         is_branch=false
         is_release=false
