@@ -33,7 +33,6 @@ jobs:
           simulated-event: ${{ matrix.event }}
       - name: Test results
         run: |
-          echo "::group::Print test results"
           echo "simulated ref: ${{ matrix.ref }}"
           echo "simulated event: ${{ matrix.event }}"
           echo "is_branch:  ${{ steps.setci.outputs.is_branch }}"
@@ -43,4 +42,8 @@ jobs:
           echo "is_release: ${{ steps.setci.outputs.is_release }}"
           echo "build_os:   ${{ steps.setci.outputs.build_os }}"
           echo "build_py:   ${{ steps.setci.outputs.build_py }}"
-          echo "::endgroup::"
+          echo "publish:      ${{ steps.setci.outputs.publish }}"
+          echo "promote:     ${{ steps.setci.outputs.promote }}"
+          echo "publish_on: ${{ steps.setci.outputs.publish_on }}"
+          echo "promote_from:   ${{ steps.setci.outputs.promote_from }}"
+          echo "promote_to:   ${{ steps.setci.outputs.promote_to }}"

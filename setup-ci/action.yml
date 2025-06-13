@@ -74,6 +74,21 @@ outputs:
   build_py:
     description: "Selected Python minor versions to build on"
     value: ${{ steps.set-matrix.outputs.build_py }}
+  publish:
+    description: "True if publication is required"
+    value: ${{ steps.set-pub.outputs.publish }}
+  promote:
+    description: "True if promotion is required"
+    value: ${{ steps.set-pub.outputs.promote }}
+  publish_on:
+    description: "label to publish on"
+    value: ${{ steps.set-pub.outputs.publish_on }}
+  promote_from:
+    description: "label to promote from"
+    value: ${{ steps.set-pub.outputs.promote_from }}
+  promote_to:
+    description: "label to promote to"
+    value: ${{ steps.set-pub.outputs.promote_to }}
 
 runs:
   using: "composite"
@@ -136,19 +151,16 @@ runs:
         echo "::group::Determine build matrix"
         os="${{ inputs.operating-system }}"
         py="${{ inputs.python-minor-version }}"
-        force="${{ inputs.force-build-matrix }}"
-        is_branch="${{ steps.context.outputs.is_branch }}"
-        is_tag="${{ steps.context.outputs.is_tag }}"
-        if [[ "$force" != "true" ]]; then
-          if [[ "$is_branch" == "true" ]]; then
+        if [[ "${{ inputs.force-build-matrix }}" != "true" ]]; then
+          if [[ "${{ steps.context.outputs.is_branch }}" == "true" ]]; then
             os='["ubuntu-latest"]'
           fi
-          # only tags are built on multi py
-          if [[ "$is_tag" != "true" ]]; then
+          # only tags are built on full py matrix
+          if [[ "${{ steps.context.outputs.is_tag }}" != "true" ]]; then
             py='[12]'
           fi
           # no build trigerred by release : promotion only
-          if [[ "$is_release" == "true" ]]; then
+          if [[ "${{ steps.context.outputs.is_release }}" == "true" ]]; then
             os='[]'
             py='[]'
           fi
@@ -158,16 +170,44 @@ runs:
         echo "build_os=$os" >> "$GITHUB_OUTPUT"
         echo "build_py=$py" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
-    # - name: Check if meta.yml exists in ${{ inputs.conda }} directory
-      # id: check-meta
-      # working-directory: ./${{ inputs.conda }}
-      # run: |
-        # echo "::group::Checking the conda directory if the file meta.yaml exists"
-        # if [ ! -f meta.yaml ]; then
-           # echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
-           # exit 1
-        # else
-           # echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
-        # fi
-        # echo "::endgroup::"
-      # shell: bash
+    -name: Set publication variables depending on event
+    id: set-pub
+    shell: bash
+    run: |
+      echo "::group::Determine publication steps"
+      publish=false
+      publish_on='main'
+      promote=false
+      promote_from='main'
+      promote_to='main'
+      if [[ "${{ inputs.force-skip-publication != "true" }} ]]; then
+        if [[ "${{ steps.context.outputs.is_master }}" == "true" ]]; then
+          publish=true
+          publish_on="${{ inputs.dev-label }}"
+        elif [[ "${{ steps.context.outputs.is_tag }}" == "true" ]]; then
+          publish=true
+          publish_on="${{ inputs.rc-label }}"
+        fi
+      fi
+      if [[ "${{ inputs.force-skip-promotion != "true" }} ]]; then
+        if [[ "${{ steps.context.outputs.is_release }}" == "true" ]]; then
+          promote=true
+          promote_from="${{ inputs.rc-label }}"
+          promote_to="${{ inputs.release-label }}"
+        fi
+        if [[ $promote_from == $promote_to ]]; then
+          promote=false
+        fi
+      fi
+      echo "Publication setings:"
+      echo "  Publish: $publish"
+      echo "  Promote: $promote"
+      echo "  Publish on:   $publish_on"
+      echo "  Promote from: $promote_from"
+      echo "  Promote to: $promote_to"
+      echo "publish=$publish" >> "$GITHUB_OUTPUT"
+      echo "promote=$promote" >> "$GITHUB_OUTPUT"
+      echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
+      echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
+      echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
+      echo "::endgroup"
