@@ -1,0 +1,143 @@
+name: 'setup-ci'
+description: 'Setup ci variables according to calling context'
+author: 'Christian Fournier'
+inputs:
+  conda-directory:
+    description: "Sub-directory containing conda recipe (meta.yaml). Default `conda` ."
+    required: false
+    default: 'conda'
+  python-minor-version:
+    description: 'List of python minor version on which to build / deploy the package. Default is "[9, 10, 11, 12]" '
+    default: "[9, 10, 11, 12]"
+    required: false
+    type: string
+  operating-system:
+    description: 'List of OS on which to build / deploy the package. Default is "[ ubuntu-latest , macos-latest , macos-13 , windows-latest ]" '
+    default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
+    required: false
+    type: string
+  force-full-matrix: 
+    description: 'Force full matrix execution whatever the context. If "false" (default), restrict matrix according to context'
+    default: 'false'
+    required: false
+    type: string
+  dev-label:
+    description: 'Name of the label on which to publish development versions (untagged master builds) on anaconda. Default is "dev" '
+    default: 'dev'
+    required: false
+    type: string
+  rc-label:
+    description: 'Name of the label on which to publish release candidate versions (tagged master builds) on anaconda. Default is "rc" '
+    default: 'rc'
+    required: false
+    type: string
+  default-label:
+    description: 'Name of the label on which to publish by default on anaconda. Default is "main" '
+    default: 'main'
+    required: false
+    type: string
+  force-default-label:
+    description: 'Force all publications on default label. If "false" (default) dev-label, rc-label and default-label are determined depending on context. 
+    default: 'false'
+    required: false
+    type: string
+  force-no-promotion:
+    description: 'Force skipping promotion whatever the context. If "false" (default), determine promotion according to context'
+    default: 'false'
+    required: false
+    type: string
+  force-no-publication:
+    description: 'Force skipping publication whatever the context. If "false" (default), determine publication according to context'
+    default: 'false'
+    required: false
+    type: string
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check context requirements
+      run: |
+        if [ -z "$GITHUB_EVENT_NAME" ]; then
+        echo "GITHUB_EVENT_NAME is not set!"
+        exit 1
+        fi
+        if [ -z "$GITHUB_REF" ]; then
+        echo "GITHUB_REF is not set!"
+        exit 1
+        fi
+    - name: Detect Git Context
+      description: Detect context and sets context flags (is_master, is_branch, is_release, is_tag, is_pr)
+      id: context
+      shell: bash
+      run: |
+        ref="${GITHUB_REF}"
+        event="${GITHUB_EVENT_NAME}"
+        # Initialize flags
+        is_master=false
+        is_branch=false
+        is_release=false
+        is_tag=false
+        is_pr=false
+        # Check for PR event
+        if [[ "$event" == "pull_request"]]; then
+          is_pr=true
+        fi
+        # Check for master/main branch
+        if [[ "$ref" == "refs/heads/master" || "$ref" == "refs/heads/main" ]]; then
+          is_master=true
+        fi
+        # Check if it's a push to a non master branch (excluding tags)
+        if [[ "$ref" == refs/heads/* && is_master == false]]; then
+          is_branch=true
+        fi
+        # Check for (version) tag
+        if [[ "$ref" == refs/tags/v* ]]; then
+          is_tag=true
+        fi
+        # Check for release
+        if [[ "$event" == "release" ]]; then
+          is_release=true
+        fi
+        echo "Context :"
+        echo "Push on branch: $is_branch"
+        echo "Push on master: $is_master"
+        echo "Pull request: $is_pr"
+        echo "Push tag: $is_tag"
+        echo "Release: $is_release"
+        # Export outputs
+        echo "is_master=$is_master" >> "$GITHUB_OUTPUT"
+        echo "is_branch=$is_branch" >> "$GITHUB_OUTPUT"
+        echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
+        echo "is_tag=$is_tag" >> "$GITHUB_OUTPUT"
+        echo "is_pr=$is_pr" >> "$GITHUB_OUTPUT"
+    - name: Set os x py matrix depending on event
+      id: set-matrix
+        run: |
+         os=${{ inputs.operating-system }}
+         py=${{ inputs.python-minor-version }}
+         if [[ ${{ input.force-full-matrix }} != "true" ]]; then
+          if [[ ${{ steps.context.is_branch }} )) "true" ]]; then
+           os='["ubuntu-latest"]'
+          fi
+          if [[ ${{ steps.context.is_tag }} != 'true' ]]; then
+            py='[12]'
+          fi
+         echo "Selected operating systems: $os"
+         echo "Selected Python minor versions: $py"
+         # Export as job outputs
+         echo "os=$os" >> $GITHUB_OUTPUT
+         echo "py=$py" >> $GITHUB_OUTPUT
+    - name: Check if meta.yml exists in ${{ inputs.conda }} directory
+      id: check-meta
+      working-directory: ./${{ inputs.conda }}
+      run: |
+        echo "::group::Checking the conda directory if the file meta.yaml exists"
+        if [ ! -f meta.yaml ]; then
+           echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
+           exit 1
+        else
+           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
+        fi
+        echo "::endgroup::"
+      shell: bash
