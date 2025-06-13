@@ -201,12 +201,14 @@ runs:
         echo "::endgroup"
     - name: Determine package version
       id: setv
+      shell: bash
       run: |
         echo "::group::Determine package version"
         git fetch --tag
         latest_tag=$(git tag --list v* --sort=-v:refname | head -n 1)
         if [ -z "$latest_tag" ]; then
           latest_tag="v0.0.0"
+        fi
         echo "Latest v* tag: $latest_tag"
         if [[ "${{ steps.context.outputs.is_tag }}" == "true" || "${{ steps.context.outputs.is_release }}" == "true" ]]; then
           version="${latest_tag#v}"
