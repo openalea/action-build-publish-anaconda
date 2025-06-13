@@ -31,6 +31,8 @@ jobs:
       GITHUB_REF: ${{ matrix.ref }}
       GITHUB_EVENT_NAME: ${{ matrix.event }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Run setup-ci for different scenarios
         id: setci
         uses: openalea/action-build-publish-anaconda/setup-ci@setup_action
