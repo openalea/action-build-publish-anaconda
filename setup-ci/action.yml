@@ -53,21 +53,6 @@ inputs:
     default: ''
     
 outputs:
-  is_master:
-    description: "True if the ref is main or master"
-    value: ${{ steps.context.outputs.is_master }}
-  is_branch:
-    description: "True if the ref is a non-main branch"
-    value: ${{ steps.context.outputs.is_branch }}
-  is_release:
-    description: "True if the event is a GitHub release"
-    value: ${{ steps.context.outputs.is_release }}
-  is_tag:
-    description: "True if the ref is a version tag"
-    value: ${{ steps.context.outputs.is_tag }}
-  is_pr:
-    description: "True if the event is a pull request"
-    value: ${{ steps.context.outputs.is_pr }}
   build_os:
     description: "Selected OS to build on"
     value: ${{ steps.set-matrix.outputs.build_os }}
@@ -89,6 +74,9 @@ outputs:
   promote_to:
     description: "label to promote to"
     value: ${{ steps.set-pub.outputs.promote_to }}
+  version:
+    description: "package version"
+    value: ${{ steps.setv.outputs.version }}    
 
 runs:
   using: "composite"
@@ -176,10 +164,10 @@ runs:
       run: |
         echo "::group::Determine publication steps"
         publish=false
-        publish_on='main'
+        publish_on=''
         promote=false
-        promote_from='main'
-        promote_to='main'
+        promote_from=''
+        promote_to=''
         if [[ "${{ inputs.force-skip-publication }}" != "true" ]]; then
           if [[ "${{ steps.context.outputs.is_master }}" == "true" ]]; then
             publish=true
@@ -210,4 +198,25 @@ runs:
         echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
         echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
         echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
+        echo "::endgroup"
+    - name: Determine package version
+      id: setv
+      run: |
+        echo "::group::Determine package version"
+        git fetch --tag
+        latest_tag=$(git tag --list v* --sort=-v:refname | head -n 1)
+        if [ -z "$latest_tag" ]; then
+          latest_tag="v0.0.0"
+        echo "Latest v* tag: $latest_tag"
+        if [[ "${{ steps.context.outputs.is_tag }}" == "true" || "${{ steps.context.outputs.is_release }}" == "true" ]]; then
+          version="${latest_tag#v}"
+        else
+          # Extract version from tag
+          full_version="${latest_tag#v}"
+          IFS='.' read -r major minor micro <<< "$full_version"
+          ((micro++))  # increment the patch/micro version
+          version="${major}.${minor}.${micro}.dev"
+        fi
+        echo "Package version: $version"
+        echo "version=$version" >> $GITHUB_OUTPUT
         echo "::endgroup"
