@@ -3,15 +3,22 @@ name: Test Composite Action setup-ci
 on:
   workflow_dispatch:
     inputs:
-      ref:
-        description: "Ref to simulate (e.g., refs/heads/main, refs/tags/v1.0.0)"
+      force-build-matrix:
+        description: 'Force full input matrix builds whatever the context.'
+        default: 'false'
         required: false
-        default: "refs/heads/feature/test"
-      event_name:
-        description: "Event name to simulate (e.g., push, pull_request)"
+      force-label:
+        description: 'Force all uploads to this label, except if force-label=false (default)'
+        default: 'false'
         required: false
-        default: "push"
-        
+      force-skip-promotion:
+        description: 'Force skipping promotion.'
+        default: 'false'
+        required: false
+      force-skip-publish:
+        description: 'Force skipping publication.'
+        default: 'false'
+        required: false
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,26 +31,40 @@ jobs:
             event: "pull_request"
           - ref: "refs/heads/main"
             event: "push"
-          - ref: "refs/tags/v1.0.0"
+          - ref: "refs/tags/vx.x.x"
             event: "push"
-          - event: "release"
-    env:
-      GITHUB_REF: ${{ matrix.ref }}
-      GITHUB_EVENT_NAME: ${{ matrix.event }}
+          - ref: "refs/tags/vx.x.x"
+            event: "release"
     steps:
-      - name: Checkout code
+      - name: Checkout repo hosting action
         uses: actions/checkout@v4
+      - name: Create dummy conda recipe
+        run: |
+          mkdir -p conda
+          echo "package:\n  name: dummy\n  version: 0.0.1" > conda/meta.yaml
       - name: Run setup-ci for different scenarios
         id: setci
-        uses: openalea/action-build-publish-anaconda/setup-ci@setup_action
-      - name: Print output
+        uses: ./setup-ci
+        with:
+          git-ref: ${{ matrix.ref }}
+          git-event: ${{ matrix.event }}
+          force-build-matrix: ${{ inputs.force-build-matrix }}
+          force-label: ${{ inputs.force-label }}
+          force-skip-promotion: ${{ inputs.force-skip-promotion }}
+          force-skip-publish: ${{ inputs.force-skip-publish }}
+      - name: Test results
         run: |
-          echo "GITHUB_REF: $GITHUB_REF"
-          echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
-          echo "is_branch:  ${{ steps.setci.outputs.is_branch }}"
-          echo "is_master:  ${{ steps.setci.outputs.is_master }}"
-          echo "is_pr:      ${{ steps.setci.outputs.is_pr }}"
-          echo "is_tag:     ${{ steps.setci.outputs.is_tag }}"
-          echo "is_release: ${{ steps.setci.outputs.is_release }}"
-          echo "os:         ${{ steps.setci.outputs.os }}"
-          echo "py:         ${{ steps.setci.outputs.py }}"
+          echo "simulated ref:        ${{ matrix.ref }}"
+          echo "simulated event:      ${{ matrix.event }}"
+          echo "force-build-matrix:   ${{ inputs.force-build-matrix }}"
+          echo "force-label:          ${{ inputs.force-label }}"
+          echo "force-skip-promotion: ${{ inputs.force-skip-promotion }}"
+          echo "force-skip-publish:   ${{ inputs.force-skip-publish }}"
+          echo "build_os:     ${{ steps.setci.outputs.build_os }}"
+          echo "build_py:     ${{ steps.setci.outputs.build_py }}"
+          echo "publish:      ${{ steps.setci.outputs.publish }}"
+          echo "promote:      ${{ steps.setci.outputs.promote }}"
+          echo "publish_on:   ${{ steps.setci.outputs.publish_on }}"
+          echo "promote_from: ${{ steps.setci.outputs.promote_from }}"
+          echo "promote_to:   ${{ steps.setci.outputs.promote_to }}"
+          echo "version:      ${{ steps.setci.outputs.version }}"

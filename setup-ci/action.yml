@@ -1,0 +1,247 @@
+name: 'setup-ci'
+description: 'Setup CI variables according to calling context'
+author: 'Christian Fournier'
+
+inputs:
+  conda-directory:
+    description: "Sub-directory containing conda recipe (meta.yaml). Default `conda`."
+    required: false
+    default: 'conda'
+  python-minor-version:
+    description: 'List of python minor versions to build/deploy the package. Default is "[9, 10, 11, 12]".'
+    default: "[9, 10, 11, 12]"
+    required: false
+  operating-system:
+    description: 'List of OS to build/deploy the package. Default is [ubuntu-latest, macos-latest, macos-13, windows-latest].'
+    default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
+    required: false
+  force-build-matrix:
+    description: 'Force full input matrix builds whatever the context.'
+    default: 'false'
+    required: false
+  dev-label:
+    description: 'Anaconda label for uploading development builds'
+    default: 'dev'
+    required: false
+  rc-label:
+    description: 'Anaconda label for uploading release candidates builds'
+    default: 'rc'
+    required: false
+  release-label:
+    description: 'Anaconda label for uploading release builds'
+    default: 'main'
+    required: false
+  force-label:
+    description: 'Force all uploads to this label, except if force-label=false (default)'
+    default: 'false'
+    required: false
+  force-skip-promotion:
+    description: 'Force skipping promotion.'
+    default: 'false'
+    required: false
+  force-skip-publish:
+    description: 'Force skipping publication.'
+    default: 'false'
+    required: false
+  git-ref:
+    description: 'github.ref context of calling workflow'
+    required: false
+    default: ''
+  git-event:
+    description: 'github.event_name context of calling workflow'
+    required: false
+    default: ''
+    
+outputs:
+  build_os:
+    description: "Selected OS to build on"
+    value: ${{ steps.set-matrix.outputs.build_os }}
+  build_py:
+    description: "Selected Python minor versions to build on"
+    value: ${{ steps.set-matrix.outputs.build_py }}
+  publish:
+    description: "True if publication is required"
+    value: ${{ steps.set-pub.outputs.publish }}
+  promote:
+    description: "True if promotion is required"
+    value: ${{ steps.set-pub.outputs.promote }}
+  publish_on:
+    description: "label to publish on"
+    value: ${{ steps.set-pub.outputs.publish_on }}
+  promote_from:
+    description: "label to promote from"
+    value: ${{ steps.set-pub.outputs.promote_from }}
+  promote_to:
+    description: "label to promote to"
+    value: ${{ steps.set-pub.outputs.promote_to }}
+  version:
+    description: "package version"
+    value: ${{ steps.setv.outputs.version }}    
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check if meta.yml exists in ${{ inputs.conda-directory }} directory
+      id: check-meta
+      working-directory: ./${{ inputs.conda-directory }}
+      run: |
+        echo "::group::Checking the conda directory if the file meta.yaml exists"
+        if [ ! -f meta.yaml ]; then
+           echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
+           exit 1
+        else
+           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
+        fi
+        echo "::endgroup::"
+      shell: bash
+    - name: Detect Git Context
+      id: context
+      shell: bash
+      run: |
+        echo "::group::Determine context"
+        ref="${{ inputs.git-ref }}"
+        event="${{ inputs.git-event }}"
+        is_master=false
+        is_branch=false
+        is_release=false
+        is_tag=false
+        is_pr=false
+        if [[ "$event" == "push" ]]; then
+          # pushing tag + commit together on master should result in is_tag=true, is_master=false (desired to avoid concurent builds)
+          if [[ "$ref" == refs/tags/v* ]]; then
+            is_tag=true
+          elif [[ "$ref" == "refs/heads/master" || "$ref" == "refs/heads/main" ]]; then
+            is_master=true
+          else
+            is_branch=true
+          fi
+        elif [[ "$event" == "pull_request" ]]; then
+            is_pr=true
+        elif [[ "$event" == "release" ]]; then
+            is_release=true
+        fi
+        echo "Context:"
+        echo "  Push on branch: $is_branch"
+        echo "  Push on master: $is_master"
+        echo "  Pull request:   $is_pr"
+        echo "  Push tag:       $is_tag"
+        echo "  Release:        $is_release"
+        echo "is_master=$is_master" >> "$GITHUB_OUTPUT"
+        echo "is_branch=$is_branch" >> "$GITHUB_OUTPUT"
+        echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
+        echo "is_tag=$is_tag" >> "$GITHUB_OUTPUT"
+        echo "is_pr=$is_pr" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+    - name: Set OS × Python build matrix depending on event
+      id: set-matrix
+      shell: bash
+      run: |
+        echo "::group::Determine build matrix"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
+        is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
+        os="${{ inputs.operating-system }}"
+        py="${{ inputs.python-minor-version }}"
+        if (( !force_build_matrix )); then
+          if (( is_branch )); then
+            os='["ubuntu-latest"]'
+          fi
+          # only tags are built on full py matrix
+          if (( !is_tag )); then
+            py='[12]'
+          fi
+          # no build trigerred by release : promotion only
+          if (( is_release )); then
+            os='[]'
+            py='[]'
+          fi
+        fi
+        echo "Selected operating systems to build on: $os"
+        echo "Selected Python minor versions to build on: $py"
+        echo "build_os=$os" >> "$GITHUB_OUTPUT"
+        echo "build_py=$py" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+    - name: Set publication variables depending on event
+      id: set-pub
+      shell: bash
+      run: |
+        echo "::group::Determine publication steps"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        skip_publication=$(to_bool "${{ inputs.force-skip-publication }}")
+        skip_promotion=$(to_bool "${{ inputs.force-skip-promotion }}")
+        is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
+        publish=false
+        publish_on=''
+        promote=false
+        promote_from=''
+        promote_to=''
+        if (( !skip_publication )); then
+          if (( is_master )); then
+            publish=true
+            publish_on="${{ inputs.dev-label }}"
+          elif (( is_tag )); then
+            publish=true
+            publish_on="${{ inputs.rc-label }}"
+          fi
+        fi
+        if (( !skip_promotion )); then
+          if (( is_release )); then
+            promote=true
+            promote_from="${{ inputs.rc-label }}"
+            promote_to="${{ inputs.release-label }}"
+          fi
+          if [[ "$promote_from" == "$promote_to" ]]; then
+            promote=false
+          fi
+        fi
+        echo "Publication setings:"
+        echo "  Publish: $publish"
+        echo "  Promote: $promote"
+        echo "  Publish on:   $publish_on"
+        echo "  Promote from: $promote_from"
+        echo "  Promote to: $promote_to"
+        echo "publish=$publish" >> "$GITHUB_OUTPUT"
+        echo "promote=$promote" >> "$GITHUB_OUTPUT"
+        echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
+        echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
+        echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
+        echo "::endgroup"
+    - name: Determine package version
+      id: setv
+      shell: bash
+      run: |
+        echo "::group::Determine package version"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
+        git fetch --tag
+        latest_tag=$(git tag --list v* --sort=-v:refname | head -n 1)
+        if [ -z "$latest_tag" ]; then
+          latest_tag="v0.0.0"
+        fi
+        echo "Latest v* tag: $latest_tag"
+        if (( is_tag || is_release )); then
+          version="${latest_tag#v}"
+        else
+          # Extract version from tag
+          full_version="${latest_tag#v}"
+          IFS='.' read -r major minor micro <<< "$full_version"
+          ((micro++))  # increment the patch/micro version
+          version="${major}.${minor}.${micro}.dev"
+        fi
+        echo "Package version: $version"
+        echo "version=$version" >> $GITHUB_OUTPUT
+        echo "::endgroup"
