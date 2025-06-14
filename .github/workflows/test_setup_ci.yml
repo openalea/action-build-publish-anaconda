@@ -2,7 +2,23 @@ name: Test Composite Action setup-ci
 
 on:
   workflow_dispatch:
-        
+    inputs:
+      force-build-matrix:
+        description: 'Force full input matrix builds whatever the context.'
+        default: 'false'
+        required: false
+      force-label:
+        description: 'Force all uploads to this label, except if force-label=false (default)'
+        default: 'false'
+        required: false
+      force-skip-promotion:
+        description: 'Force skipping promotion.'
+        default: 'false'
+        required: false
+      force-skip-publish:
+        description: 'Force skipping publication.'
+        default: 'false'
+        required: false
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,22 +35,31 @@ jobs:
             event: "push"
           - ref: "refs/tags/vx.x.x"
             event: "release"
-    env:
-      GITHUB_REF: ""
-      GITHUB_EVENT_NAME: ""
     steps:
-      - name: Checkout code
+      - name: Checkout repo hosting action
         uses: actions/checkout@v4
+      - name: Create dummy conda recipe
+        run: |
+          mkdir -p conda
+          echo "package:\n  name: dummy\n  version: 0.0.1" > conda/meta.yaml
       - name: Run setup-ci for different scenarios
         id: setci
         uses: ./setup-ci
         with:
-          simulated-ref: ${{ matrix.ref }}
-          simulated-event: ${{ matrix.event }}
+          git-ref: ${{ matrix.ref }}
+          git-event: ${{ matrix.event }}
+          force-build-matrix: ${{ inputs.force-build-matrix }}
+          force-label: ${{ inputs.force-label }}
+          force-skip-promotion: ${{ inputs.force-skip-promotion }}
+          force-skip-publish: ${{ inputs.force-skip-publish }}
       - name: Test results
         run: |
-          echo "simulated ref:   ${{ matrix.ref }}"
-          echo "simulated event: ${{ matrix.event }}"
+          echo "simulated ref:        ${{ matrix.ref }}"
+          echo "simulated event:      ${{ matrix.event }}"
+          echo "force-build-matrix:   ${{ inputs.force-build-matrix }}"
+          echo "force-label:          ${{ inputs.force-label }}"
+          echo "force-skip-promotion: ${{ inputs.force-skip-promotion }}"
+          echo "force-skip-publish:   ${{ inputs.force-skip-publish }}"
           echo "build_os:     ${{ steps.setci.outputs.build_os }}"
           echo "build_py:     ${{ steps.setci.outputs.build_py }}"
           echo "publish:      ${{ steps.setci.outputs.publish }}"

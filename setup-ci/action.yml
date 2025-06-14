@@ -43,12 +43,12 @@ inputs:
     description: 'Force skipping publication.'
     default: 'false'
     required: false
-  simulated-ref:
-    description: '(debug) use this ref instead of actual github.ref context. Leave empty for normal use'
+  git-ref:
+    description: 'github.ref context of calling workflow'
     required: false
     default: ''
-  simulated-event:
-    description: '(debug) use this event instead of actual github.event_name context Leave empty for normal use'
+  git-event:
+    description: 'github.event_name context of calling workflow'
     required: false
     default: ''
     
@@ -81,26 +81,26 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Check context requirements
-      shell: bash
+    - name: Check if meta.yml exists in ${{ inputs.conda-directory }} directory
+      id: check-meta
+      working-directory: ./${{ inputs.conda-directory }}
       run: |
-        echo "::group::Check context requirements"
-        if [ -z "$GITHUB_EVENT_NAME" ]; then
-          echo "GITHUB_EVENT_NAME is not set!"
-          exit 1
-        fi
-        if [ -z "$GITHUB_REF" ]; then
-          echo "GITHUB_REF is not set!"
-          exit 1
+        echo "::group::Checking the conda directory if the file meta.yaml exists"
+        if [ ! -f meta.yaml ]; then
+           echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
+           exit 1
+        else
+           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
         fi
         echo "::endgroup::"
+      shell: bash
     - name: Detect Git Context
       id: context
       shell: bash
       run: |
         echo "::group::Determine context"
-        ref="${{ (inputs.simulated-ref != '') && inputs.simulated-ref || env.GITHUB_REF }}"
-        event="${{ (inputs.simulated-event != '') && inputs.simulated-event || env.GITHUB_EVENT_NAME }}"
+        ref="${{ inputs.git-ref }}"
+        event="${{ inputs.git-event }}"
         is_master=false
         is_branch=false
         is_release=false
