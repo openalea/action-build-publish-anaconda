@@ -137,23 +137,27 @@ runs:
       shell: bash
       run: |
         echo "::group::Determine build matrix"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
         os="${{ inputs.operating-system }}"
         py="${{ inputs.python-minor-version }}"
-        # convert string -> 0/1 evaluable items
-        force_build_matrix=${{ inputs.force-build-matrix == 'true' && '1' || '0' }}
-        is_branch=${{ steps.context.outputs.is_branch == 'true' && '1' || '0' }}
-        is_tag=${{ steps.context.outputs.is_tag == 'true' && '1' || '0' }}
-        is_release=${{ steps.context.outputs.is_release == 'true' && '1' || '0' }}
-        if [[ (( !force_build_matrix )) ]]; then
-          if [[ (( is_branch )) ]]; then
+        # Convert strings to 0/1 flags
+        force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
+        is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
+        if (( !force_build_matrix )); then
+          if (( is_branch )); then
             os='["ubuntu-latest"]'
           fi
           # only tags are built on full py matrix
-          if [[ (( !is_tag )) ]]; then
+          if (( !is_tag )); then
             py='[12]'
           fi
           # no build trigerred by release : promotion only
-          if [[ (( is_release )) ]]; then
+          if (( is_release )); then
             os='[]'
             py='[]'
           fi
