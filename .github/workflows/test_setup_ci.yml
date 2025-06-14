@@ -15,9 +15,9 @@ jobs:
             event: "pull_request"
           - ref: "refs/heads/main"
             event: "push"
-          - ref: "refs/tags/v1.0.0"
+          - ref: "refs/tags/vx.x.x"
             event: "push"
-          - ref: "refs/tags/v1.0.0"
+          - ref: "refs/tags/vx.x.x"
             event: "release"
     env:
       GITHUB_REF: ""

@@ -139,16 +139,21 @@ runs:
         echo "::group::Determine build matrix"
         os="${{ inputs.operating-system }}"
         py="${{ inputs.python-minor-version }}"
-        if [[ "${{ inputs.force-build-matrix }}" != "true" ]]; then
-          if [[ "${{ steps.context.outputs.is_branch }}" == "true" ]]; then
+        # convert string -> 0/1 evaluable items
+        force_build_matrix=${{ inputs.force-build-matrix == 'true' && '1' || '0' }}
+        is_branch=${{ steps.context.outputs.is_branch == 'true' && '1' || '0' }}
+        is_tag=${{ steps.context.outputs.is_tag == 'true' && '1' || '0' }}
+        is_release=${{ steps.context.outputs.is_release == 'true' && '1' || '0' }}
+        if [[ (( !force_build_matrix )) ]]; then
+          if [[ (( is_branch )) ]]; then
             os='["ubuntu-latest"]'
           fi
           # only tags are built on full py matrix
-          if [[ "${{ steps.context.outputs.is_tag }}" != "true" ]]; then
+          if [[ (( !is_tag )) ]]; then
             py='[12]'
           fi
           # no build trigerred by release : promotion only
-          if [[ "${{ steps.context.outputs.is_release }}" == "true" ]]; then
+          if [[ (( is_release )) ]]; then
             os='[]'
             py='[]'
           fi
