@@ -140,14 +140,13 @@ runs:
         to_bool() {
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
-        os="${{ inputs.operating-system }}"
-        py="${{ inputs.python-minor-version }}"
-        # Convert strings to 0/1 flags
         force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
         is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         #
+        os="${{ inputs.operating-system }}"
+        py="${{ inputs.python-minor-version }}"
         if (( !force_build_matrix )); then
           if (( is_branch )); then
             os='["ubuntu-latest"]'
@@ -172,22 +171,31 @@ runs:
       shell: bash
       run: |
         echo "::group::Determine publication steps"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        skip_publication=$(to_bool "${{ inputs.force-skip-publication }}")
+        skip_promotion=$(to_bool "${{ inputs.force-skip-promotion }}")
+        is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
         publish=false
         publish_on=''
         promote=false
         promote_from=''
         promote_to=''
-        if [[ "${{ inputs.force-skip-publication }}" != "true" ]]; then
-          if [[ "${{ steps.context.outputs.is_master }}" == "true" ]]; then
+        if (( !skip_publication )); then
+          if (( is_master )); then
             publish=true
             publish_on="${{ inputs.dev-label }}"
-          elif [[ "${{ steps.context.outputs.is_tag }}" == "true" ]]; then
+          elif (( is_tag )); then
             publish=true
             publish_on="${{ inputs.rc-label }}"
           fi
         fi
-        if [[ "${{ inputs.force-skip-promotion }}" != "true" ]]; then
-          if [[ "${{ steps.context.outputs.is_release }}" == "true" ]]; then
+        if (( !skip_promotion )); then
+          if (( is_release )); then
             promote=true
             promote_from="${{ inputs.rc-label }}"
             promote_to="${{ inputs.release-label }}"
@@ -213,13 +221,19 @@ runs:
       shell: bash
       run: |
         echo "::group::Determine package version"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
         git fetch --tag
         latest_tag=$(git tag --list v* --sort=-v:refname | head -n 1)
         if [ -z "$latest_tag" ]; then
           latest_tag="v0.0.0"
         fi
         echo "Latest v* tag: $latest_tag"
-        if [[ "${{ steps.context.outputs.is_tag }}" == "true" || "${{ steps.context.outputs.is_release }}" == "true" ]]; then
+        if (( is_tag || is_release )); then
           version="${latest_tag#v}"
         else
           # Extract version from tag
