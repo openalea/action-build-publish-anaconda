@@ -81,19 +81,18 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Check if meta.yml exists in ${{ inputs.conda-directory }} directory
-      id: check-meta
-      working-directory: ./${{ inputs.conda-directory }}
+    - name: Check if meta.yaml exists
+      shell: bash
       run: |
-        echo "::group::Checking the conda directory if the file meta.yaml exists"
-        if [ ! -f meta.yaml ]; then
-           echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
-           exit 1
+        META="${{ inputs.conda-directory }}/meta.yaml"
+        echo "::group::Looking for: $META"
+        if [ ! -f "$META" ]; then
+        echo "::error::File not found: $META"
+        exit 1
         else
-           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
+        echo "Found: $META"
         fi
         echo "::endgroup::"
-      shell: bash
     - name: Detect Git Context
       id: context
       shell: bash
