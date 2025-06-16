@@ -173,6 +173,10 @@ runs:
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        IFS=',' read -ra lab_array <<< "${{ inputs.labels }}"
+        dev-label="$lab_array[0]"
+        rc-label="$lab_array[1]"
+        release-label="$lab_array[2]"
         #
         publish=false
         publish_on=''
@@ -182,17 +186,17 @@ runs:
         if (( !skip_publication )); then
           if (( is_master )); then
             publish=true
-            publish_on="${{ inputs.dev-label }}"
+            publish_on="$dev-label"
           elif (( is_tag )); then
             publish=true
-            publish_on="${{ inputs.rc-label }}"
+            publish_on="$rc-label"
           fi
         fi
         if (( !skip_promotion )); then
           if (( is_release )); then
             promote=true
-            promote_from="${{ inputs.rc-label }}"
-            promote_to="${{ inputs.release-label }}"
+            promote_from="$rc-label"
+            promote_to="$release-label"
           fi
           if [[ "$promote_from" == "$promote_to" ]]; then
             promote=false
@@ -211,7 +215,7 @@ runs:
         echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
     - name: Compute full conda channels in priority order
-      id: set-channels
+      id: set-channel
       shell: bash 
       run: |
         echo "::group::Determine build channel list"
