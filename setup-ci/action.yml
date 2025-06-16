@@ -174,9 +174,9 @@ runs:
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         IFS=',' read -ra lab_array <<< "${{ inputs.labels }}"
-        dev-label="$lab_array[0]"
-        rc-label="$lab_array[1]"
-        release-label="$lab_array[2]"
+        dev-label="${lab_array[0]}"
+        rc-label="${lab_array[1]}"
+        release-label="${lab_array[2]}"
         #
         publish=false
         publish_on=''
