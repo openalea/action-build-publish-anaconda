@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Build and Publish Action Call
-        uses: .
+        uses: ./
         with:
           conda: "dummy-pkg"
           token: ${{ secrets.anaconda_token }}      
