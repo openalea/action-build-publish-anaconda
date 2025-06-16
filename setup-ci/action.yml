@@ -174,9 +174,9 @@ runs:
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         IFS=',' read -ra lab_array <<< "${{ inputs.labels }}"
-        dev-label="${lab_array[0]}"
-        rc-label="${lab_array[1]}"
-        release-label="${lab_array[2]}"
+        dev_label="${lab_array[0]}"
+        rc_label="${lab_array[1]}"
+        release_label="${lab_array[2]}"
         #
         publish=false
         publish_on=''
@@ -186,17 +186,17 @@ runs:
         if (( !skip_publication )); then
           if (( is_master )); then
             publish=true
-            publish_on="$dev-label"
+            publish_on="$dev_label"
           elif (( is_tag )); then
             publish=true
-            publish_on="$rc-label"
+            publish_on="$rc_label"
           fi
         fi
         if (( !skip_promotion )); then
           if (( is_release )); then
             promote=true
-            promote_from="$rc-label"
-            promote_to="$release-label"
+            promote_from="$rc_label"
+            promote_to="$release_label"
           fi
           if [[ "$promote_from" == "$promote_to" ]]; then
             promote=false
