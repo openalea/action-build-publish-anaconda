@@ -2,7 +2,7 @@
 
 package:
   name: dummy-package
-  version: version
+  version: {{ version }}
 
 source:
   path: .
