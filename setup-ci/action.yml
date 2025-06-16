@@ -19,21 +19,13 @@ inputs:
     description: 'Force full input matrix builds whatever the context.'
     default: 'false'
     required: false
-  dev-label:
-    description: 'Anaconda label for uploading development builds'
-    default: 'dev'
+  anaconda-channel:
+    description: 'Channel hosting developpent labels to publish on'
+    default: 'https://conda.anaconda.org/openalea3'
     required: false
-  rc-label:
-    description: 'Anaconda label for uploading release candidates builds'
-    default: 'rc'
-    required: false
-  release-label:
-    description: 'Anaconda label for uploading release builds'
-    default: 'main'
-    required: false
-  force-label:
-    description: 'Force all uploads to this label, except if force-label=false (default)'
-    default: 'false'
+  labels:
+    description: 'A comma-separated (no space) string of channel labels used for development, release candidates and release builds'
+    default: 'dev,rc,main'
     required: false
   force-skip-promotion:
     description: 'Force skipping promotion.'
@@ -65,6 +57,9 @@ outputs:
   promote:
     description: "True if promotion is required"
     value: ${{ steps.set-pub.outputs.promote }}
+  channels:
+    description: "A comma separated string of channels to pick-up packages during builds. Channel priority is strict: first is used first"
+    value: ${{ steps.set-channel.outputs.channels }}
   publish_on:
     description: "label to publish on"
     value: ${{ steps.set-pub.outputs.publish_on }}
@@ -215,6 +210,25 @@ runs:
         echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
         echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
+    - name: Compute full conda channels in priority order
+      id: set-channels
+      shell: bash 
+      run: |
+        echo "::group::Determine build channel list"
+        labels="${{ inputs.labels }}"
+        base_url="${{ inputs.anaconda-channel }}/label"
+        channels=""
+        IFS=',' read -ra lab_array <<< "$labels"
+        # Skip dev label
+        for ((i=1; i<${#lab_array[@]}; i++)); do
+          label="${lab_array[$i]}"
+          channels+="$base_url/$label,"
+        done
+        # Append conda-forge at the end and remove trailing comma
+        channels="${channels}conda-forge"
+        echo "Channels: $channels"
+        echo "channels=$channels" >> $GITHUB_OUTPUT
+        echo "::endgroup"        
     - name: Determine package version
       id: setv
       shell: bash

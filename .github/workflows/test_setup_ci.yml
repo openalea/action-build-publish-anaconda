@@ -7,10 +7,6 @@ on:
         description: 'Force full input matrix builds whatever the context.'
         default: 'false'
         required: false
-      force-label:
-        description: 'Force all uploads to this label, except if force-label=false (default)'
-        default: 'false'
-        required: false
       force-skip-promotion:
         description: 'Force skipping promotion.'
         default: 'false'
@@ -49,7 +45,6 @@ jobs:
           git-ref: ${{ matrix.ref }}
           git-event: ${{ matrix.event }}
           force-build-matrix: ${{ inputs.force-build-matrix }}
-          force-label: ${{ inputs.force-label }}
           force-skip-promotion: ${{ inputs.force-skip-promotion }}
           force-skip-publish: ${{ inputs.force-skip-publish }}
       - name: Test results
@@ -57,7 +52,6 @@ jobs:
           echo "simulated ref:        ${{ matrix.ref }}"
           echo "simulated event:      ${{ matrix.event }}"
           echo "force-build-matrix:   ${{ inputs.force-build-matrix }}"
-          echo "force-label:          ${{ inputs.force-label }}"
           echo "force-skip-promotion: ${{ inputs.force-skip-promotion }}"
           echo "force-skip-publish:   ${{ inputs.force-skip-publish }}"
           echo "build_os:     ${{ steps.setci.outputs.build_os }}"
@@ -68,3 +62,4 @@ jobs:
           echo "promote_from: ${{ steps.setci.outputs.promote_from }}"
           echo "promote_to:   ${{ steps.setci.outputs.promote_to }}"
           echo "version:      ${{ steps.setci.outputs.version }}"
+          echo "channels:      ${{ steps.setci.outputs.channels }}"
