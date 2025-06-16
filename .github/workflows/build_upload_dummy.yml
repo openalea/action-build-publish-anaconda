@@ -1,0 +1,23 @@
+name: Build and Upload Dummy Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-upload:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build and Publish Action Call
+        uses: .
+        with:
+          conda: "dummy-pkg"
+          token: ${{ secrets.anaconda_token }}      
+          label: "dev"
+          publish: "true"
