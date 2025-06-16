@@ -16,7 +16,7 @@ jobs:
       - name: Build and Publish Action Call
         uses: ./
         with:
-          conda: "dummy-pkg"
+          conda: "dummy_pkg"
           token: ${{ secrets.anaconda_token }}      
           label: "dev"
           publish: "true"
