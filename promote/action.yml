@@ -38,12 +38,13 @@ runs:
         cd ./${{ inputs.root-dir }}
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         anaconda_user=$(anaconda whoami | awk '{print $4}')
-        package_name==$(python -c "
+        package_name=$(python -c "
 import tomllib
 with open('pyproject.toml', 'rb') as f:
     data = tomllib.load(f)
-print(data.get('project', {}).get('name')")
-        git fetch --tag
+print(data.get('project', {}).get('name'))
+")
+        git fetch --tags
         latest_vtag=$(git tag --list v* --sort=-v:refname | head -n 1)
         echo "Extracted meta information:"
         echo "anaconda_user: $anaconda_user"
@@ -58,12 +59,13 @@ print(data.get('project', {}).get('name')")
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         if [[ "${{ inputs.dry_run }}" != "false" ]]; then
           echo "Command:"
-          echo "anaconda move ${{ steps.extract.outputs.anaconda user }}/${{ steps.extract.outputspackage_.name }}/${{ steps.extract.outputs.latest_vtag }}"
+          echo "anaconda move ${{ steps.extract.outputs.anaconda_user }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}"
           echo "--from-label ${{ inputs.promote_from }}"
           echo "--to-label ${{ inputs.promote_to }}"
         else
           anaconda move \
-            ${{ steps.extract.outputs.anaconda user }}/${{ steps.extract.outputspackage_.name }}/${{ steps.extract.outputs.latest_vtag }}\
+            ${{ steps.extract.outputs.anaconda_user }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}\
             --from-label ${{ inputs.promote_from }} \
             --to-label ${{ inputs.promote_to }}
-        fi  
+        fi
+        
