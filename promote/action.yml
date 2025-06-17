@@ -1,0 +1,60 @@
+name: 'promote-package'
+description: 'Promote package latest "v" tag from one label to another label on anaconda'
+author: 'Christian Fournier'
+branding:
+  icon: 'package'
+  color: 'green'
+inputs:
+  token:
+    description: 'Anaconda access Token (required)'
+    required: true
+  promote_from:
+    description: 'Source label'
+    default: 'rc'
+    required: false
+  promote_to:
+    description: 'Target label'
+    default: 'main'
+    required: false
+  dry_run:
+    description: 'Dry run only, echo command, do not actually promote (default false)'
+    default: 'false'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Anaconda
+      shell: bash
+      run: |
+        conda install -q anaconda-client
+    - name: Extract meta information
+      id: extract
+      shell: bash
+      run: |
+        export ANACONDA_API_TOKEN=${{ inputs.token }}
+        anaconda_user=$(anaconda whoami | awk '{print $4}')
+        package_name="${{ github.repository }}"
+        git fetch --tag
+        latest_vtag=$(git tag --list v* --sort=-v:refname | head -n 1)
+        echo "Extracted meta information:"
+        echo "anaconda_user: $anaconda_user"
+        echo "package_name:  $package_name"
+        echo "latest_vtag:   $latest_vtag"
+        echo "anaconda_user=$anaconda_user" >> $GITHUB_OUTPUT
+        echo "package_name=$package_name" >> $GITHUB_OUTPUT
+        echo "latest_vtag=$latest_vtag" >> $GITHUB_OUTPUT
+    - name: Promote files from ${{ inputs.promote_from }} to ${{ inputs.promote_to }}
+      shell: bash
+      run: |
+        export ANACONDA_API_TOKEN=${{ inputs.token }}
+        if [[ "${{ inputs.dry_run }}" != "false" ]]; then
+          echo "Command:"
+          echo "anaconda move ${{ steps.extract.outputs.anaconda user }}/${{ steps.extract.outputspackage_.name }}/${{ steps.extract.outputs.latest_vtag }}"
+          echo "--from-label ${{ inputs.promote_from }}"
+          echo "--to-label ${{ inputs.promote_to }}"
+        else
+          anaconda move \
+            ${{ steps.extract.outputs.anaconda user }}/${{ steps.extract.outputspackage_.name }}/${{ steps.extract.outputs.latest_vtag }}\
+            --from-label ${{ inputs.promote_from }} \
+            --to-label ${{ inputs.promote_to }}
+        fi  
