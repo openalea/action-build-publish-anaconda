@@ -36,12 +36,12 @@ runs:
         conda-remove-defaults: true
         channel-priority: strict
     - name: Set up Anaconda
-      shell: bash
+      shell: bash -l {0}
       run: |
         conda install -q anaconda-client
     - name: Extract meta information
       id: extract
-      shell: bash
+      shell: bash -l {0}
       run: |
         cd ./${{ inputs.root-dir }}
         export ANACONDA_API_TOKEN=${{ inputs.token }}
@@ -62,7 +62,7 @@ runs:
         echo "package_name=$package_name" >> $GITHUB_OUTPUT
         echo "latest_vtag=$latest_vtag" >> $GITHUB_OUTPUT
     - name: Promote files from ${{ inputs.promote_from }} to ${{ inputs.promote_to }}
-      shell: bash
+      shell: bash -l {0}
       run: |
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         if [[ "${{ inputs.dry_run }}" != "false" ]]; then
