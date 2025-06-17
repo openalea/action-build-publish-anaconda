@@ -39,11 +39,11 @@ runs:
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         anaconda_user=$(anaconda whoami | awk '{print $4}')
         package_name=$(python -c "
-import tomllib
-with open('pyproject.toml', 'rb') as f:
-    data = tomllib.load(f)
-print(data.get('project', {}).get('name'))
-")
+        import tomllib
+        with open('pyproject.toml', 'rb') as f:
+            data = tomllib.load(f)
+        print(data.get('project', {}).get('name'))
+        ")
         git fetch --tags
         latest_vtag=$(git tag --list v* --sort=-v:refname | head -n 1)
         echo "Extracted meta information:"
