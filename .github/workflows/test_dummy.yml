@@ -1,4 +1,4 @@
-name: Build and Upload Dummy Package
+name:Test Actions on Dummy Package
 
 on:
   workflow_dispatch:
