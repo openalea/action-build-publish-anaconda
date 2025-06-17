@@ -20,6 +20,9 @@ inputs:
     description: 'Dry run only, echo command, do not actually promote (default false)'
     default: 'false'
     required: false
+  root-dir: 'Root dir of repository (use only for testing)'
+    default: '.'
+    required: false
 runs:
   using: 'composite'
   steps:
@@ -31,9 +34,14 @@ runs:
       id: extract
       shell: bash
       run: |
+        cd ./${{ inputs.root-dir }}
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         anaconda_user=$(anaconda whoami | awk '{print $4}')
-        package_name="${{ github.repository }}"
+        package_name==$(python -c "
+import tomllib
+with open('pyproject.toml', 'rb') as f:
+    data = tomllib.load(f)
+print(data.get('project', {}).get('name')")
         git fetch --tag
         latest_vtag=$(git tag --list v* --sort=-v:refname | head -n 1)
         echo "Extracted meta information:"
