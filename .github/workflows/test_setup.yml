@@ -1,0 +1,12 @@
+name: Test Setup Action
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stub:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This is a placeholder. Actual logic is in feature branches."
+
+
