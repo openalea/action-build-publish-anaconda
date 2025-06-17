@@ -25,7 +25,7 @@ jobs:
           repository: ${{ inputs.target_repo }}
           ref: ${{ inputs.target_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          path: target-repo
+          path: target_repo
       - name: Run promote (dry run mode)
         uses: ./promote
         with:
