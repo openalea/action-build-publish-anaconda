@@ -4,12 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-upload:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+  run-on-dummy:
+    name: Setup-Build-Promote actions run on dummy package
+    runs-on: ubuntu-latest}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
