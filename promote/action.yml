@@ -35,18 +35,17 @@ runs:
         miniforge-version: latest
         conda-remove-defaults: true
         channel-priority: strict
-    - name: Set up Anaconda
+    - name: Install Anaconda and jq
       shell: bash -l {0}
       run: |
-        conda install -q anaconda-client
+        conda install -q anaconda-client jq
     - name: Extract meta information
       id: extract
       shell: bash -l {0}
       run: |
         cd ./${{ inputs.root-dir }}
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        anaconda whoami
-        anaconda_user=$(anaconda whoami | awk '{print $4}')
+        anaconda_user=username=$(curl -H "Authorization: token $ANACONDA_API_TOKEN" https://api.anaconda.org/user | jq -r '.login')
         package_name=$(python -c "
         import tomllib
         with open('pyproject.toml', 'rb') as f:
