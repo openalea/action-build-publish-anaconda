@@ -27,6 +27,14 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Setup Conda environment
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        channels: conda-forge
+        auto-update-conda: false
+        miniforge-version: latest
+        conda-remove-defaults: true
+        channel-priority: strict
     - name: Set up Anaconda
       shell: bash
       run: |
