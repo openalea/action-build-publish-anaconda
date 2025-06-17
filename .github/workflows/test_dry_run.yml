@@ -5,7 +5,7 @@ on:
     inputs:
       target_repo:
         description: 'GitHub repository to test against (e.g., openalea/repo)'
-        default: 'openalea.astk'
+        default: 'openalea/astk'
         required: true
       target_ref:
         description: 'Git ref to checkout (branch, tag, or SHA)'
