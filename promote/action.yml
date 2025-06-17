@@ -20,7 +20,8 @@ inputs:
     description: 'Dry run only, echo command, do not actually promote (default false)'
     default: 'false'
     required: false
-  root-dir: 'Root dir of repository (use only for testing)'
+  root-dir: 
+    description: 'Root dir of repository (used only for testing)'
     default: '.'
     required: false
 runs:

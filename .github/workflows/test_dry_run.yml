@@ -16,6 +16,7 @@ jobs:
   test-actions:
     runs-on: ubuntu-latest
     steps:
+      # allow refering to action being developped in a branch (relative reference in uses below)
       - name: Checkout action repository
         uses: actions/checkout@v4
       - name: Checkout target repository
@@ -30,4 +31,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           dry_run: 'true'
-          root-dir: "./${{ inputs.target_repo }}"
+          root-dir: target_repo
