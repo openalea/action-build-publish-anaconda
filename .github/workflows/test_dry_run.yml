@@ -26,8 +26,15 @@ jobs:
           ref: ${{ inputs.target_ref }}
           path: target_repo
       - name: Run promote (dry run mode)
+        id: promote
         uses: ./promote
         with:
           token: ${{ secrets.ANACONDA_TOKEN }}
           dry_run: 'true'
           root-dir: target_repo
+      - name: Print test results
+        run: |
+          echo "anaconda_login: ${{ steps.promote.outputs.anaconda_login }}"
+          echo "package_name:   ${{ steps.promote.outputs.package_name }}"
+          echo "latest_vtag:    ${{ steps.promote.outputs.latest_vtag }}"
+          echo "command:        ${{ steps.promote.outputs.command }}"

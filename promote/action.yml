@@ -4,6 +4,7 @@ author: 'Christian Fournier'
 branding:
   icon: 'package'
   color: 'green'
+
 inputs:
   token:
     description: 'Anaconda access Token (required)'
@@ -24,6 +25,21 @@ inputs:
     description: 'Root dir of repository (used only for testing)'
     default: '.'
     required: false
+    
+outputs:
+  anaconda_login:
+    description: 'Anaconda Login'
+    value: ${{ steps.extract.outputs.anaconda_login }}
+  package_name:
+    description: 'Name of package to promote'
+    value: ${{ steps.extract.outputs.package_name }}
+  latest_vtag: 
+    description: 'Latest tag starting with "v"'
+    value: ${{ steps.extract.outputs.latest_vtag }}
+  command:
+    description: 'Command used for promoting'
+    value: ${{ steps.promote.outputs.command }}    
+
 runs:
   using: 'composite'
   steps:
@@ -68,20 +84,19 @@ runs:
       run: |
         echo "::group::Promote package"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        user=${{ steps.extract.outputs.anaconda_login }}
-        package=${{ steps.extract.outputs.package_name }}
-        latest_tag=${{ steps.extract.outputs.latest_vtag }}
-        version=${latest_tag#v}
-        src=${{ inputs.promote_from }}
-        dst=${{ inputs.promote_to }}
-        if [[ "${{ inputs.dry_run }}" != "false" ]]; then
-          echo "Command (not run):"
-          echo "anaconda move $user/$package/$version --from-label $src --to-label $dst"
+        user="${{ steps.extract.outputs.anaconda_login }}"
+        package="${{ steps.extract.outputs.package_name }}"
+        latest_tag="${{ steps.extract.outputs.latest_vtag }}"
+        version="${latest_tag#v}"
+        src="${{ inputs.promote_from }}"
+        dst="${{ inputs.promote_to }}"
+        command="anaconda move $user/$package/$version --from-label $src --to-label $dst"
+        echo "command: $command"
+        echo "command=$command" >> $GITHUB_OUTPUT
+        if [ "${{ inputs.dry_run }}" = "false" ]; then
+          eval "$command"
         else
-          anaconda move \
-            $user/$package/$version\
-            --from-label $src \
-            --to-label $dst
-        fi
+          echo "Dry run enabled. Command not executed."
+        fi  
         echo "::endgroup::"
         
