@@ -80,6 +80,7 @@ runs:
         echo "latest_vtag=$latest_vtag" >> $GITHUB_OUTPUT
         echo "::endgroup::"
     - name: Promote files from ${{ inputs.promote_from }} to ${{ inputs.promote_to }}
+      id: promote
       shell: bash -l {0}
       run: |
         echo "::group::Promote package"
