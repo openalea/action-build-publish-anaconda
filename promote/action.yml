@@ -45,7 +45,7 @@ runs:
       run: |
         cd ./${{ inputs.root-dir }}
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        anaconda_login=$(anaconda whoami | awk '{print $4}')
+        anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
         package_name=$(python -c "
         import tomllib
         with open('pyproject.toml', 'rb') as f:
