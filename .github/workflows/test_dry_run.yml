@@ -16,7 +16,7 @@ jobs:
   test-actions:
     runs-on: ubuntu-latest
     steps:
-      # allow refering to action being developped in a branch (relative reference in uses below)
+      # allow refering to action being developped with uses: ./promote
       - name: Checkout action repository
         uses: actions/checkout@v4
       - name: Checkout target repository
@@ -24,11 +24,10 @@ jobs:
         with:
           repository: ${{ inputs.target_repo }}
           ref: ${{ inputs.target_ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           path: target_repo
       - name: Run promote (dry run mode)
         uses: ./promote
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ANACONDA_TOKEN }}
           dry_run: 'true'
           root-dir: target_repo

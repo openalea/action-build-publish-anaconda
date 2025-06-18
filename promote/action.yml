@@ -35,17 +35,17 @@ runs:
         miniforge-version: latest
         conda-remove-defaults: true
         channel-priority: strict
-    - name: Install Anaconda and jq
+    - name: Install Anaconda client
       shell: bash -l {0}
       run: |
-        conda install -q anaconda-client jq
+        conda install -q anaconda-client
     - name: Extract meta information
       id: extract
       shell: bash -l {0}
       run: |
         cd ./${{ inputs.root-dir }}
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        anaconda_user=username=$(curl -H "Authorization: token $ANACONDA_API_TOKEN" https://api.anaconda.org/user | jq -r '.login')
+        anaconda_login=$(anaconda whoami | awk '{print $4}')
         package_name=$(python -c "
         import tomllib
         with open('pyproject.toml', 'rb') as f:
@@ -55,10 +55,10 @@ runs:
         git fetch --tags
         latest_vtag=$(git tag --list v* --sort=-v:refname | head -n 1)
         echo "Extracted meta information:"
-        echo "anaconda_user: $anaconda_user"
-        echo "package_name:  $package_name"
-        echo "latest_vtag:   $latest_vtag"
-        echo "anaconda_user=$anaconda_user" >> $GITHUB_OUTPUT
+        echo "anaconda_login: $anaconda_login"
+        echo "package_name:   $package_name"
+        echo "latest_vtag:    $latest_vtag"
+        echo "anaconda_login=$anaconda_login" >> $GITHUB_OUTPUT
         echo "package_name=$package_name" >> $GITHUB_OUTPUT
         echo "latest_vtag=$latest_vtag" >> $GITHUB_OUTPUT
     - name: Promote files from ${{ inputs.promote_from }} to ${{ inputs.promote_to }}
@@ -67,12 +67,12 @@ runs:
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         if [[ "${{ inputs.dry_run }}" != "false" ]]; then
           echo "Command:"
-          echo "anaconda move ${{ steps.extract.outputs.anaconda_user }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}"
+          echo "anaconda move ${{ steps.extract.anaconda_login }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}"
           echo "--from-label ${{ inputs.promote_from }}"
           echo "--to-label ${{ inputs.promote_to }}"
         else
           anaconda move \
-            ${{ steps.extract.outputs.anaconda_user }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}\
+            ${{ steps.extract.anaconda_login }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}\
             --from-label ${{ inputs.promote_from }} \
             --to-label ${{ inputs.promote_to }}
         fi
