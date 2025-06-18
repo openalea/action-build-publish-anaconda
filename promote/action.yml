@@ -43,6 +43,7 @@ runs:
       id: extract
       shell: bash -l {0}
       run: |
+        echo "::group::Extract meta-informations"
         cd ./${{ inputs.root-dir }}
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
@@ -61,19 +62,26 @@ runs:
         echo "anaconda_login=$anaconda_login" >> $GITHUB_OUTPUT
         echo "package_name=$package_name" >> $GITHUB_OUTPUT
         echo "latest_vtag=$latest_vtag" >> $GITHUB_OUTPUT
+        echo "::endgroup::"
     - name: Promote files from ${{ inputs.promote_from }} to ${{ inputs.promote_to }}
       shell: bash -l {0}
       run: |
+        echo "::group::Promote package"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
+        user=${{ steps.extract.outputs.anaconda_login }}
+        package=${{ steps.extract.outputs.package_name }}
+        latest_tag=${{ steps.extract.outputs.latest_vtag }}
+        version=${latest_tag#v}
+        src=${{ inputs.promote_from }}
+        dst=${{ inputs.promote_to }}
         if [[ "${{ inputs.dry_run }}" != "false" ]]; then
-          echo "Command:"
-          echo "anaconda move ${{ steps.extract.anaconda_login }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}"
-          echo "--from-label ${{ inputs.promote_from }}"
-          echo "--to-label ${{ inputs.promote_to }}"
+          echo "Command (not run):"
+          echo "anaconda move $user/$package/$version --from-label $src --to-label $dst"
         else
           anaconda move \
-            ${{ steps.extract.anaconda_login }}/${{ steps.extract.outputs.package_name }}/${{ steps.extract.outputs.latest_vtag }}\
-            --from-label ${{ inputs.promote_from }} \
-            --to-label ${{ inputs.promote_to }}
+            $user/$package/$version\
+            --from-label $src \
+            --to-label $dst
         fi
+        echo "::endgroup::"
         
