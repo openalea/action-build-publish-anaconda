@@ -1,0 +1,103 @@
+name: 'promote-package'
+description: 'Promote package latest "v" tag from one label to another label on anaconda'
+author: 'Christian Fournier'
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  token:
+    description: 'Anaconda access Token (required)'
+    required: true
+  promote_from:
+    description: 'Source label'
+    default: 'rc'
+    required: false
+  promote_to:
+    description: 'Target label'
+    default: 'main'
+    required: false
+  dry_run:
+    description: 'Dry run only, echo command, do not actually promote (default false)'
+    default: 'false'
+    required: false
+  root-dir: 
+    description: 'Root dir of repository (used only for testing)'
+    default: '.'
+    required: false
+    
+outputs:
+  anaconda_login:
+    description: 'Anaconda Login'
+    value: ${{ steps.extract.outputs.anaconda_login }}
+  package_name:
+    description: 'Name of package to promote'
+    value: ${{ steps.extract.outputs.package_name }}
+  latest_vtag: 
+    description: 'Latest tag starting with "v"'
+    value: ${{ steps.extract.outputs.latest_vtag }}
+  command:
+    description: 'Command used for promoting'
+    value: ${{ steps.promote.outputs.command }}    
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Conda environment
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        channels: conda-forge
+        auto-update-conda: false
+        miniforge-version: latest
+        conda-remove-defaults: true
+        channel-priority: strict
+    - name: Install Anaconda client
+      shell: bash -l {0}
+      run: |
+        conda install -q anaconda-client
+    - name: Extract meta information
+      id: extract
+      shell: bash -l {0}
+      run: |
+        echo "::group::Extract meta-informations"
+        cd ./${{ inputs.root-dir }}
+        export ANACONDA_API_TOKEN=${{ inputs.token }}
+        anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
+        package_name=$(python -c "
+        import tomllib
+        with open('pyproject.toml', 'rb') as f:
+            data = tomllib.load(f)
+        print(data.get('project', {}).get('name'))
+        ")
+        git fetch --tags
+        latest_vtag=$(git tag --list v* --sort=-v:refname | head -n 1)
+        echo "Extracted meta information:"
+        echo "anaconda_login: $anaconda_login"
+        echo "package_name:   $package_name"
+        echo "latest_vtag:    $latest_vtag"
+        echo "anaconda_login=$anaconda_login" >> $GITHUB_OUTPUT
+        echo "package_name=$package_name" >> $GITHUB_OUTPUT
+        echo "latest_vtag=$latest_vtag" >> $GITHUB_OUTPUT
+        echo "::endgroup::"
+    - name: Promote files from ${{ inputs.promote_from }} to ${{ inputs.promote_to }}
+      id: promote
+      shell: bash -l {0}
+      run: |
+        echo "::group::Promote package"
+        export ANACONDA_API_TOKEN=${{ inputs.token }}
+        user="${{ steps.extract.outputs.anaconda_login }}"
+        package="${{ steps.extract.outputs.package_name }}"
+        latest_tag="${{ steps.extract.outputs.latest_vtag }}"
+        version="${latest_tag#v}"
+        src="${{ inputs.promote_from }}"
+        dst="${{ inputs.promote_to }}"
+        command="anaconda move $user/$package/$version --from-label $src --to-label $dst"
+        echo "command: $command"
+        echo "command=$command" >> $GITHUB_OUTPUT
+        if [ "${{ inputs.dry_run }}" = "false" ]; then
+          eval "$command"
+        else
+          echo "Dry run enabled. Command not executed."
+        fi  
+        echo "::endgroup::"
+        
