@@ -1,0 +1,277 @@
+name: 'setup-ci'
+description: 'Setup CI variables according to calling context'
+author: 'Christian Fournier'
+
+inputs:
+  conda-directory:
+    description: 'Directory containing the conda recipe. Default is "conda".'
+    required: false
+    default: 'conda'
+  python-minor-version:
+    description: 'List of python minor versions to build/deploy the package.'
+    default: "[9, 10, 11, 12]"
+    required: false
+  operating-system:
+    description: 'List of OS for build/deploy.'
+    default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
+    required: false
+  force-build-matrix:
+    description: 'Force full input matrix builds regardless of context.'
+    default: 'false'
+    required: false
+  anaconda-channel:
+    description: 'Channel hosting development labels to publish on'
+    default: 'https://conda.anaconda.org/openalea3'
+    required: false
+  labels:
+    description: 'A comma-separated string of channel labels used for development, release candidates and release builds'
+    default: 'dev,rc,main'
+    required: false
+  force-skip-promotion:
+    description: 'Force skipping promotion.'
+    default: 'false'
+    required: false
+  force-skip-publish:
+    description: 'Force skipping publication.'
+    default: 'false'
+    required: false
+  git-ref:
+    description: 'github.ref context of calling workflow'
+    required: false
+    default: ''
+  git-event:
+    description: 'github.event_name context of calling workflow'
+    required: false
+    default: ''
+    
+outputs:
+  build_os:
+    description: "Selected OS to build on"
+    value: ${{ steps.set-matrix.outputs.build_os }}
+  build_py:
+    description: "Selected Python minor versions to build on"
+    value: ${{ steps.set-matrix.outputs.build_py }}
+  publish:
+    description: "True if publication is required"
+    value: ${{ steps.set-pub.outputs.publish }}
+  promote:
+    description: "True if promotion is required"
+    value: ${{ steps.set-pub.outputs.promote }}
+  channels:
+    description: "A comma separated string of channels to pick-up packages during builds. Channel priority is strict: first is used first"
+    value: ${{ steps.set-channel.outputs.channels }}
+  publish_on:
+    description: "label to publish on"
+    value: ${{ steps.set-pub.outputs.publish_on }}
+  promote_from:
+    description: "label to promote from"
+    value: ${{ steps.set-pub.outputs.promote_from }}
+  promote_to:
+    description: "label to promote to"
+    value: ${{ steps.set-pub.outputs.promote_to }}
+  version:
+    description: "package version"
+    value: ${{ steps.setv.outputs.version }}    
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check if meta.yaml exists and allows external version setting
+      shell: bash
+      run: |
+        META="${{ inputs.conda-directory }}/meta.yaml"
+        echo "::group::Looking for: $META"
+        if [ ! -f "$META" ]; then
+        echo "::error::File not found: $META"
+        exit 1
+        else
+        echo "Found: $META"
+        fi
+        echo "Checking if meta.yaml accepts SCM_PRETEND_VERSION..."
+        if ! grep -q "environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'" $META; then
+          echo "ERROR: meta.yaml must include a version string using SETUPTOOLS_SCM_PRETEND_VERSION."
+          echo "Example:"
+          echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}"
+          echo "package:"
+          echo "  name: my-package"
+          echo "  version: {{ version }}"
+          echo "  ..."
+          exit 1
+        else
+          echo "Found version string using SETUPTOOLS_SCM_PRETEND_VERSION."
+        fi
+        echo "::endgroup::"
+    - name: Detect Git Context
+      id: context
+      shell: bash
+      run: |
+        echo "::group::Determine context"
+        ref="${{ inputs.git-ref }}"
+        event="${{ inputs.git-event }}"
+        is_master=false
+        is_branch=false
+        is_release=false
+        is_tag=false
+        is_pr=false
+        if [[ "$event" == "push" ]]; then
+          # pushing tag + commit together on master should result in is_tag=true, is_master=false (desired to avoid concurent builds)
+          if [[ "$ref" == refs/tags/v* ]]; then
+            is_tag=true
+          elif [[ "$ref" == "refs/heads/master" || "$ref" == "refs/heads/main" ]]; then
+            is_master=true
+          else
+            is_branch=true
+          fi
+        elif [[ "$event" == "pull_request" ]]; then
+            is_pr=true
+        elif [[ "$event" == "release" ]]; then
+            is_release=true
+        fi
+        echo "Context:"
+        echo "  Push on branch: $is_branch"
+        echo "  Push on master: $is_master"
+        echo "  Pull request:   $is_pr"
+        echo "  Push tag:       $is_tag"
+        echo "  Release:        $is_release"
+        echo "is_master=$is_master" >> "$GITHUB_OUTPUT"
+        echo "is_branch=$is_branch" >> "$GITHUB_OUTPUT"
+        echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
+        echo "is_tag=$is_tag" >> "$GITHUB_OUTPUT"
+        echo "is_pr=$is_pr" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+    - name: Set OS × Python build matrix depending on event
+      id: set-matrix
+      shell: bash
+      run: |
+        echo "::group::Determine build matrix"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
+        is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
+        os="${{ inputs.operating-system }}"
+        py="${{ inputs.python-minor-version }}"
+        if (( !force_build_matrix )); then
+          if (( is_branch )); then
+            os='["ubuntu-latest"]'
+          fi
+          # only tags are built on full py matrix
+          if (( !is_tag )); then
+            py='[12]'
+          fi
+          # no build trigerred by release : promotion only
+          if (( is_release )); then
+            os='[]'
+            py='[]'
+          fi
+        fi
+        echo "Selected operating systems to build on: $os"
+        echo "Selected Python minor versions to build on: $py"
+        echo "build_os=$os" >> "$GITHUB_OUTPUT"
+        echo "build_py=$py" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+    - name: Set publication variables depending on event
+      id: set-pub
+      shell: bash
+      run: |
+        echo "::group::Determine publication steps"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        skip_publication=$(to_bool "${{ inputs.force-skip-publication }}")
+        skip_promotion=$(to_bool "${{ inputs.force-skip-promotion }}")
+        is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        IFS=',' read -ra lab_array <<< "${{ inputs.labels }}"
+        dev_label="${lab_array[0]}"
+        rc_label="${lab_array[1]}"
+        release_label="${lab_array[2]}"
+        #
+        publish=false
+        publish_on=''
+        promote=false
+        promote_from=''
+        promote_to=''
+        if (( !skip_publication )); then
+          if (( is_master )); then
+            publish=true
+            publish_on="$dev_label"
+          elif (( is_tag )); then
+            publish=true
+            publish_on="$rc_label"
+          fi
+        fi
+        if (( !skip_promotion )); then
+          if (( is_release )); then
+            promote=true
+            promote_from="$rc_label"
+            promote_to="$release_label"
+          fi
+          if [[ "$promote_from" == "$promote_to" ]]; then
+            promote=false
+          fi
+        fi
+        echo "Publication setings:"
+        echo "  Publish: $publish"
+        echo "  Promote: $promote"
+        echo "  Publish on:   $publish_on"
+        echo "  Promote from: $promote_from"
+        echo "  Promote to: $promote_to"
+        echo "publish=$publish" >> "$GITHUB_OUTPUT"
+        echo "promote=$promote" >> "$GITHUB_OUTPUT"
+        echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
+        echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
+        echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
+        echo "::endgroup"
+    - name: Compute full conda channels in priority order
+      id: set-channel
+      shell: bash 
+      run: |
+        echo "::group::Determine build channel list"
+        labels="${{ inputs.labels }}"
+        base_url="${{ inputs.anaconda-channel }}/label"
+        channels=""
+        IFS=',' read -ra lab_array <<< "$labels"
+        # Skip dev label
+        for ((i=1; i<${#lab_array[@]}; i++)); do
+          label="${lab_array[$i]}"
+          channels+="$base_url/$label,"
+        done
+        # Append conda-forge at the end and remove trailing comma
+        channels="${channels}conda-forge"
+        echo "Channels: $channels"
+        echo "channels=$channels" >> $GITHUB_OUTPUT
+        echo "::endgroup"        
+    - name: Determine package version
+      id: setv
+      shell: bash
+      run: |
+        echo "::group::Determine package version"
+        to_bool() {
+          [[ "$1" == "true" ]] && echo 1 || echo 0
+        }
+        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        #
+        git fetch --tag
+        latest_tag=$(git tag --list v* --sort=-v:refname | head -n 1)
+        if [ -z "$latest_tag" ]; then
+          latest_tag="v0.0.0"
+        fi
+        echo "Latest v* tag: $latest_tag"
+        if (( is_tag || is_release )); then
+          version="${latest_tag#v}"
+        else
+          # Extract version from tag
+          full_version="${latest_tag#v}"
+          IFS='.' read -r major minor micro <<< "$full_version"
+          ((micro++))  # increment the patch/micro version
+          version="${major}.${minor}.${micro}.dev"
+        fi
+        echo "Package version: $version"
+        echo "version=$version" >> $GITHUB_OUTPUT
+        echo "::endgroup"
