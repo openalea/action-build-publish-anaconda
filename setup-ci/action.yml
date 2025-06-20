@@ -88,7 +88,7 @@ runs:
         echo "Found: $META"
         fi
         echo "Checking if meta.yaml accepts SCM_PRETEND_VERSION..."
-        if ! grep -q "string: environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'" $META; then
+        if ! grep -q "environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'" $META; then
           echo "ERROR: meta.yaml must include a version string using SETUPTOOLS_SCM_PRETEND_VERSION."
           echo "Example:"
           echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}"
