@@ -4,7 +4,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  stub:
+  run-on-dummy:
+    name: Setup-Build-Promote actions run on dummy package
     runs-on: ubuntu-latest
     steps:
-      - run: echo "This is a placeholder. Actual logic is in feature branches."
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build and Publish Action Call
+        uses: ./build_and_publish
+        with:
+          conda: "dummy_pkg"
+          token: ${{ secrets.anaconda_token }}      
+          label: "dev"
+          publish: "true"
