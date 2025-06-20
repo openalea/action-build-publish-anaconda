@@ -1,0 +1,19 @@
+name: Test Actions on Dummy Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-on-dummy:
+    name: Setup-Build-Promote actions run on dummy package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build and Publish Action Call
+        uses: ./build_and_publish
+        with:
+          conda: "dummy_pkg"
+          token: ${{ secrets.anaconda_token }}      
+          label: "dev"
+          publish: "true"

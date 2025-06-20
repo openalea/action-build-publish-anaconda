@@ -1,15 +1,15 @@
-# Build and Publish Anaconda Package
+## Build and Publish Anaconda Package
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A collection of Github Actions to build your software package and publish to an Anaconda repository.
 
 These actions have been developed for the needs of [`OpenAlea` project](https://openalea.readthedocs.io/en/latest/). It is mostly inspired by existing projects such as [build-and-upload-conda-packages](https://github.com/marketplace/actions/build-and-upload-conda-packages) or [Publish Conda package to Anaconda.org](https://github.com/marketplace/actions/publish-conda-package-to-anaconda-org) and uses [Setup Miniconda](https://github.com/marketplace/actions/setup-miniconda).
 
-An example workflow using these actions can be found [here](https://github.com/openalea/github-action-conda-build/tree/main/.github/workflows)
+The main openalea workflow using these actions can be found [here](https://github.com/openalea/github-action-conda-build/tree/main/.github/workflows)
 
 The different actions are :
 
-## build_publish_anaconda
+## build_and_publish/action.yml
 
 This action:
 1. Check if `meta.yml` exists in a directory provided in input
@@ -29,10 +29,11 @@ This action is designed to be very generic and the workflow will work even for n
 name: MyWorkflow
 ...
     steps:
-	...
+    ...
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@main
+      uses: openalea/action-build-publish-anaconda/build_and_publish@main
       with:
+        token: ${{ secrets.ANACONDA_TOKEN }}
         numpy: '22'
         channels: 'openalea3,conda-forge'
         label: 'main'
@@ -49,8 +50,7 @@ The following inputs are available for this action:
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
 |`publish`| Wether we publish the package build on anaconda cloud or not | No | 'true' |
 |`label` | Label of conda package published | No |`latest`|
-|`suffix` | Suffix to be added in build_string | No |``|
-|`build-options` | Extra options for conda build | No | `--no-test` |
+|`build-options` | Extra options for conda build | No | `` |
 
 
 ### Example project structure
