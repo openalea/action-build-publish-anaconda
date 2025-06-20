@@ -33,6 +33,7 @@ name: MyWorkflow
     - name: Build and Publish
       uses: openalea/action-build-publish-anaconda/build_and_publish@main
       with:
+		token: ${{ secrets.ANACONDA_TOKEN }}
         numpy: '22'
         channels: 'openalea3,conda-forge'
         label: 'main'
@@ -49,8 +50,7 @@ The following inputs are available for this action:
 |`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
 |`publish`| Wether we publish the package build on anaconda cloud or not | No | 'true' |
 |`label` | Label of conda package published | No |`latest`|
-|`suffix` | Suffix to be added in build_string | No |``|
-|`build-options` | Extra options for conda build | No | `--no-test` |
+|`build-options` | Extra options for conda build | No | `` |
 
 
 ### Example project structure
