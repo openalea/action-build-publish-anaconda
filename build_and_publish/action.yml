@@ -6,9 +6,9 @@ branding:
   color: 'green'
 inputs:
   conda:
-    description: "Sub_directory hosting conda recipe. Default `conda` ."
+    description: "Directory with conda recipe. Default `.` ."
     required: false
-    default: 'conda'
+    default: '.'
   condapython:
     description: 'Python3 minor version used for conda. Default `12`.'
     required: false
@@ -23,49 +23,32 @@ inputs:
   channels:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
-    default: 'openalea3, conda-forge'
-  build-options:
-    description: 'Build options for conda build.'
+    default: 'conda-forge'
+  publish:
+    description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
     required: false
-    default: '--no-test'
+    default: 'true'
   label:
-    description: 'Label of conda package published. Default `main`.'
+    description: Label of conda package published. Default `main`.
     required: false
-    default: 'main'
-  suffix:
-    description: 'Suffix for package build_string. Default `` (no suffix).'
+    default: main
+  build-options:
+    description: Build options for conda build.
     required: false
     default: ''
-  publish:
-    description: 'Whether Anaconda publication step should be run. Default is "true"'
-    default: 'true'
-    required: false
-
 runs:
   using: "composite"
   steps:
-    - name: Check if a compliant meta.yml exists in ${{ inputs.conda }} directory
+    - name: Check if meta.yml exists in ${{ inputs.conda }} directory
       id: check-meta
       working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Checking the conda directory if the file meta.yaml exists"
         if [ ! -f meta.yaml ]; then
-          echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
-          exit 1
+           echo "A meta.yaml file with the compilation instructions of the conda package was not found in ${{ inputs.conda }}."
+           exit 1
         else
-          echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
-        fi
-        echo "Checking if meta.yaml uses expected build.string..."
-        if ! grep -q "string: py{{ PY_VER }}{{ build_suffix }}" meta.yaml; then
-          echo "ERROR: meta.yaml must include a build string using environ.get('BUILD_SUFFIX')."
-          echo "Example:"
-          echo "{% set build_suffix = environ.get('BUILD_SUFFIX', '') %}"
-          echo "  ..."
-          echo "  build:"
-          echo "    string: py{{ PY_VER }}{{ build_suffix }}"
-          exit 1
-        else
-          echo "Found build string using BUILD_SUFFIX."
+           echo "A meta.yaml file with the compilation instructions of the conda package was found in ${{ inputs.conda }}."
         fi
         echo "::endgroup::"
       shell: bash
@@ -76,10 +59,10 @@ runs:
       run: |
         echo "::group::Checking if the token variable is correclty set"
         if [[ "${{ inputs.token }}" == "" ]]; then
-          echo "No token variable is set for upload."
-          exit 1
+           echo "No token variable is set for upload."
+           exit 1
         else
-          echo "Token is correctly set."
+           echo "Token is correctly set."
         fi
         echo "::endgroup::"
       shell: bash
