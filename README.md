@@ -29,11 +29,11 @@ This action is designed to be very generic and the workflow will work even for n
 name: MyWorkflow
 ...
     steps:
-	...
+    ...
     - name: Build and Publish
       uses: openalea/action-build-publish-anaconda/build_and_publish@main
       with:
-		token: ${{ secrets.ANACONDA_TOKEN }}
+        token: ${{ secrets.ANACONDA_TOKEN }}
         numpy: '22'
         channels: 'openalea3,conda-forge'
         label: 'main'
