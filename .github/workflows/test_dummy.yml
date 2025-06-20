@@ -2,7 +2,15 @@ name: Test Actions on Dummy Package
 
 on:
   workflow_dispatch:
-
+    inputs:
+      git-ref:
+        description: 'github.ref to simulate (eg: refs/heads/master, refs/tags/v1.0.0, ...)'
+        required: false
+        default: 'refs/tags/v1.0.0'
+      git-event:
+        description: 'github.event_name to simulate (eg push, release)'
+        required: false
+        default: 'push'
 jobs:
   run-on-dummy:
     name: Setup-Build-Promote actions run on dummy package
@@ -10,10 +18,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build and Publish Action Call
+
+      - name: Setup-CI
+        id: setup-ci
+        uses: ./setup-ci
+        with:
+          conda-directory: "dummy_pkg"
+          git-ref: ${{ inputs.git-ref }}
+          git-event: ${{ inputs.git-event }}
+
+      - name: Build and Publish
         uses: ./build_and_publish
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.setup-ci.outputs.version }}
         with:
           conda: "dummy_pkg"
-          token: ${{ secrets.anaconda_token }}      
-          label: "dev"
-          publish: "true"
+          channels: ${{ steps.setup-ci.outputs.channels }}
+          token: ${{ secrets.anaconda_token }}
+          publish: ${{ steps.setup-ci.outputs.publish }}
+          label: ${{ steps.setup-ci.outputs.publish_on }}

@@ -4,23 +4,23 @@ author: 'Christian Fournier'
 
 inputs:
   conda-directory:
-    description: "Sub-directory containing conda recipe (meta.yaml). Default `conda`."
+    description: 'Directory containing the conda recipe. Default is "conda".'
     required: false
     default: 'conda'
   python-minor-version:
-    description: 'List of python minor versions to build/deploy the package. Default is "[9, 10, 11, 12]".'
+    description: 'List of python minor versions to build/deploy the package.'
     default: "[9, 10, 11, 12]"
     required: false
   operating-system:
-    description: 'List of OS to build/deploy the package. Default is [ubuntu-latest, macos-latest, macos-13, windows-latest].'
+    description: 'List of OS for build/deploy.'
     default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
     required: false
   force-build-matrix:
-    description: 'Force full input matrix builds whatever the context.'
+    description: 'Force full input matrix builds regardless of context.'
     default: 'false'
     required: false
   anaconda-channel:
-    description: 'Channel hosting developpent labels to publish on'
+    description: 'Channel hosting development labels to publish on'
     default: 'https://conda.anaconda.org/openalea3'
     required: false
   labels:
@@ -76,7 +76,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Check if meta.yaml exists
+    - name: Check if meta.yaml exists and allows external version setting
       shell: bash
       run: |
         META="${{ inputs.conda-directory }}/meta.yaml"
@@ -86,6 +86,19 @@ runs:
         exit 1
         else
         echo "Found: $META"
+        fi
+        echo "Checking if meta.yaml accepts SCM_PRETEND_VERSION..."
+        if ! grep -q "string: environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'" $META; then
+          echo "ERROR: meta.yaml must include a version string using SETUPTOOLS_SCM_PRETEND_VERSION."
+          echo "Example:"
+          echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}"
+          echo "package:"
+          echo "  name: my-package"
+          echo "  version: {{ version }}"
+          echo "  ..."
+          exit 1
+        else
+          echo "Found version string using SETUPTOOLS_SCM_PRETEND_VERSION."
         fi
         echo "::endgroup::"
     - name: Detect Git Context
