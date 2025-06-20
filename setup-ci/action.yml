@@ -24,7 +24,7 @@ inputs:
     default: 'https://conda.anaconda.org/openalea3'
     required: false
   labels:
-    description: 'A comma-separated (no space) string of channel labels used for development, release candidates and release builds'
+    description: 'A comma-separated string of channel labels used for development, release candidates and release builds'
     default: 'dev,rc,main'
     required: false
   force-skip-promotion:
