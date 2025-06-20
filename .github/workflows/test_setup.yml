@@ -34,14 +34,11 @@ jobs:
     steps:
       - name: Checkout repo hosting action
         uses: actions/checkout@v4
-      - name: Create dummy conda recipe
-        run: |
-          mkdir -p conda
-          echo "package:\n  name: dummy\n  version: 0.0.1" > conda/meta.yaml
       - name: Run setup-ci for different scenarios
         id: setci
         uses: ./setup-ci
         with:
+          conda-directory: "dummy_pkg"
           git-ref: ${{ matrix.ref }}
           git-event: ${{ matrix.event }}
           force-build-matrix: ${{ inputs.force-build-matrix }}

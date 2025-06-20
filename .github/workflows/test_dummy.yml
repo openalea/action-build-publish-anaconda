@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       git-ref:
-        description: 'github.ref to simulate (eg: refs/heads/master, refs/tags/v1.0.0, ...)'
+        description: 'github.ref to simulate (eg: refs/heads/master, refs/tags/v*, ...)'
         required: false
-        default: 'refs/tags/v1.0.0'
+        default: 'refs/tags/v*'
       git-event:
         description: 'github.event_name to simulate (eg push, release)'
         required: false
