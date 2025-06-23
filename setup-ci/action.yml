@@ -226,16 +226,16 @@ runs:
             publish_on="$release_label"
           fi
         fi
-#        if (( !skip_promotion )); then
-#          if (( is_release )); then
-#            promote=true
-#            promote_from="$rc_label"
-#            promote_to="$release_label"
-#          fi
-#          if [[ "$promote_from" == "$promote_to" ]]; then
-#            promote=false
-#          fi
-#        fi
+        #if (( !skip_promotion )); then
+        #  if (( is_release )); then
+        #    promote=true
+        #    promote_from="$rc_label"
+        #    promote_to="$release_label"
+        #  fi
+        #  if [[ "$promote_from" == "$promote_to" ]]; then
+        #    promote=false
+        #  fi
+        #fi
         echo "Publication setings:"
         echo "  Publish: $publish"
         echo "  Promote: $promote"
