@@ -66,7 +66,7 @@ outputs:
     description: "True if publication is required"
     value: ${{ steps.set-pub.outputs.publish }}
   promote:
-    description: "True if promotion is required"
+    description: "True if promotion only is required"
     value: ${{ steps.set-pub.outputs.promote }}
   channels:
     description: "A comma separated string of channels to pick-up packages during builds. Channel priority is strict: first is used first"
@@ -205,8 +205,8 @@ runs:
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
-        dev_label="${{ inputs.dev_label }}"
-        rc_label="${{ inputs.rc_label }}"
+        dev_label="${{ inputs.dev-label }}"
+        rc_label="${{ inputs.rc-label }}"
         release_label="main"
         #
         publish=false
@@ -252,7 +252,7 @@ runs:
         echo "::group::Determine channels priority"
         is_release=$([[ "${{ steps.context.outputs.is_release }}" == 'true' ]] && echo 1 || echo 0)
         set_priority=$([[ "${{ inputs.force-channel-priority }}" == 'false' ]] && echo 1 || echo 0)
-        rc_label="${{ inputs.rc_label }}"
+        rc_label="${{ inputs.rc-label }}"
         release_label="main"
         base_url="${{ inputs.organisation }}/label"
         channels="$base_url/$rc_label,$base_url/$release_label,conda-forge"
