@@ -5,30 +5,26 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1 # required, otherwise it will fail to lock ref on auto-commit
+      matrix:
+        include:
+          - readme: './doc/actions/setup-ci/README.md'
+            source: './setup-ci/action.yml'
+          - readme: './doc/workflows/test_setup/README.md'
+            source: './.github/workflows/test_setup.yml'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
       - name: github-actions-docs
-        uses: tjtharrison/github-actions-docs@1.2.0
+        uses: tjtharrison/github-actions-docs@1
         with:
-          OUTPUT_FILE_NAME: './doc/actions/setup-ci/README.md'
-          ACTION_FILE_NAME: './setup-ci/action.yml'
-      - name: Show git status
-        run: |
-          cat './doc/actions/setup-ci/README.md'
-          git status
-          git diff
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: 'update generated docs'
-          branch: docs/update-generated-docs
-          title: 'Update generated docs'
-          body: 'This PR contains updated documentation generated from the latest action and workflow YAML.'
+          OUTPUT_FILE_NAME: ${{ matrix.readme }}
+          ACTION_FILE_NAME: ${{ matrix.source }}

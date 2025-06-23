@@ -1,2 +1,2 @@
-<!-- action-docs-description -->
-<!-- action-docs-all  project="openalea.action-build-publish-anaconda" version="v0.1.5" -->
+<!-- BEGIN_ACTION_DOCS -->
+<!-- END_ACTION_DOCS -->
