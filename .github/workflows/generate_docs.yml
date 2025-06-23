@@ -25,6 +25,7 @@ jobs:
           sourceFile: './.github/workflows/test_setup.yml'
       - name: Show git status
         run: |
+          cat './doc/actions/setup-ci/README.md'
           git status
           git diff
       - name: Create Pull Request
