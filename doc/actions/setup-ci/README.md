@@ -4,20 +4,20 @@
 Setup CI variables according to calling context
 
 # inputs
-| Title | Required | Type | Description |
-|-----|-----|-----|-----|
-| git-ref | False |  | github.ref context of calling workflow |
-| git-event | False |  | github.event_name context of calling workflow |
-| conda-directory | False |  | Directory containing the conda recipe. Default is "conda". |
-| python-minor-version | False |  | List of python minor versions to build/deploy the package. |
-| operating-system | False |  | List of OS for build/deploy. |
-| organisation | False |  | Channel of the organisation hosting the publications |
-| dev-label | False |  | The label used for publishing development versions (latest version of master/main branch) |
-| rc-label | False |  | The label used for publishing release candidates versions (latest v* tag) |
-| force-channel-priority | False |  | Force channels priority used for build (coma separated format), regardless of context. If false (default), priority list is computed by action depending on context |
-| force-build-matrix | False |  | Force full input matrix builds regardless of context. |
-| force-skip-publish | False |  | Force skipping publication. |
-| force-skip-promotion | False |  | Force skipping promotion. |
+| Title | Required | Type | Default| Description |
+|-----|-----|-----|-----|-----|
+| git-ref | False |  |  | github.ref context of calling workflow |
+| git-event | False |  |  | github.event_name context of calling workflow |
+| conda-directory | False |  | `conda` | Directory containing the conda recipe. Default is "conda". |
+| python-minor-version | False |  | `[9, 10, 11, 12]` | List of python minor versions to build/deploy the package. |
+| operating-system | False |  | `["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]` | List of OS for build/deploy. |
+| organisation | False |  | `https://conda.anaconda.org/openalea3` | Channel of the organisation hosting the publications |
+| dev-label | False |  | `dev` | The label used for publishing development versions (latest version of master/main branch) |
+| rc-label | False |  | `rc` | The label used for publishing release candidates versions (latest v* tag) |
+| force-channel-priority | False |  | `false` | Force channels priority used for build (coma separated format), regardless of context. If false (default), priority list is computed by action depending on context |
+| force-build-matrix | False |  | `false` | Force full input matrix builds regardless of context. |
+| force-skip-publish | False |  | `false` | Force skipping publication. |
+| force-skip-promotion | False |  | `false` | Force skipping promotion. |
 
 # outputs
 | Title | Description | Value |
