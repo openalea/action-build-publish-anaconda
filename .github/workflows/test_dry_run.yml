@@ -2,9 +2,39 @@ name: Test Dry run
 
 on:
   workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'GitHub repository to test against (e.g., openalea/repo)'
+        default: 'openalea/astk'
+        required: true
+      target_ref:
+        description: 'Git ref to checkout (branch, tag, or SHA)'
+        default: 'master'
+        required: false
 
 jobs:
-  stub:
+  test-actions:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "This is a placeholder. Actual logic is in feature branches."
+      # allow refering to action being developped with uses: ./promote
+      - name: Checkout action repository
+        uses: actions/checkout@v4
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.target_repo }}
+          ref: ${{ inputs.target_ref }}
+          path: target_repo
+      - name: Run promote (dry run mode)
+        id: promote
+        uses: ./promote
+        with:
+          token: ${{ secrets.ANACONDA_TOKEN }}
+          dry_run: 'true'
+          root-dir: target_repo
+      - name: Print test results
+        run: |
+          echo "anaconda_login: ${{ steps.promote.outputs.anaconda_login }}"
+          echo "package_name:   ${{ steps.promote.outputs.package_name }}"
+          echo "latest_vtag:    ${{ steps.promote.outputs.latest_vtag }}"
+          echo "command:        ${{ steps.promote.outputs.command }}"
