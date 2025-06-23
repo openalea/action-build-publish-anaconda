@@ -11,7 +11,8 @@ jobs:
   generate-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Generate docs for setup-ci
         uses: npalm/action-docs-action
         with:
