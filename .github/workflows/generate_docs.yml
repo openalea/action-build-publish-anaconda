@@ -22,7 +22,7 @@ jobs:
         uses: npalm/action-docs-action@v3.1.2
         with:
           readme: './doc/workflows/test_setup/README.md'
-          sourceFile: './github/workflows/test_setup.yml'
+          sourceFile: './.github/workflows/test_setup.yml'
       - name: Show git status
         run: |
           git status
