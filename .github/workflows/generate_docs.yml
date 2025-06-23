@@ -1,0 +1,21 @@
+name: Generate PR for Action Docs updates
+
+on:
+  workflow_dispatch:
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate docs for setup-ci
+        uses: npalm/action-docs-action
+        with:
+          readme: './doc/actions/setup-ci/README.md'
+          source-file: './setup-ci/action.yml'
+      - name: Generate docs for workflows
+        uses: npalm/action-docs-action
+        with:
+          readme: './doc/workflows/test_setup/README.md'
+          source-file: './github/workflows/test_setup.yml'
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
