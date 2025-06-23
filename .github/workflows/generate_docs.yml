@@ -13,16 +13,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Generate docs for setup-ci
-        uses: npalm/action-docs-action@v3.1.2
+      - name: Setup Python
+        uses: actions/setup-python@v5
+      - name: github-actions-docs
+        uses: tjtharrison/github-actions-docs@1.2.0
         with:
-          readme: './doc/actions/setup-ci/README.md'
-          sourceFile: './setup-ci/action.yml'
-      - name: Generate docs for workflows
-        uses: npalm/action-docs-action@v3.1.2
-        with:
-          readme: './doc/workflows/test_setup/README.md'
-          sourceFile: './.github/workflows/test_setup.yml'
+          OUTPUT_FILE_NAME: './doc/actions/setup-ci/README.md'
+          ACTION_FILE_NAME: './setup-ci/action.yml'
       - name: Show git status
         run: |
           cat './doc/actions/setup-ci/README.md'
