@@ -3,6 +3,14 @@ description: 'Setup CI variables according to calling context'
 author: 'Christian Fournier'
 
 inputs:
+  git-ref:
+    description: 'github.ref context of calling workflow'
+    required: false
+    default: ''
+  git-event:
+    description: 'github.event_name context of calling workflow'
+    required: false
+    default: ''
   conda-directory:
     description: 'Directory containing the conda recipe. Default is "conda".'
     required: false
@@ -15,35 +23,35 @@ inputs:
     description: 'List of OS for build/deploy.'
     default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
     required: false
-  force-build-matrix:
-    description: 'Force full input matrix builds regardless of context.'
-    default: 'false'
-    required: false
-  anaconda-channel:
-    description: 'Channel hosting development labels to publish on'
+  organisation:
+    description: 'Channel of the organisation hosting the publications'
     default: 'https://conda.anaconda.org/openalea3'
     required: false
-  labels:
-    description: 'A comma-separated string of channel labels used for development, release candidates and release builds'
-    default: 'dev,rc,main'
+  dev-label:
+    description: 'The label used for publishing development versions (latest version of master/main branch)'
+    default: 'dev'
     required: false
-  force-skip-promotion:
-    description: 'Force skipping promotion.'
+  rc-label:
+    description: 'The label used for publishing release candidates versions (latest v* tag)'
+    default: 'rc'
+    required: false
+  force-channel-priority:
+    description: 'Force channels priority used for build (coma separated format), regardless of context. If false (default), priority list is computed by action depending on context'
+    default: 'false'
+    required: false
+  force-build-matrix:
+    description: 'Force full input matrix builds regardless of context.'
     default: 'false'
     required: false
   force-skip-publish:
     description: 'Force skipping publication.'
     default: 'false'
     required: false
-  git-ref:
-    description: 'github.ref context of calling workflow'
+  force-skip-promotion:
+    description: 'Force skipping promotion.'
+    default: 'false'
     required: false
-    default: ''
-  git-event:
-    description: 'github.event_name context of calling workflow'
-    required: false
-    default: ''
-    
+
 outputs:
   build_os:
     description: "Selected OS to build on"
@@ -51,6 +59,9 @@ outputs:
   build_py:
     description: "Selected Python minor versions to build on"
     value: ${{ steps.set-matrix.outputs.build_py }}
+  build_options:
+    description: "Build options for conda build"
+    value: ${{ steps.set-matrix.outputs.build_options }}
   publish:
     description: "True if publication is required"
     value: ${{ steps.set-pub.outputs.publish }}
@@ -76,7 +87,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Check if meta.yaml exists and allows external version setting
+    - name: Check if meta.yaml exists and is compliant with CI version control
       shell: bash
       run: |
         META="${{ inputs.conda-directory }}/meta.yaml"
@@ -139,7 +150,7 @@ runs:
         echo "is_tag=$is_tag" >> "$GITHUB_OUTPUT"
         echo "is_pr=$is_pr" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
-    - name: Set OS × Python build matrix depending on event
+    - name: Set OS × Python build matrix and build options depending on event
       id: set-matrix
       shell: bash
       run: |
@@ -173,6 +184,14 @@ runs:
         echo "build_os=$os" >> "$GITHUB_OUTPUT"
         echo "build_py=$py" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
+        echo "::group::Determine build options"
+        build_options=''
+        if (( is_branch )); then
+          build_options='--no-test'
+        fi
+        echo "build options: $build_options"
+        echo "build_options=$build_options" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
     - name: Set publication variables depending on event
       id: set-pub
       shell: bash
@@ -186,10 +205,9 @@ runs:
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
-        IFS=',' read -ra lab_array <<< "${{ inputs.labels }}"
-        dev_label="${lab_array[0]}"
-        rc_label="${lab_array[1]}"
-        release_label="${lab_array[2]}"
+        dev_label="${{ inputs.dev_label }}"
+        rc_label="${{ inputs.rc_label }}"
+        release_label="main"
         #
         publish=false
         publish_on=''
@@ -227,22 +245,22 @@ runs:
         echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
         echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
-    - name: Compute full conda channels in priority order
+    - name: Compute priority conda channels used for builds
       id: set-channel
       shell: bash 
       run: |
-        echo "::group::Determine build channel list"
-        labels="${{ inputs.labels }}"
-        base_url="${{ inputs.anaconda-channel }}/label"
-        channels=""
-        IFS=',' read -ra lab_array <<< "$labels"
-        # Skip dev label
-        for ((i=1; i<${#lab_array[@]}; i++)); do
-          label="${lab_array[$i]}"
-          channels+="$base_url/$label,"
-        done
-        # Append conda-forge at the end and remove trailing comma
-        channels="${channels}conda-forge"
+        echo "::group::Determine channels priority"
+        is_release=$([[ "${{ steps.context.outputs.is_release }}" == 'true' ]] && echo 1 || echo 0)
+        set_priority=$([[ "${{ inputs.force-channel-priority }}" == 'false' ]] && echo 1 || echo 0)
+        rc_label="${{ inputs.rc_label }}"
+        release_label="main"
+        base_url="${{ inputs.organisation }}/label"
+        channels="$base_url/$rc_label,$base_url/$release_label,conda-forge"
+        if (( !set_priority )); then
+          channels="${{ inputs.force-channel-priority }}"
+        elif (( is_release )); then
+          channels="$base_url/$release_label,conda-forge"
+        fi
         echo "Channels: $channels"
         echo "channels=$channels" >> $GITHUB_OUTPUT
         echo "::endgroup"        
