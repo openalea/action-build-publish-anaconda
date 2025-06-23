@@ -169,15 +169,15 @@ runs:
           if (( is_branch )); then
             os='["ubuntu-latest"]'
           fi
-          # only tags are built on full py matrix
-          if (( !is_tag )); then
+          # only tags and release are built on full py matrix
+          if (( !is_tag && !is_release )); then
             py='[12]'
           fi
-          # no build trigerred by release : promotion only
-          if (( is_release )); then
-            os='[]'
-            py='[]'
-          fi
+          # promotion only (not used currently)
+          #if (( is_release )); then
+          #  os='[]'
+          #  py='[]'
+          #fi
         fi
         echo "Selected operating systems to build on: $os"
         echo "Selected Python minor versions to build on: $py"
@@ -221,18 +221,21 @@ runs:
           elif (( is_tag )); then
             publish=true
             publish_on="$rc_label"
+          elif (( is_release )); then
+            publish=true
+            publish_on="$release_label"
           fi
         fi
-        if (( !skip_promotion )); then
-          if (( is_release )); then
-            promote=true
-            promote_from="$rc_label"
-            promote_to="$release_label"
-          fi
-          if [[ "$promote_from" == "$promote_to" ]]; then
-            promote=false
-          fi
-        fi
+#        if (( !skip_promotion )); then
+#          if (( is_release )); then
+#            promote=true
+#            promote_from="$rc_label"
+#            promote_to="$release_label"
+#          fi
+#          if [[ "$promote_from" == "$promote_to" ]]; then
+#            promote=false
+#          fi
+#        fi
         echo "Publication setings:"
         echo "  Publish: $publish"
         echo "  Promote: $promote"
