@@ -7,24 +7,40 @@ permissions:
   contents: write
 
 jobs:
-  generate-docs:
-    runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1 # required, otherwise it will fail to lock ref on auto-commit
-      matrix:
-        include:
-          - readme: './doc/actions/setup-ci/README.md'
-            source: './setup-ci/action.yml'
-          - readme: './doc/workflows/test_setup/README.md'
-            source: './.github/workflows/test_setup.yml'
+  update-doc:
+     runs-on: ubuntu-latest
+     steps:
+       - name: Checkout
+         uses: actions/checkout@v4
+         with:
+           fetch-depth: 0  # otherwise, you will failed to push refs to dest repo
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-      - name: github-actions-docs
-        uses: tjtharrison/github-actions-docs@1
-        with:
-          OUTPUT_FILE_NAME: ${{ matrix.readme }}
-          ACTION_FILE_NAME: ${{ matrix.source }}
+       - name: Run auto-doc
+         uses: tj-actions/auto-doc@v3
+         with:
+           filename: './setup-ci/action.yml'
+           output: './doc/actions/setup-ci/README.md'
+
+       - name: Run auto-doc
+         uses: tj-actions/auto-doc@v3
+         with:
+           filename: './.github/workflows/test_setup.yml'
+           output: './doc/workflows/test_setup/README.md'
+
+       - name: Verify Changed files
+         uses: tj-actions/verify-changed-files@v8.6
+         id: verify-changed-files
+         with:
+           files: |
+             ./doc/actions/setup-ci/README.md
+             
+
+       - name: Create Pull Request
+         if: steps.verify-changed-files.outputs.files_changed == 'true'
+         uses: peter-evans/create-pull-request@v3
+         with:
+           base: "main"
+           title: "auto-doc: Updated README.md"
+           branch: "chore/auto-doc-update-readme"
+           commit-message: "auto-doc: Updated README.md"
+           body: "auto-doc: Updated README.md"
