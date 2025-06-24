@@ -8,11 +8,11 @@ A reusable Github workflow to build your software package and publish to an Anac
 
 ### Build and publish according to openalea guidelines
 
-Copy the template below in your source dir, using the following path: `.github/workflow/build_publish_anaconda.yml`.
+Copy the template below in your source dir, using the following path: `.github/workflows/build_publish_anaconda.yml`.
 
 
 ```yaml
-# your_package/.github/workflow/build_publish_anaconda.yml
+# your_package/.github/workflows/build_publish_anaconda.yml
 
 name: Building Package after Openalea guidelines
 
@@ -26,11 +26,6 @@ on:
     branches:
       - '**'
   release:
-
-# avoid duplicating jobs
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
