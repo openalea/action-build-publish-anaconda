@@ -48,7 +48,7 @@ jobs:
          if: steps.verify-changed-files.outputs.files_changed == 'true'
          uses: peter-evans/create-pull-request@v7
          with:
-           base: github.ref_name
+           base: ${{ github.ref_name }}
            title: "auto-doc: Updated README.md"
            branch: "chore/auto-doc-update-readme"
            commit-message: "auto-doc: Updated README.md"

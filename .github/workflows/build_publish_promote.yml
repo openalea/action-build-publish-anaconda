@@ -97,8 +97,8 @@ jobs:
         id: set
         uses: ./setup-ci
         with:
-          git-ref: github.ref
-          git-event: github.event_name
+          git-ref: ${{ github.ref }}
+          git-event: ${{ github.event_name }}
           conda-directory: ${{ inputs.conda-directory }}
           python-minor-version: ${{ inputs.python-minor-version }}
           operating-system: ${{ inputs.operating-system }}
