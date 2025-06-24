@@ -134,5 +134,5 @@ jobs:
           token: ${{ secrets.anaconda_token }}
           publish: ${{ needs.setup-ci.outputs.publish }}
           label: ${{ needs.setup-ci.outputs.publish_on }}
-          build-options: ${{ needs.setup-ci.outputs.build-options }}
+          build-options: ${{ needs.setup-ci.outputs.build_options }}
 
