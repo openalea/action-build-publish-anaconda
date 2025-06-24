@@ -278,7 +278,7 @@ runs:
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         #
-        git fetch --tag
+        git fetch --tag --force
         latest_tag=$(git tag --list v* --sort=-v:refname | head -n 1)
         if [ -z "$latest_tag" ]; then
           latest_tag="v0.0.0"
