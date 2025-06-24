@@ -30,6 +30,22 @@ name: MyWorkflow
 
 ## Inputs
 
+<!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
+
+|                                  INPUT                                  |  TYPE  | REQUIRED |     DEFAULT     |                                          DESCRIPTION                                           |
+|-------------------------------------------------------------------------|--------|----------|-----------------|------------------------------------------------------------------------------------------------|
+| <a name="input_build-options"></a>[build-options](#input_build-options) | string |  false   |                 |                                 Build options for conda build.                                 |
+|        <a name="input_channels"></a>[channels](#input_channels)         | string |  false   | `"conda-forge"` |  Optional Extra anaconda channels to <br>use. Coma-separated syntax. Default `conda-forge`.    |
+|             <a name="input_conda"></a>[conda](#input_conda)             | string |  false   |      `"."`      |                        Directory with conda recipe. Default <br>`.` .                          |
+|    <a name="input_condapython"></a>[condapython](#input_condapython)    | string |  false   |     `"12"`      |                    Python3 minor version used for <br>conda. Default `12`.                     |
+|             <a name="input_label"></a>[label](#input_label)             | string |  false   |    `"main"`     |                     Label of conda package published. <br>Default `main`.                      |
+|             <a name="input_numpy"></a>[numpy](#input_numpy)             | string |  false   |                 | Numpy (full, i.e. x.x) version used for <br>building. Default is fixed by <br>Python version.  |
+|          <a name="input_publish"></a>[publish](#input_publish)          | string |  false   |    `"true"`     |    Whether we publish the package <br>build on anaconda cloud or <br>not. Default `true`.      |
+|           <a name="input_python"></a>[python](#input_python)            | string |  false   |     `"12"`      |                  Python3 minor version used for <br>building. Default `12`.                    |
+|             <a name="input_token"></a>[token](#input_token)             | string |   true   |                 |                                Anaconda access Token (required)                                |
+
+<!-- AUTO-DOC-INPUT:END -->
+
 ## ANACONDA_TOKEN
 
 This token's purpose is to let your github project access your anaconda repository to publish your package on your channel once it has been successfully built.
