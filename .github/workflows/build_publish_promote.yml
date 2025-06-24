@@ -11,15 +11,15 @@ on:
 
       python-minor-version:
         description: 'List of python minor versions to build/deploy the package.'
-        default: [9, 10, 11, 12]
+        default: "[9, 10, 11, 12]"
         required: false
-        type: array
+        type: string
 
       operating-system:
         description: 'List of OS for build/deploy.'
-        default: ["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]
+        default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
         required: false
-        type: array
+        type: string
 
       numpy-version:
         description: 'Numpy minor version. Default is 0 (None).'
