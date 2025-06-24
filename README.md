@@ -22,5 +22,6 @@ It allows trigerring different CI jobs, depending on the context:
 - [build_publish_promote](./doc/workflows/build_publish_promote/README.md)
 - [test_setup](./doc/workflows/test_setup/README.md)
 - [test_dummy](./doc/workflows/test_dummy/README.md)
+- [generate_docs](./doc/workflows/generate_docs/README.md)
 
 
