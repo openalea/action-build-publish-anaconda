@@ -163,8 +163,8 @@ runs:
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         #
-        os="${{ inputs.operating-system }}"
-        py="${{ inputs.python-minor-version }}"
+        os='${{ inputs.operating-system }}'
+        py='${{ inputs.python-minor-version }}'
         if (( !force_build_matrix )); then
           if (( is_branch )); then
             os='["ubuntu-latest"]'
