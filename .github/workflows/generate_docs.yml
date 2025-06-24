@@ -21,14 +21,12 @@ jobs:
          with:
            filename: './setup-ci/action.yml'
            output: './doc/actions/setup-ci/README.md'
-           reusable: 'false'
 
        - name: Run auto-doc
          uses: tj-actions/auto-doc@v3
          with:
            filename: './.github/workflows/test_setup.yml'
            output: './doc/workflows/test_setup/README.md'
-           reusable: 'true'
 
        - name: Verify Changed files
          uses: tj-actions/verify-changed-files@v20

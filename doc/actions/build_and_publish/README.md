@@ -28,38 +28,7 @@ name: MyWorkflow
         label: 'main'
 ```
 
-## Actions inputs
-The following inputs are available for this action:
-| Name | Description | Required | Default value |
-|------|-------------|----------|---------------|
-|`conda`| Directory with conda recipe (i.e. `meta.yml` file)| No | `conda`|
-|`python`| Python3 minor version targeted for build | No | `12` |
-|`numpy`| Numpy minor version used for building | No | `''` (fixed by python version)|
-|`token` | Anaconda access Token (cf. use process described [above](#anaconda_token))| Yes | |
-|`channels`| Optional Extra anaconda channels to use. Coma-separated syntax | No | `conda-forge`|
-|`publish`| Wether we publish the package build on anaconda cloud or not | No | 'true' |
-|`label` | Label of conda package published | No |`latest`|
-|`build-options` | Extra options for conda build | No | `` |
-
-
-## Example project structure
-
-```
-.
-├── LICENSE
-├── README.md
-├── myproject
-│   ├── __init__.py
-│   └── myproject.py
-├── conda
-|   ├── bld.bat
-│   ├── build.sh
-│   └── meta.yaml
-├── .github
-│   └── workflows
-│       └── build_publish_anaconda.yml
-├── .gitignore
-```
+## Inputs
 
 ## ANACONDA_TOKEN
 
