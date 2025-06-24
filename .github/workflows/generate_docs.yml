@@ -16,17 +16,24 @@ jobs:
          with:
            fetch-depth: 0  # otherwise, you will failed to push refs to dest repo
 
-       - name: Run auto-doc
+       - name: Run auto-doc on setup-ci
          uses: tj-actions/auto-doc@v3
          with:
            filename: './setup-ci/action.yml'
            output: './doc/actions/setup-ci/README.md'
 
-       - name: Run auto-doc
+       - name: Run auto-doc on build_and_publish
          uses: tj-actions/auto-doc@v3
          with:
-           filename: './.github/workflows/test_setup.yml'
-           output: './doc/workflows/test_setup/README.md'
+           filename: './build_and_publish/action.yml'
+           output: './doc/actions/build_and_publish/README.md'
+
+       - name: Run auto-doc on build_publish_promote
+         uses: tj-actions/auto-doc@v3
+         with:
+           filename: './.github/workflows/build_publish_promote.yml'
+           output: './doc/workflows/build_publish_promote/README.md'
+           reusable: 'true'
 
        - name: Verify Changed files
          uses: tj-actions/verify-changed-files@v20
@@ -34,13 +41,14 @@ jobs:
          with:
            files: |
              doc/actions/setup-ci/README.md
-             doc/workflows/test_setup/README.md
+             doc/actions/build_and_publish/README.md
+             doc/workflows/build_publish_promote/README.md
 
        - name: Create Pull Request
          if: steps.verify-changed-files.outputs.files_changed == 'true'
          uses: peter-evans/create-pull-request@v7
          with:
-           base: "setup_action"
+           base: github.ref_name
            title: "auto-doc: Updated README.md"
            branch: "chore/auto-doc-update-readme"
            commit-message: "auto-doc: Updated README.md"
