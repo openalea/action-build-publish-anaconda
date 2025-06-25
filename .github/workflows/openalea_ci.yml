@@ -102,7 +102,7 @@ jobs:
 
       - name: Run composite action
         id: set
-        uses: openalea/action-build-publish-anaconda/setup-ci@main
+        uses: openalea/action-build-publish-anaconda/setup-ci@ci_frugality
         with:
           git-ref: ${{ github.ref }}
           git-event: ${{ github.event_name }}
@@ -130,7 +130,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build and Publish
-        uses: openalea/action-build-publish-anaconda/build_and_publish@main
+        uses: openalea/action-build-publish-anaconda/build_and_publish@ci_frugality
         env:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
         with:
