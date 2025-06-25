@@ -1,4 +1,4 @@
-# build_publish_promote
+# openalea_ci
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -12,9 +12,9 @@ Copy the template below in your source dir, using the following path: `.github/w
 
 
 ```yaml
-# your_package/.github/workflows/build_publish_anaconda.yml
+# your_package/.github/workflows/openalea_ci.yml
 
-name: Building Package after Openalea guidelines
+name: OpenAlea CI
 
 on:
   push:
@@ -30,7 +30,7 @@ on:
 
 jobs:
   build:
-    uses: openalea/action-build-publish-anaconda/.github/workflows/build_publish_promote.yml@main
+    uses: openalea/action-build-publish-anaconda/.github/workflows/openalea_ci.yml@main
     secrets:
       anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
 ```
@@ -51,7 +51,7 @@ name: build_publish_anaconda
 
 jobs:
   build:
-    uses: openalea/action-build-publish-anaconda/.github/workflows/build_publish_promote.yml@main
+    uses: openalea/action-build-publish-anaconda/.github/workflows/openalea_ci.yml@main
     secrets:
       anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
     with:

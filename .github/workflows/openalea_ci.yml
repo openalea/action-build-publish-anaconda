@@ -1,4 +1,4 @@
-name: Building Package using Conda and context dependant Ci rules
+name: Openalea CI main workflow
 
 on:
   workflow_call:
