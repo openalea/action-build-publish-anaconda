@@ -1,7 +1,7 @@
 # generate documentation of action
 
 
-This action uses [auto-doc](https://github.com/tj-actions/auto-doc) o generate inputs and outputs formated table from action code.
+This action uses [auto-doc](https://github.com/tj-actions/auto-doc) to generate inputs and outputs formatted table from action code.
 
 In the targeted README.md, the ## Inputs and ## Outputs section will be replaced by a auto-generated table.
 
