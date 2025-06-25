@@ -89,7 +89,7 @@ runs:
   steps:
     - name: Check if meta.yaml exists and is compliant with CI version control
       id: check-meta
-      shell: bash -l {0]
+      shell: "bash -l {0]"
       run: |
         # do not echo command
         set +x
