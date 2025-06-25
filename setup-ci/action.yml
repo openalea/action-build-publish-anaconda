@@ -185,7 +185,7 @@ runs:
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
         force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
-        noarch=$(to_bool "${{ steps.check-meta.noarch }}")
+        noarch=$(to_bool "${{ steps.check-meta.outputs.noarch }}")
         is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
