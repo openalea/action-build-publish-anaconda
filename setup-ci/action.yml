@@ -223,6 +223,9 @@ runs:
         to_bool() {
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
+        to_string() {
+          [ "$1" -eq 1 ] && echo "true" || echo "false"
+        }
         skip_publication=$(to_bool "${{ inputs.force-skip-publication }}")
         skip_promotion=$(to_bool "${{ inputs.force-skip-promotion }}")
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
@@ -250,9 +253,11 @@ runs:
             publish=true
             publish_to="$release_label"
           fi
+          publish=$(to_bool "$publish")
           if (( publish && noarch )); then
             publish_only_on='ubuntu-latest'
           fi
+          publish=$(to_string "$publish")
         fi
         #if (( !skip_promotion )); then
         #  if (( is_release )); then
