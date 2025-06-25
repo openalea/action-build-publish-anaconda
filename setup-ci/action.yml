@@ -234,7 +234,7 @@ runs:
         release_label="main"
         #
         publish=false
-        only_publish_on=''
+        publish_only_on=''
         publish_to=''
         promote=false
         promote_from=''
@@ -251,7 +251,7 @@ runs:
             publish_to="$release_label"
           fi
           if (( publish && noarch )); then
-            only_publish_on='ubuntu-latest'
+            publish_only_on='ubuntu-latest'
           fi
         fi
         #if (( !skip_promotion )); then
@@ -266,13 +266,15 @@ runs:
         #fi
         echo "Publication setings:"
         echo "  Publish: $publish"
-        echo "  Promote: $promote"
+        echo "  Publish only on:   $publish_only_on"
         echo "  Publish to:   $publish_to"
+        echo "  Promote: $promote"
         echo "  Promote from: $promote_from"
         echo "  Promote to: $promote_to"
         echo "publish=$publish" >> "$GITHUB_OUTPUT"
         echo "promote=$promote" >> "$GITHUB_OUTPUT"
         echo "publish_to=$publish_to" >> "$GITHUB_OUTPUT"
+        echo "publish_only_on=$publish_only_on" >> "$GITHUB_OUTPUT"
         echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
         echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
