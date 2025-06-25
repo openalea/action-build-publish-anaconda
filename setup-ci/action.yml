@@ -137,6 +137,9 @@ runs:
             is_pr=true
         elif [[ "$event" == "release" ]]; then
             is_release=true
+        else
+          # fall back for other events
+          is_branch=true  
         fi
         echo "Context:"
         echo "  Push on branch: $is_branch"
@@ -167,30 +170,17 @@ runs:
         py='${{ inputs.python-minor-version }}'
         if (( !force_build_matrix )); then
           if (( is_branch )); then
-            os='["ubuntu-latest"]'
-          fi
+            os='[]'
+            py='[]'
           # only tags and release are built on full py matrix
-          if (( !is_tag && !is_release )); then
+          elif (( !is_tag && !is_release )); then
             py='[12]'
           fi
-          # promotion only (not used currently)
-          #if (( is_release )); then
-          #  os='[]'
-          #  py='[]'
-          #fi
         fi
         echo "Selected operating systems to build on: $os"
         echo "Selected Python minor versions to build on: $py"
         echo "build_os=$os" >> "$GITHUB_OUTPUT"
         echo "build_py=$py" >> "$GITHUB_OUTPUT"
-        echo "::endgroup::"
-        echo "::group::Determine build options"
-        build_options=''
-        if (( is_branch )); then
-          build_options='--no-test'
-        fi
-        echo "build options: $build_options"
-        echo "build_options=$build_options" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
     - name: Set publication variables depending on event
       id: set-pub
