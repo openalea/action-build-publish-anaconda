@@ -50,17 +50,17 @@ name: MyWorkflow
 
 <!-- AUTO-DOC-OUTPUT:START - Do not remove or modify this section -->
 
-|                                  OUTPUT                                   |  TYPE  |                                                             DESCRIPTION                                                              |
-|---------------------------------------------------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|
-| <a name="output_build_options"></a>[build_options](#output_build_options) | string |                                                    Build options for conda build                                                     |
-|        <a name="output_build_os"></a>[build_os](#output_build_os)         | string |                                                       Selected OS to build on                                                        |
-|        <a name="output_build_py"></a>[build_py](#output_build_py)         | string |                                           Selected Python minor versions to <br>build on                                             |
-|        <a name="output_channels"></a>[channels](#output_channels)         | string | A comma separated string of <br>channels to pick-up packages during <br>builds. Channel priority is strict: <br>first is used first  |
-|          <a name="output_promote"></a>[promote](#output_promote)          | string |                                               True if promotion only is <br>required                                                 |
-|  <a name="output_promote_from"></a>[promote_from](#output_promote_from)   | string |                                                        label to promote from                                                         |
-|     <a name="output_promote_to"></a>[promote_to](#output_promote_to)      | string |                                                         label to promote to                                                          |
-|          <a name="output_publish"></a>[publish](#output_publish)          | string |                                                   True if publication is required                                                    |
-|     <a name="output_publish_on"></a>[publish_on](#output_publish_on)      | string |                                                         label to publish on                                                          |
-|          <a name="output_version"></a>[version](#output_version)          | string |                                                           package version                                                            |
+|                                     OUTPUT                                      |  TYPE  |                                                             DESCRIPTION                                                              |
+|---------------------------------------------------------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|
+|           <a name="output_build_os"></a>[build_os](#output_build_os)            | string |                                                       Selected OS to build on                                                        |
+|           <a name="output_build_py"></a>[build_py](#output_build_py)            | string |                                           Selected Python minor versions to <br>build on                                             |
+|           <a name="output_channels"></a>[channels](#output_channels)            | string | A comma separated string of <br>channels to pick-up packages during <br>builds. Channel priority is strict: <br>first is used first  |
+|             <a name="output_promote"></a>[promote](#output_promote)             | string |                                               True if promotion only is <br>required                                                 |
+|     <a name="output_promote_from"></a>[promote_from](#output_promote_from)      | string |                                                        label to promote from                                                         |
+|        <a name="output_promote_to"></a>[promote_to](#output_promote_to)         | string |                                                         label to promote to                                                          |
+|             <a name="output_publish"></a>[publish](#output_publish)             | string |                                                   True if publication is required                                                    |
+| <a name="output_publish_only_on"></a>[publish_only_on](#output_publish_only_on) | string |           Restrict publishing to a specific <br>OS (e.g., ubuntu-latest). Leave blank to <br>publish without restriction.            |
+|        <a name="output_publish_to"></a>[publish_to](#output_publish_to)         | string |                                                         label to publish to                                                          |
+|             <a name="output_version"></a>[version](#output_version)             | string |                                                           package version                                                            |
 
 <!-- AUTO-DOC-OUTPUT:END -->
