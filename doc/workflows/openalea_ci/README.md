@@ -6,9 +6,9 @@ A reusable Github workflow to build your software package and publish to an Anac
 
 ## Usage
 
-### Build and publish according to openalea guidelines
+### Activate OpenAlea_CI on your package
 
-Copy the template below in your source dir, using the following path: `.github/workflows/build_publish_anaconda.yml`.
+Copy the template below in your source dir, using the following path: `.github/workflows/openalea_ci.yml`.
 
 
 ```yaml
@@ -35,19 +35,22 @@ jobs:
       anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
 ```
 Note that to publish your package to your anaconda channel, you must meet one of the following conditions :
-- push on master. This will trigger an upload on the 'dev' label.
-- have a tag that defines a new version of your package : `v...`. This allows uploading a new version of the package on the `rc` anaconda channel
-- create a release. This will promote your package to 'main'. This action is part of OpenAlea Release collective process: do not use except invited by Openalea developpers.
+- push or merge PR on master. This will trigger an upload on the 'dev' label.
+- push a tag starting with 'v' that defines a new version of your package. This will trigger uploading on the `rc` label.
+- create a release from Github UI. This will promote your package to 'main'. This action is part of OpenAlea Release collective process: do not use except invited by Openalea developpers.
 
-You can customize the workflow with different inputs (see below).
-For example, if you want to run without launching test on `ubuntu-latest` and `macos-latest`, `python 3.10` only, then your workflow file would look like this:
+You can customize the workflow with different inputs to make test or escape CI rules for a while.
+For example, if you want to run CI only on push on branches without launching test nor publishing or promoting anything, but just trigger conda build on `ubuntu-latest` and `macos-latest`, `python 3.10` only, then your workflow file would look like this:
 
 ```yaml
 
 
-name: build_publish_anaconda
+name: My custom CI
 
-...
+on:
+  push:
+    branches:
+      - '**'
 
 jobs:
   build:
@@ -57,7 +60,12 @@ jobs:
     with:
       python-minor-version: "[ 10 ]"
       operating-system: '["ubuntu-latest", "macos-latest"]'
+      force-build-matrix: "true"
       build-options: "--no-test"
+      force-skip-publish: "true"
+      force-skip-promotion: "true"
+
+      
 ```
 
 ## Inputs

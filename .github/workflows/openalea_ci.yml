@@ -58,13 +58,13 @@ on:
         type: boolean
 
       force-skip-promotion:
-        description: 'Force skipping promotion.'
+        description: 'Force skipping publication (forbid action to publish anything on anaconda)'
         default: false
         required: false
         type: boolean
 
       force-skip-publish:
-        description: 'Force skipping publication.'
+        description: 'Force skipping promotion (forbid action to change label of packages on anaconda)'
         default: false
         required: false
         type: boolean
