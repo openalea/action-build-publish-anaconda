@@ -89,10 +89,8 @@ runs:
   steps:
     - name: Check if meta.yaml exists and is compliant with CI version control
       id: check-meta
-      shell: "bash -l {0]"
+      shell: bash
       run: |
-        # do not echo command
-        set +x
         META="${{ inputs.conda-directory }}/meta.yaml"
         echo "::group::Looking for: $META"
         if [ ! -f "$META" ]; then
