@@ -1,9 +1,9 @@
 # setup-ci
 
 This action:
-1. Check if 'meta.yaml' exists and allows external version setting
+1. Check if 'meta.yaml' exists, if package is 'noarch', if it allows external version setting, has build string and 
 2. Detect calling context and set contextual flags (is_master, is_branch, is_release...)
-3. Set OS × Python matrix array depending on event
+3. Set OS × Python matrix array depending on context and noarch
 4. Set publication variables depending on event (publish, promote...)
 5. Set conda channels in priority order depending on event (dev, rc, main)
 6. Detect package version based on context and git v* tags (1.1.0, 1.1.1.dev)

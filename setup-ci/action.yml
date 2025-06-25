@@ -59,9 +59,9 @@ outputs:
   build_py:
     description: "Selected Python minor versions to build on"
     value: ${{ steps.set-matrix.outputs.build_py }}
-  build_options:
-    description: "Build options for conda build"
-    value: ${{ steps.set-matrix.outputs.build_options }}
+  noarch:
+    description: "Whether the package is noarch"
+    value: ${{ steps.check-meta.outputs.noarch }}
   publish:
     description: "True if publication is required"
     value: ${{ steps.set-pub.outputs.publish }}
@@ -88,8 +88,11 @@ runs:
   using: "composite"
   steps:
     - name: Check if meta.yaml exists and is compliant with CI version control
-      shell: bash
+      id: check-meta
+      shell: bash -l {0]
       run: |
+        # do not echo command
+        set +x
         META="${{ inputs.conda-directory }}/meta.yaml"
         echo "::group::Looking for: $META"
         if [ ! -f "$META" ]; then
@@ -100,7 +103,7 @@ runs:
         fi
         echo "Checking if meta.yaml accepts SCM_PRETEND_VERSION..."
         if ! grep -q "environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'" $META; then
-          echo "ERROR: meta.yaml must include a version string using SETUPTOOLS_SCM_PRETEND_VERSION."
+          echo "ERROR: meta.yaml must include a version set using SETUPTOOLS_SCM_PRETEND_VERSION."
           echo "Example:"
           echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}"
           echo "package:"
@@ -111,7 +114,29 @@ runs:
         else
           echo "Found version string using SETUPTOOLS_SCM_PRETEND_VERSION."
         fi
+        echo "Checking if meta.yaml complies openalea build string..."
+        if ! grep -q "string: py{{ PY_VER }}$" $META; then
+          echo "ERROR: meta.yaml must include a specific build string."
+          echo "Example:"
+          echo "package:"
+          echo "  name: my-package"
+          echo "  version: {{ version }}"
+          echo "  ..."
+          echo "build:"
+          echo "  string: py{{ PY_VER }}"
+          exit 1
+        else
+          echo "Found build string."
+        fi
         echo "::endgroup::"
+        echo "::group:: Determine noarch"
+        noarch=false
+        if grep -q "noarch:" $META; then
+          noarch=true
+        fi
+        echo "noarch: $noarch"
+        echo "noarch=$noarch" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::""
     - name: Detect Git Context
       id: context
       shell: bash
@@ -162,6 +187,7 @@ runs:
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
         force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
+        noarch=$(to_bool "${{ steps.check-meta.noarch }}")
         is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
@@ -169,12 +195,21 @@ runs:
         os='${{ inputs.operating-system }}'
         py='${{ inputs.python-minor-version }}'
         if (( !force_build_matrix )); then
-          if (( is_branch )); then
-            os='[]'
-            py='[]'
-          # only tags and release are built on full py matrix
-          elif (( !is_tag && !is_release )); then
-            py='[12]'
+          # tags and release only are built on full matrix
+          if (( !is_tag && !is_release )); then
+            # limit os
+            if (( noarch )); then
+              os='["ubuntu-latest"]'
+            elif (( is_branch )); then
+              os='[]'
+            fi
+            # limit py
+            if (( is_branch )); then
+              py='[]'
+            else
+              # others are limited to py 3.12
+              py='[12]'
+            fi
           fi
         fi
         echo "Selected operating systems to build on: $os"

@@ -69,6 +69,12 @@ on:
         required: false
         type: boolean
 
+      build-options:
+        description: 'Build options for conda build.'
+        required: false
+        default: ''
+        type: string
+
     secrets:
       anaconda_token:
         description: 'Anaconda access token (required).'
@@ -134,5 +140,5 @@ jobs:
           token: ${{ secrets.anaconda_token }}
           publish: ${{ needs.setup-ci.outputs.publish }}
           label: ${{ needs.setup-ci.outputs.publish_on }}
-          build-options: ${{ needs.setup-ci.outputs.build_options }}
+          build-options: ${{ inputs.build_options }}
 
