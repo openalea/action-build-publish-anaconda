@@ -134,7 +134,7 @@ runs:
         fi
         echo "noarch: $noarch"
         echo "noarch=$noarch" >> "$GITHUB_OUTPUT"
-        echo "::endgroup::""
+        echo "::endgroup::"
     - name: Detect Git Context
       id: context
       shell: bash
