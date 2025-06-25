@@ -59,21 +59,21 @@ outputs:
   build_py:
     description: "Selected Python minor versions to build on"
     value: ${{ steps.set-matrix.outputs.build_py }}
-  noarch:
-    description: "Whether the package is noarch"
-    value: ${{ steps.check-meta.outputs.noarch }}
   publish:
     description: "True if publication is required"
     value: ${{ steps.set-pub.outputs.publish }}
+  publish_only_on:
+    description: 'Restrict publishing to a specific OS (e.g., ubuntu-latest). Leave blank to publish without restriction.'
+    value: ${{ steps.set-pub.outputs.publish_only_on }}
   promote:
     description: "True if promotion only is required"
     value: ${{ steps.set-pub.outputs.promote }}
   channels:
     description: "A comma separated string of channels to pick-up packages during builds. Channel priority is strict: first is used first"
     value: ${{ steps.set-channel.outputs.channels }}
-  publish_on:
-    description: "label to publish on"
-    value: ${{ steps.set-pub.outputs.publish_on }}
+  publish_to:
+    description: "label to publish to"
+    value: ${{ steps.set-pub.outputs.publish_to }}
   promote_from:
     description: "label to promote from"
     value: ${{ steps.set-pub.outputs.promote_from }}
@@ -228,25 +228,30 @@ runs:
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        noarch=$(to_bool "${{ steps.check-meta.outputs.noarch }}")
         dev_label="${{ inputs.dev-label }}"
         rc_label="${{ inputs.rc-label }}"
         release_label="main"
         #
         publish=false
-        publish_on=''
+        only_publish_on=''
+        publish_to=''
         promote=false
         promote_from=''
         promote_to=''
         if (( !skip_publication )); then
           if (( is_master )); then
             publish=true
-            publish_on="$dev_label"
+            publish_to="$dev_label"
           elif (( is_tag )); then
             publish=true
-            publish_on="$rc_label"
+            publish_to="$rc_label"
           elif (( is_release )); then
             publish=true
-            publish_on="$release_label"
+            publish_to="$release_label"
+          fi
+          if (( publish && noarch )); then
+            only_publish_on='ubuntu-latest'
           fi
         fi
         #if (( !skip_promotion )); then
@@ -262,12 +267,12 @@ runs:
         echo "Publication setings:"
         echo "  Publish: $publish"
         echo "  Promote: $promote"
-        echo "  Publish on:   $publish_on"
+        echo "  Publish to:   $publish_to"
         echo "  Promote from: $promote_from"
         echo "  Promote to: $promote_to"
         echo "publish=$publish" >> "$GITHUB_OUTPUT"
         echo "promote=$promote" >> "$GITHUB_OUTPUT"
-        echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
+        echo "publish_to=$publish_to" >> "$GITHUB_OUTPUT"
         echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
         echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
