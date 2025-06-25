@@ -19,14 +19,18 @@ name: OpenAlea CI
 on:
   push:
     branches:
-      - '**'
+      - main
+      - master
     tags:
       - 'v*'
   pull_request:
-    branches:
-      - '**'
+    types:
+      - opened
+      - synchronize
+      - reopened
   release:
-    types: [published]
+    types:
+      - published
 
 jobs:
   build:
