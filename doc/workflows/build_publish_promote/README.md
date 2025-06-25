@@ -26,6 +26,7 @@ on:
     branches:
       - '**'
   release:
+    types: [published]
 
 jobs:
   build:
