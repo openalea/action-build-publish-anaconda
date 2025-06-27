@@ -36,4 +36,4 @@ jobs:
           channels: ${{ steps.setup-ci.outputs.channels }}
           token: ${{ secrets.anaconda_token }}
           publish: ${{ steps.setup-ci.outputs.publish }}
-          label: ${{ steps.setup-ci.outputs.publish_on }}
+          label: ${{ steps.setup-ci.outputs.publish_to }}
