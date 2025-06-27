@@ -1,7 +1,7 @@
 # setup-ci
 
 This action:
-1. Check if 'meta.yaml' exists, if package is 'noarch', if it allows external version setting, has build string and 
+1. Check if 'meta.yaml' exists, if package is 'noarch' (i.e. "pure python"), if it allows external version setting, has build string and 
 2. Detect calling context and set contextual flags (is_master, is_branch, is_release...)
 3. Set OS × Python matrix array depending on context and noarch
 4. Set publication variables depending on event (publish, promote...)
