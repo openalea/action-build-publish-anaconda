@@ -1,0 +1,138 @@
+name: Openalea CI main workflow
+
+on:
+  workflow_call:
+    inputs:
+      conda-directory:
+        description: 'Directory containing the conda recipe. Default is "conda".'
+        default: "conda"
+        required: false
+        type: string
+
+      python-minor-version:
+        description: 'List of python minor versions to build/deploy the package.'
+        default: "[9, 10, 11, 12]"
+        required: false
+        type: string
+
+      operating-system:
+        description: 'List of OS for build/deploy.'
+        default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
+        required: false
+        type: string
+
+      numpy-version:
+        description: 'Numpy minor version. Default is 0 (None).'
+        default: 0
+        required: false
+        type: number
+
+      organisation:
+        description: 'Channel of the organisation hosting the publications'
+        default: 'https://conda.anaconda.org/openalea3'
+        required: false
+        type: string
+
+      dev-label:
+        description: 'The label used for publishing development versions (latest version of master/main branch)'
+        default: 'dev'
+        required: false
+        type: string
+
+      rc-label:
+        description: 'The label used for publishing release candidates versions (latest v* tag)'
+        default: 'rc'
+        required: false
+        type: string
+
+      force-channel-priority:
+        description: 'Force channels priority used for build (coma separated format), regardless of context. If false (default), priority list is computed by action depending on context'
+        default: 'false'
+        required: false
+        type: string
+
+      force-build-matrix:
+        description: 'Force full input matrix builds regardless of context.'
+        default: false
+        required: false
+        type: boolean
+
+      force-skip-promotion:
+        description: 'Force skipping publication (forbid action to publish anything on anaconda)'
+        default: false
+        required: false
+        type: boolean
+
+      force-skip-publish:
+        description: 'Force skipping promotion (forbid action to change label of packages on anaconda)'
+        default: false
+        required: false
+        type: boolean
+
+    secrets:
+      anaconda_token:
+        description: 'Anaconda access token (required).'
+        required: true
+
+jobs:
+  setup-ci:
+    name: Setup CI
+    runs-on: ubuntu-latest
+    outputs:
+      build_os: ${{ steps.set.outputs.build_os }}
+      build_py: ${{ steps.set.outputs.build_py }}
+      build_options: ${{ steps.set.outputs.build_options }}
+      channels: ${{ steps.set.outputs.channels }}
+      publish: ${{ steps.set.outputs.publish }}
+      promote: ${{ steps.set.outputs.promote }}
+      publish_on: ${{ steps.set.outputs.publish_on }}
+      promote_from: ${{ steps.set.outputs.promote_from }}
+      promote_to: ${{ steps.set.outputs.promote_to }}
+      version: ${{ steps.set.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run composite action
+        id: set
+        uses: openalea/action-build-publish-anaconda/setup-ci@main
+        with:
+          git-ref: ${{ github.ref }}
+          git-event: ${{ github.event_name }}
+          conda-directory: ${{ inputs.conda-directory }}
+          python-minor-version: ${{ inputs.python-minor-version }}
+          operating-system: ${{ inputs.operating-system }}
+          organisation: ${{ inputs.organisation }}
+          dev-label: ${{ inputs.dev-label }}
+          rc-label: ${{ inputs.rc-label }}
+          force-channel-priority: ${{ inputs.force-channel-priority }}
+          force-build-matrix: ${{ inputs.force-build-matrix }}
+          force-skip-promotion: ${{ inputs.force-skip-promotion }}
+          force-skip-publish: ${{ inputs.force-skip-publish }}
+
+  build-and-publish:
+    name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
+    runs-on: ${{ matrix.os }}
+    needs: setup-ci
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.setup-ci.outputs.build_os) }}
+        python-minor-version: ${{ fromJson(needs.setup-ci.outputs.build_py) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build and Publish
+        uses: openalea/action-build-publish-anaconda/build_and_publish@main
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
+        with:
+          conda: ${{ inputs.conda-directory }}
+          python: ${{ matrix.python-minor-version }}
+          numpy: ${{ inputs.numpy-version }}
+          channels: ${{ needs.setup-ci.outputs.channels }}
+          token: ${{ secrets.anaconda_token }}
+          publish: ${{ needs.setup-ci.outputs.publish }}
+          label: ${{ needs.setup-ci.outputs.publish_on }}
+          build-options: ${{ needs.setup-ci.outputs.build_options }}
+

@@ -141,9 +141,8 @@ runs:
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export NUMPY_VERSION=${{ steps.numpy-selection.outputs.numpy_version }}
-        export GIT_DESCRIBE_TAG="dev"
         out_dir=`mktemp -d conda-build-dir.XXXXXX`
-        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION} and git version tag ${GIT_DESCRIBE_TAG}"
+        echo "Running 'conda build' with python ${PYTHON_VERSION} and numpy ${NUMPY_VERSION}"
         conda build . --output-folder $out_dir --python=${PYTHON_VERSION} --numpy=${NUMPY_VERSION} ${{ inputs.build-options }}
         echo "out_dir='$out_dir'" >> $GITHUB_OUTPUT
         echo "::endgroup::"
@@ -158,7 +157,7 @@ runs:
         for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*; do
           if [ "${BUILD_FILE: -6}" == ".conda" ]; then
             echo "Upload package ${BUILD_FILE} to anaconda with label ${{ inputs.label }} on channel associated to the given token."
-            anaconda upload --skip-existing --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
+            anaconda upload --force --no-progress --label ${{ inputs.label }} ${BUILD_FILE}
           fi
         done
         echo "::endgroup::"
