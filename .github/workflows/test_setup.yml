@@ -3,6 +3,10 @@ name: Test Setup Action
 on:
   workflow_dispatch:
     inputs:
+      conda-directory:
+        description: 'Directory containing the conda recipe'
+        required: false
+        default: 'dummy_pkg'
       force-build-matrix:
         description: 'Force full input matrix builds whatever the context.'
         default: 'false'
@@ -15,6 +19,7 @@ on:
         description: 'Force skipping publication.'
         default: 'false'
         required: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -38,7 +43,7 @@ jobs:
         id: setci
         uses: ./setup-ci
         with:
-          conda-directory: "dummy_pkg"
+          conda-directory: ${{ inputs.conda-directory }}
           git-ref: ${{ matrix.ref }}
           git-event: ${{ matrix.event }}
           force-build-matrix: ${{ inputs.force-build-matrix }}
@@ -46,18 +51,19 @@ jobs:
           force-skip-publish: ${{ inputs.force-skip-publish }}
       - name: Test results
         run: |
+          echo "package:              ${{ inputs.conda-directory }}"
+          echo "version:              ${{ steps.setci.outputs.version }}"
           echo "simulated ref:        ${{ matrix.ref }}"
           echo "simulated event:      ${{ matrix.event }}"
           echo "force-build-matrix:   ${{ inputs.force-build-matrix }}"
           echo "force-skip-promotion: ${{ inputs.force-skip-promotion }}"
           echo "force-skip-publish:   ${{ inputs.force-skip-publish }}"
-          echo "build_os:     ${{ steps.setci.outputs.build_os }}"
-          echo "build_py:     ${{ steps.setci.outputs.build_py }}"
-          echo "build_options:     ${{ steps.setci.outputs.build_options }}"
-          echo "publish:      ${{ steps.setci.outputs.publish }}"
-          echo "promote:      ${{ steps.setci.outputs.promote }}"
-          echo "publish_on:   ${{ steps.setci.outputs.publish_on }}"
-          echo "promote_from: ${{ steps.setci.outputs.promote_from }}"
-          echo "promote_to:   ${{ steps.setci.outputs.promote_to }}"
-          echo "version:      ${{ steps.setci.outputs.version }}"
-          echo "channels:      ${{ steps.setci.outputs.channels }}"
+          echo "build_os:             ${{ steps.setci.outputs.build_os }}"
+          echo "build_py:             ${{ steps.setci.outputs.build_py }}"
+          echo "publish:              ${{ steps.setci.outputs.publish }}"
+          echo "publish_only_on:      ${{ steps.setci.outputs.publish_only_on }}"
+          echo "publish_to:           ${{ steps.setci.outputs.publish_to }}"
+          echo "promote:              ${{ steps.setci.outputs.promote }}"
+          echo "promote_from:         ${{ steps.setci.outputs.promote_from }}"
+          echo "promote_to:           ${{ steps.setci.outputs.promote_to }}"
+          echo "channels:             ${{ steps.setci.outputs.channels }}"

@@ -69,6 +69,12 @@ on:
         required: false
         type: boolean
 
+      build-options:
+        description: 'Build options for conda build.'
+        required: false
+        default: ''
+        type: string
+
     secrets:
       anaconda_token:
         description: 'Anaconda access token (required).'
@@ -84,8 +90,9 @@ jobs:
       build_options: ${{ steps.set.outputs.build_options }}
       channels: ${{ steps.set.outputs.channels }}
       publish: ${{ steps.set.outputs.publish }}
+      publish_only_on: ${{ steps.set.outputs.publish_only_on }}
+      publish_to: ${{ steps.set.outputs.publish_to }}
       promote: ${{ steps.set.outputs.promote }}
-      publish_on: ${{ steps.set.outputs.publish_on }}
       promote_from: ${{ steps.set.outputs.promote_from }}
       promote_to: ${{ steps.set.outputs.promote_to }}
       version: ${{ steps.set.outputs.version }}
@@ -127,12 +134,14 @@ jobs:
         env:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
         with:
+          os_name: ${{ matrix.os }}
           conda: ${{ inputs.conda-directory }}
           python: ${{ matrix.python-minor-version }}
           numpy: ${{ inputs.numpy-version }}
           channels: ${{ needs.setup-ci.outputs.channels }}
           token: ${{ secrets.anaconda_token }}
           publish: ${{ needs.setup-ci.outputs.publish }}
-          label: ${{ needs.setup-ci.outputs.publish_on }}
-          build-options: ${{ needs.setup-ci.outputs.build_options }}
+          publish_only_on: ${{ needs.setup-ci.outputs.publish_only_on }}
+          label: ${{ needs.setup-ci.outputs.publish_to }}
+          build-options: ${{ inputs.build_options }}
 

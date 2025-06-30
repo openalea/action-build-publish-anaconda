@@ -8,6 +8,32 @@ A reusable Github workflow to build your software package and publish to an Anac
 
 ### Activate OpenAlea_CI on your package
 
+One requirement for using this workflow is that your package must have a the following mandatory lines in the `meta.yaml` file of your conda recipe:
+
+```yaml
+{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}
+
+...
+package:
+  ...
+  version: {{ version }}
+
+...
+
+build:
+  ...
+  string: py{{ PY_VER }}
+```
+
+If your package is a pure Python package, we also recommend to add the following lines to your `meta.yaml` file:
+
+```yaml
+...
+build:
+  noarch: python
+...
+```
+
 Copy the template below in your source dir, using the following path: `.github/workflows/openalea_ci.yml`.
 
 
@@ -19,14 +45,18 @@ name: OpenAlea CI
 on:
   push:
     branches:
-      - '**'
+      - main
+      - master
     tags:
       - 'v*'
   pull_request:
-    branches:
-      - '**'
+    types:
+      - opened
+      - synchronize
+      - reopened
   release:
-    types: [published]
+    types:
+      - published
 
 jobs:
   build:
@@ -65,7 +95,7 @@ jobs:
       force-skip-publish: "true"
       force-skip-promotion: "true"
 
-      
+
 ```
 
 ## Inputs
@@ -74,6 +104,7 @@ jobs:
 
 |                                               INPUT                                                |  TYPE   | REQUIRED |                                   DEFAULT                                   |                                                                                     DESCRIPTION                                                                                      |
 |----------------------------------------------------------------------------------------------------|---------|----------|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|              <a name="input_build-options"></a>[build-options](#input_build-options)               | string  |  false   |                                                                             |                                                                            Build options for conda build.                                                                            |
 |           <a name="input_conda-directory"></a>[conda-directory](#input_conda-directory)            | string  |  false   |                                  `"conda"`                                  |                                                           Directory containing the conda recipe. <br>Default is "conda".                                                             |
 |                    <a name="input_dev-label"></a>[dev-label](#input_dev-label)                     | string  |  false   |                                   `"dev"`                                   |                                            The label used for publishing <br>development versions (latest version of master/main branch)                                             |
 |       <a name="input_force-build-matrix"></a>[force-build-matrix](#input_force-build-matrix)       | boolean |  false   |                                   `false`                                   |                                                              Force full input matrix builds <br>regardless of context.                                                               |

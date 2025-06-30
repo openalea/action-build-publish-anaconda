@@ -59,21 +59,21 @@ outputs:
   build_py:
     description: "Selected Python minor versions to build on"
     value: ${{ steps.set-matrix.outputs.build_py }}
-  build_options:
-    description: "Build options for conda build"
-    value: ${{ steps.set-matrix.outputs.build_options }}
   publish:
     description: "True if publication is required"
     value: ${{ steps.set-pub.outputs.publish }}
+  publish_only_on:
+    description: 'Restrict publishing to a specific OS (e.g., ubuntu-latest). Leave blank to publish without restriction.'
+    value: ${{ steps.set-pub.outputs.publish_only_on }}
   promote:
     description: "True if promotion only is required"
     value: ${{ steps.set-pub.outputs.promote }}
   channels:
     description: "A comma separated string of channels to pick-up packages during builds. Channel priority is strict: first is used first"
     value: ${{ steps.set-channel.outputs.channels }}
-  publish_on:
-    description: "label to publish on"
-    value: ${{ steps.set-pub.outputs.publish_on }}
+  publish_to:
+    description: "label to publish to"
+    value: ${{ steps.set-pub.outputs.publish_to }}
   promote_from:
     description: "label to promote from"
     value: ${{ steps.set-pub.outputs.promote_from }}
@@ -82,12 +82,13 @@ outputs:
     value: ${{ steps.set-pub.outputs.promote_to }}
   version:
     description: "package version"
-    value: ${{ steps.setv.outputs.version }}    
+    value: ${{ steps.setv.outputs.version }}
 
 runs:
   using: "composite"
   steps:
     - name: Check if meta.yaml exists and is compliant with CI version control
+      id: check-meta
       shell: bash
       run: |
         META="${{ inputs.conda-directory }}/meta.yaml"
@@ -100,9 +101,9 @@ runs:
         fi
         echo "Checking if meta.yaml accepts SCM_PRETEND_VERSION..."
         if ! grep -q "environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'" $META; then
-          echo "ERROR: meta.yaml must include a version string using SETUPTOOLS_SCM_PRETEND_VERSION."
+          echo "ERROR: meta.yaml must include a version set using SETUPTOOLS_SCM_PRETEND_VERSION."
           echo "Example:"
-          echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}"
+          echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', '0.0.0.dev') %}"
           echo "package:"
           echo "  name: my-package"
           echo "  version: {{ version }}"
@@ -111,6 +112,28 @@ runs:
         else
           echo "Found version string using SETUPTOOLS_SCM_PRETEND_VERSION."
         fi
+        echo "Checking if meta.yaml complies openalea build string..."
+        if ! grep -q "string: py{{ PY_VER }}$" $META; then
+          echo "ERROR: meta.yaml must include a specific build string."
+          echo "Example:"
+          echo "package:"
+          echo "  name: my-package"
+          echo "  version: {{ version }}"
+          echo "  ..."
+          echo "build:"
+          echo "  string: py{{ PY_VER }}"
+          exit 1
+        else
+          echo "Found build string."
+        fi
+        echo "::endgroup::"
+        echo "::group:: Determine noarch"
+        noarch=false
+        if grep -q "noarch:" $META; then
+          noarch=true
+        fi
+        echo "noarch: $noarch"
+        echo "noarch=$noarch" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
     - name: Detect Git Context
       id: context
@@ -137,6 +160,9 @@ runs:
             is_pr=true
         elif [[ "$event" == "release" ]]; then
             is_release=true
+        else
+          # fall back for other events
+          is_branch=true
         fi
         echo "Context:"
         echo "  Push on branch: $is_branch"
@@ -159,6 +185,7 @@ runs:
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
         force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
+        noarch=$(to_bool "${{ steps.check-meta.outputs.noarch }}")
         is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
@@ -166,31 +193,27 @@ runs:
         os='${{ inputs.operating-system }}'
         py='${{ inputs.python-minor-version }}'
         if (( !force_build_matrix )); then
-          if (( is_branch )); then
-            os='["ubuntu-latest"]'
-          fi
-          # only tags and release are built on full py matrix
+          # tags and release only are built on full matrix
           if (( !is_tag && !is_release )); then
-            py='[12]'
+            # limit os
+            if (( noarch )); then
+              os='["ubuntu-latest"]'
+            elif (( is_branch )); then
+              os='[]'
+            fi
+            # limit py
+            if (( is_branch )); then
+              py='[]'
+            else
+              # others are limited to py 3.12
+              py='[12]'
+            fi
           fi
-          # promotion only (not used currently)
-          #if (( is_release )); then
-          #  os='[]'
-          #  py='[]'
-          #fi
         fi
         echo "Selected operating systems to build on: $os"
         echo "Selected Python minor versions to build on: $py"
         echo "build_os=$os" >> "$GITHUB_OUTPUT"
         echo "build_py=$py" >> "$GITHUB_OUTPUT"
-        echo "::endgroup::"
-        echo "::group::Determine build options"
-        build_options=''
-        if (( is_branch )); then
-          build_options='--no-test'
-        fi
-        echo "build options: $build_options"
-        echo "build_options=$build_options" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
     - name: Set publication variables depending on event
       id: set-pub
@@ -200,31 +223,41 @@ runs:
         to_bool() {
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
+        to_string() {
+          [ "$1" -eq 1 ] && echo "true" || echo "false"
+        }
         skip_publication=$(to_bool "${{ inputs.force-skip-publication }}")
         skip_promotion=$(to_bool "${{ inputs.force-skip-promotion }}")
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        noarch=$(to_bool "${{ steps.check-meta.outputs.noarch }}")
         dev_label="${{ inputs.dev-label }}"
         rc_label="${{ inputs.rc-label }}"
         release_label="main"
         #
         publish=false
-        publish_on=''
+        publish_only_on=''
+        publish_to=''
         promote=false
         promote_from=''
         promote_to=''
         if (( !skip_publication )); then
           if (( is_master )); then
             publish=true
-            publish_on="$dev_label"
+            publish_to="$dev_label"
           elif (( is_tag )); then
             publish=true
-            publish_on="$rc_label"
+            publish_to="$rc_label"
           elif (( is_release )); then
             publish=true
-            publish_on="$release_label"
+            publish_to="$release_label"
           fi
+          publish=$(to_bool "$publish")
+          if (( publish && noarch )); then
+            publish_only_on='ubuntu-latest'
+          fi
+          publish=$(to_string "$publish")
         fi
         #if (( !skip_promotion )); then
         #  if (( is_release )); then
@@ -238,19 +271,21 @@ runs:
         #fi
         echo "Publication setings:"
         echo "  Publish: $publish"
+        echo "  Publish only on:   $publish_only_on"
+        echo "  Publish to:   $publish_to"
         echo "  Promote: $promote"
-        echo "  Publish on:   $publish_on"
         echo "  Promote from: $promote_from"
         echo "  Promote to: $promote_to"
         echo "publish=$publish" >> "$GITHUB_OUTPUT"
         echo "promote=$promote" >> "$GITHUB_OUTPUT"
-        echo "publish_on=$publish_on" >> "$GITHUB_OUTPUT"
+        echo "publish_to=$publish_to" >> "$GITHUB_OUTPUT"
+        echo "publish_only_on=$publish_only_on" >> "$GITHUB_OUTPUT"
         echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
         echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
     - name: Compute priority conda channels used for builds
       id: set-channel
-      shell: bash 
+      shell: bash
       run: |
         echo "::group::Determine channels priority"
         is_release=$([[ "${{ steps.context.outputs.is_release }}" == 'true' ]] && echo 1 || echo 0)
@@ -266,7 +301,7 @@ runs:
         fi
         echo "Channels: $channels"
         echo "channels=$channels" >> $GITHUB_OUTPUT
-        echo "::endgroup"        
+        echo "::endgroup"
     - name: Determine package version
       id: setv
       shell: bash
