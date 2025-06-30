@@ -6,9 +6,9 @@ A reusable Github workflow to build your software package and publish to an Anac
 
 ## Usage
 
-### Activate OpenAlea_CI on your package
+### Prerequisites
 
-One requirement for using this workflow is that your package must have a the following mandatory lines in the `meta.yaml` file of your conda recipe:
+OpenAlea CI workflow requires that your package includes the following lines in its `meta.yaml` recipe:
 
 ```yaml
 {% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}
@@ -25,7 +25,7 @@ build:
   string: py{{ PY_VER }}
 ```
 
-If your package is a pure Python package, we also recommend to add the following lines to your `meta.yaml` file:
+If your package is a pure Python package, we also recommend to decalare it :
 
 ```yaml
 ...
@@ -34,7 +34,16 @@ build:
 ...
 ```
 
-Copy the template below in your source dir, using the following path: `.github/workflows/openalea_ci.yml`.
+
+### Activate OpenAlea_CI on your package
+
+From your github repo, online : 
+- Open 'Actions' tab 
+- click 'new workflow'. 
+- Scroll down and select 'by Openalea / openalea CI workflow'
+- Commit 
+
+Or, using git, add the following template in your source dir, using the following path: `.github/workflows/openalea_ci.yml`.
 
 
 ```yaml
@@ -68,6 +77,8 @@ Note that to publish your package to your anaconda channel, you must meet one of
 - push or merge PR on master. This will trigger an upload on the 'dev' label.
 - push a tag starting with 'v' that defines a new version of your package. This will trigger uploading on the `rc` label.
 - create a release from Github UI. This will promote your package to 'main'. This action is part of OpenAlea Release collective process: do not use except invited by Openalea developpers.
+
+### (optional) Customize your action
 
 You can customize the workflow with different inputs to make test or escape CI rules for a while.
 For example, if you want to run CI only on push on branches without launching test nor publishing or promoting anything, but just trigger conda build on `ubuntu-latest` and `macos-latest`, `python 3.10` only, then your workflow file would look like this:
