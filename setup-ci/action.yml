@@ -292,7 +292,7 @@ runs:
           echo "Full version: $full_version"
           IFS='.' read -r major minor micro <<< "$full_version"
           echo "Major: $major, Minor: $minor, Micro: $micro"
-          ((micro++))  # increment the patch/micro version
+          micro=$((micro + 1))  # increment the patch/micro version
           version="${major}.${minor}.${micro}.dev"
         fi
         echo "Package version: $version"
