@@ -82,7 +82,7 @@ outputs:
     value: ${{ steps.set-pub.outputs.promote_to }}
   version:
     description: "package version"
-    value: ${{ steps.setv.outputs.version }}    
+    value: ${{ steps.setv.outputs.version }}
 
 runs:
   using: "composite"
@@ -103,7 +103,7 @@ runs:
         if ! grep -q "environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'" $META; then
           echo "ERROR: meta.yaml must include a version set using SETUPTOOLS_SCM_PRETEND_VERSION."
           echo "Example:"
-          echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}"
+          echo "{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', '0.0.0.dev') %}"
           echo "package:"
           echo "  name: my-package"
           echo "  version: {{ version }}"
@@ -162,7 +162,7 @@ runs:
             is_release=true
         else
           # fall back for other events
-          is_branch=true  
+          is_branch=true
         fi
         echo "Context:"
         echo "  Push on branch: $is_branch"
@@ -285,7 +285,7 @@ runs:
         echo "::endgroup"
     - name: Compute priority conda channels used for builds
       id: set-channel
-      shell: bash 
+      shell: bash
       run: |
         echo "::group::Determine channels priority"
         is_release=$([[ "${{ steps.context.outputs.is_release }}" == 'true' ]] && echo 1 || echo 0)
@@ -301,7 +301,7 @@ runs:
         fi
         echo "Channels: $channels"
         echo "channels=$channels" >> $GITHUB_OUTPUT
-        echo "::endgroup"        
+        echo "::endgroup"
     - name: Determine package version
       id: setv
       shell: bash
