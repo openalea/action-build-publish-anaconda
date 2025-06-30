@@ -8,6 +8,32 @@ A reusable Github workflow to build your software package and publish to an Anac
 
 ### Activate OpenAlea_CI on your package
 
+One requirement for using this workflow is that your package must have a the following mandatory lines in the `meta.yaml` file of your conda recipe:
+
+```yaml
+{% set version = environ.get('SETUPTOOLS_SCM_PRETEND_VERSION', "0.0.0.dev") %}
+
+...
+package:
+  ...
+  version: {{ version }}
+
+...
+
+build:
+  ...
+  string: py{{ PY_VER }}
+```
+
+If your package is a pure Python package, we also recommend to add the following lines to your `meta.yaml` file:
+
+```yaml
+...
+build:
+  noarch: python
+...
+```
+
 Copy the template below in your source dir, using the following path: `.github/workflows/openalea_ci.yml`.
 
 
@@ -69,7 +95,7 @@ jobs:
       force-skip-publish: "true"
       force-skip-promotion: "true"
 
-      
+
 ```
 
 ## Inputs
