@@ -5,16 +5,20 @@ branding:
   icon: 'package'
   color: 'green'
 inputs:
+  os_name:
+    description: 'The name of the os the action is called on (eg ubuntu-latest)'
+    required: false
+    default: 'unknown'
   conda:
     description: "Directory with conda recipe. Default `.` ."
     required: false
     default: '.'
   condapython:
-    description: 'Python3 minor version used for conda. Default `12`.'
+    description: 'Python3 minor version used for conda.'
     required: false
     default: '12'
   python:
-    description: 'Python3 minor version used for building. Default `12`.'
+    description: 'Python3 minor version used for building.'
     required: false
     default: '12'
   token:
@@ -25,15 +29,19 @@ inputs:
     required: false
     default: 'conda-forge'
   publish:
-    description: 'Whether we publish the package build on anaconda cloud or not. Default `true`.'
+    description: 'Whether we publish the package build on anaconda cloud or not.'
     required: false
     default: 'true'
-  label:
-    description: Label of conda package published. Default `main`.
+  publish_only_on:
+    description: 'Restrict publishing to a specific OS (e.g., ubuntu-latest). Leave blank to publish without restriction.'
     required: false
-    default: main
+    default: ''
+  label:
+    description: 'Label of conda package published'
+    required: false
+    default: 'main'
   build-options:
-    description: Build options for conda build.
+    description: 'Build options for conda build.'
     required: false
     default: ''
 runs:
@@ -95,17 +103,16 @@ runs:
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
         export PYTHON_VARIANT="3.${{ inputs.python }}.* *_cpython"
-        export GIT_DESCRIBE_TAG=$(git describe --tags --abbrev=0 || echo "dev")
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
-        echo "Running 'conda build' with python ${PYTHON_VERSION} and git version tag ${GIT_DESCRIBE_TAG}"
+        echo "Running 'conda build' with python ${PYTHON_VERSION}"
         conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" -m "$CONFIG" ${{ inputs.build-options }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Package uploading
       id: package-uploading
-      if: ${{ inputs.publish == 'true' }}
+      if: ${{ inputs.publish == 'true' && (inputs.publish_only_on == '' || inputs.publish_only_on == inputs.os_name) }}
       working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Conda packages uploading"

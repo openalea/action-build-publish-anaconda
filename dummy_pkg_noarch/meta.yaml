@@ -8,6 +8,7 @@ source:
   path: .
 
 build:
+  noarch: python
   string: py{{ PY_VER }}
 
 about:
