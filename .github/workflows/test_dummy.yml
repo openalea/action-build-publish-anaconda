@@ -3,6 +3,15 @@ name: Test CI on Dummy Package
 on:
   workflow_dispatch:
     inputs:
+      package:
+        description: "Choose dummy package"
+        required: true
+        type: choice
+        options:
+          - dummy_pkg
+          - dummy_pkg_noarch
+        default: dummy_pkg_noarch
+
       git-ref:
         description: 'github.ref to simulate (eg: refs/heads/master, refs/tags/v*, ...)'
         required: false
@@ -12,12 +21,12 @@ on:
         description: 'github.event_name to simulate (eg push, release)'
         required: false
         default: 'push'
-        
+
 jobs:
   run-on-dummy:
     uses: ./.github/workflows/openalea_ci.yml
     with:
-      conda-directory: "dummy_pkg"
+      conda-directory: ${{ inputs.package }}
       force-ref: ${{ inputs.git-ref }}
       force-event: ${{ inputs.git-event }}
     secrets:
