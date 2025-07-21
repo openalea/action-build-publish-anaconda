@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Run setup-ci for different scenarios
         id: setci
-        uses: ./setup-ci
+        uses: ./actions/setup-ci
         with:
           conda-directory: ${{ inputs.conda-directory }}
           git-ref: ${{ matrix.ref }}
