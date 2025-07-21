@@ -19,13 +19,13 @@ jobs:
        - name: Run auto-doc on setup-ci
          uses: tj-actions/auto-doc@v3
          with:
-           filename: './setup-ci/action.yml'
+           filename: './actions/setup-ci/action.yml'
            output: './doc/actions/setup-ci/README.md'
 
        - name: Run auto-doc on build_and_publish
          uses: tj-actions/auto-doc@v3
          with:
-           filename: './build_and_publish/action.yml'
+           filename: './actions/build_and_publish/action.yml'
            output: './doc/actions/build_and_publish/README.md'
 
        - name: Run auto-doc on openalea_ci
