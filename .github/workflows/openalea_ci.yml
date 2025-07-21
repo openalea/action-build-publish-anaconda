@@ -21,12 +21,6 @@ on:
         required: false
         type: string
 
-      numpy-version:
-        description: 'Numpy minor version. Default is 0 (None).'
-        default: 0
-        required: false
-        type: number
-
       organisation:
         description: 'Channel of the organisation hosting the publications'
         default: 'https://conda.anaconda.org/openalea3'
@@ -137,7 +131,6 @@ jobs:
           os_name: ${{ matrix.os }}
           conda: ${{ inputs.conda-directory }}
           python: ${{ matrix.python-minor-version }}
-          numpy: ${{ inputs.numpy-version }}
           channels: ${{ needs.setup-ci.outputs.channels }}
           token: ${{ secrets.anaconda_token }}
           publish: ${{ needs.setup-ci.outputs.publish }}

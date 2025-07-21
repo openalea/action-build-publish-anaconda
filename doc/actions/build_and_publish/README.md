@@ -23,7 +23,6 @@ name: MyWorkflow
       uses: openalea/action-build-publish-anaconda/build_and_publish@main
       with:
         token: ${{ secrets.ANACONDA_TOKEN }}
-        numpy: '22'
         channels: 'openalea3,conda-forge'
         label: 'main'
 ```
