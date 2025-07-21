@@ -69,6 +69,16 @@ on:
         default: ''
         type: string
 
+      force-ref:
+        description: 'If defined, override actual calling ref (eg refs/heads/main)'
+        required: false
+        type: string
+
+      force-event:
+        description: 'If defined, override actual calling event (eg push, pull-request...)'
+        required: false
+        type: string
+
     secrets:
       anaconda_token:
         description: 'Anaconda access token (required).'
@@ -94,12 +104,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set calling context
+        id: setcontext
+        run: |
+          echo "git-ref=${{ inputs.force-ref || github.ref }}" >> $GITHUB_OUTPUT
+          echo "git-event=${{ inputs.force-event || github.event_name }}" >> $GITHUB_OUTPUT
+
       - name: Run composite action
         id: set
         uses: openalea/action-build-publish-anaconda/setup-ci@main
         with:
-          git-ref: ${{ github.ref }}
-          git-event: ${{ github.event_name }}
+          git-ref: ${{ steps.setcontext.outputs.git-ref }}
+          git-event: ${{ steps.setcontext.outputs.git-event }}
           conda-directory: ${{ inputs.conda-directory }}
           python-minor-version: ${{ inputs.python-minor-version }}
           operating-system: ${{ inputs.operating-system }}
