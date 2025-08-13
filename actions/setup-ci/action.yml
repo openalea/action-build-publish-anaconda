@@ -178,6 +178,7 @@ runs:
         echo "::endgroup::"
     - name: Fetch conda-forge pinning file
       id: fetch
+      shell: bash
       run: |
         curl -sSL \
         https://raw.githubusercontent.com/conda-forge/conda-forge-pinning-feedstock/main/recipe/conda_build_config.yaml \
@@ -185,6 +186,7 @@ runs:
 
     - name: Extract supported Python minor versions
       id: extract
+      shell: bash
       run: |
         # Get only the python: section until an empty line or next key
         versions=$(awk '/^python:/{flag=1;next}/^[a-zA-Z]/ && flag{flag=0}flag' conda_build_config.yaml \
