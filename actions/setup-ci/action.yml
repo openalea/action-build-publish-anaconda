@@ -182,7 +182,6 @@ runs:
       run: |
         curl -sSLo conda_build_config.yaml -f \
         https://raw.githubusercontent.com/conda-forge/conda-forge-pinning-feedstock/main/recipe/conda_build_config.yaml
-        head -n 10 conda_build_config.yaml
     - name: Extract supported Python minor versions
       id: extract
       shell: bash
@@ -191,8 +190,9 @@ runs:
         versions=$(awk '/^python:/{flag=1;next}/^[a-zA-Z]/ && flag{flag=0}flag' conda_build_config.yaml \
         | grep -E '^[[:space:]]*-[[:space:]]*[0-9]+\.[0-9]+' \
         | sed -E 's/.*([0-9]+\.[0-9]+)\.\*.*/\1/')
-          
-        echo "cf_versions=$(echo $versions | tr '\n' ',' | sed 's/,$//')" >> "$GITHUB_OUTPUT"
+        joined=$(echo $versions | tr '\n' ',' | sed 's/,$//')
+        echo "Extracted versions: $joined"
+        echo "cf_versions=$joined" >> "$GITHUB_OUTPUT"
     - name: Set OS × Python build matrix and build options depending on event
       id: set-matrix
       shell: bash
