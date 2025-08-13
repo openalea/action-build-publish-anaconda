@@ -10,8 +10,8 @@ on:
         type: string
 
       python-minor-version:
-        description: 'List of python minor versions to build/deploy the package.'
-        default: "[9, 10, 11, 12]"
+        description: 'List of python minor versions to build/deploy the package. Leave empty to auto-fetch from conda-forge.'
+        default: ""
         required: false
         type: string
 
