@@ -209,7 +209,7 @@ runs:
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         #
         os='${{ inputs.operating-system }}'
-        py='${{ steps.fetch-py.py-minors }}'
+        py='${{ steps.fetch-py.outputs.py-minors }}'
         if (( !force_build_matrix )); then
           # tags and release only are built on full matrix
           if (( !is_tag && !is_release )); then
