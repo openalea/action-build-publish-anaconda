@@ -180,9 +180,8 @@ runs:
       id: fetch
       shell: bash
       run: |
-        curl -sSL \
-        https://raw.githubusercontent.com/conda-forge/conda-forge-pinning-feedstock/main/recipe/conda_build_config.yaml \
-        -o conda_build_config.yaml
+        curl -sSLo conda_build_config.yaml -f \
+        https://raw.githubusercontent.com/conda-forge/conda-forge-pinning-feedstock/main/recipe/conda_build_config.yaml
 
     - name: Extract supported Python minor versions
       id: extract
