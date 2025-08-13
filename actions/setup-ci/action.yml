@@ -113,7 +113,7 @@ runs:
           echo "Found version string using SETUPTOOLS_SCM_PRETEND_VERSION."
         fi
         echo "Checking if meta.yaml complies openalea build string..."
-        if ! grep -q "string: py{{ PY_VER }}$" $META; then
+        if ! grep -Eq --text "string: py{{ PY_VER }}([[:space:]]*#.*)?[[:space:]]*\r?$" $META; then
           echo "ERROR: meta.yaml must include a specific build string."
           echo "Example:"
           echo "package:"
