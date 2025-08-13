@@ -209,7 +209,7 @@ runs:
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         #
         os='${{ inputs.operating-system }}'
-        py='${{ steps.fetch-py.python-minors }}'
+        py='${{ steps.fetch-py.py-minors }}'
         if (( !force_build_matrix )); then
           # tags and release only are built on full matrix
           if (( !is_tag && !is_release )); then
@@ -223,8 +223,9 @@ runs:
             if (( is_branch )); then
               py='[]'
             else
-              # others are limited to py 3.12
-              py='[12]'
+              # others are limited to highest py
+              highest=$(echo "$py" | tr ' ' '\n' | sort -n | tail -1)
+              py='[$highest]'
             fi
           fi
         fi
