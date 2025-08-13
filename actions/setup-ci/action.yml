@@ -224,7 +224,7 @@ runs:
               py='[]'
             else
               # others are limited to highest py
-              highest=$(echo "$py" | tr ' ' '\n' | sort -n | tail -1)
+              highest=$(echo "$py" | jq 'max')
               py='[$highest]'
             fi
           fi
