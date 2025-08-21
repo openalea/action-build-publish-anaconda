@@ -102,10 +102,11 @@ runs:
       run: |
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
-        export PYTHON_VARIANT="3.${{ inputs.python }}.* *_cpython"
+        variants=$(yq -r '.python[]' "$CONDA_PREFIX/conda_build_config.yaml")
+        export PYTHON_VARIANT=$(echo "$variants" | grep "^${PYTHON_VERSION}.*")
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
-        echo "Running 'conda build' with python ${PYTHON_VERSION}"
+        echo "Running 'conda build' with python ${PYTHON_VERSION} and variant PYTHON_VARIANT$"
         conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" -m "$CONFIG" ${{ inputs.build-options }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
