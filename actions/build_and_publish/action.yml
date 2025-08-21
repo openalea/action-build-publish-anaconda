@@ -102,7 +102,10 @@ runs:
       run: |
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
-        export PYTHON_VARIANT=$(grep -E "^\s*-\s*${PYTHON_VERSION}" "$CONDA_PREFIX/conda_build_config.yaml" | head -n1 | sed 's/^- //')
+        variants=$(grep -E "^\s*-" "$CONDA_PREFIX/conda_build_config.yaml" \
+        | sed 's/^- *//' \
+        | grep -v '^#')
+        export PYTHON_VARIANT=$(echo "$variants" | grep -F "^${PYTHON_VERSION}.*" | head -n1)
         export CONFIG="$CONDA_PREFIX/conda_build_config.yaml"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
