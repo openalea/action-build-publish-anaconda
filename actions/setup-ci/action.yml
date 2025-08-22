@@ -309,7 +309,10 @@ runs:
       run: |
         echo "::group::Determine channels priority"
         is_release=$([[ "${{ steps.context.outputs.is_release }}" == 'true' ]] && echo 1 || echo 0)
+        is_master=$([[ "${{ steps.context.outputs.is_master }}" == 'true' ]] && echo 1 || echo 0)
+        is_pr=$([[ "${{ steps.context.outputs.is_pr }}" == 'true' ]] && echo 1 || echo 0)
         set_priority=$([[ "${{ inputs.force-channel-priority }}" == 'false' ]] && echo 1 || echo 0)
+        dev_label="${{ inputs.dev-label }}"
         rc_label="${{ inputs.rc-label }}"
         release_label="main"
         base_url="${{ inputs.organisation }}/label"
@@ -318,6 +321,8 @@ runs:
           channels="${{ inputs.force-channel-priority }}"
         elif (( is_release )); then
           channels="$base_url/$release_label,conda-forge"
+        elif (( is_pr || is_master )); then
+          channels="$base_url/$dev_label,$base_url/$rc_label,$base_url/$release_label,conda-forge"
         fi
         echo "Channels: $channels"
         echo "channels=$channels" >> $GITHUB_OUTPUT
