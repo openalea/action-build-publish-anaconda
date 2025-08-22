@@ -112,7 +112,7 @@ jobs:
 
       - name: Run composite action
         id: set
-        uses: openalea/action-build-publish-anaconda/actions/setup-ci@main
+        uses: openalea/action-build-publish-anaconda/actions/setup-ci@use_dev
         with:
           git-ref: ${{ steps.setcontext.outputs.git-ref }}
           git-event: ${{ steps.setcontext.outputs.git-event }}
