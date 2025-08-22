@@ -102,7 +102,7 @@ runs:
       run: |
         echo "::group::Conda packages building"
         export PYTHON_VERSION="3.${{ inputs.python }}"
-        variants=$(awk '/^python:/{flag=1;next} /^[^[:space:]-]/{flag=0} flag && NF' conda_build_config.yaml)
+        variants=$(awk '/^python:/{flag=1;next} /^[^[:space:]-]/{flag=0} flag && NF' $CONDA_PREFIX/conda_build_config.yaml)
         echo "Variants founds: $variants"
         export PYTHON_VARIANT=$(echo "$variants" || grep -E "^[[:space:]]*-[[:space:]]*${PYTHON_VERSION}" | sed -E 's/^[[:space:]]*-[[:space:]]*//')
         # Fail if not found
