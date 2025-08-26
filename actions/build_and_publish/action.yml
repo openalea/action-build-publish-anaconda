@@ -122,6 +122,7 @@ runs:
         echo "Build config options: ${CFGS}"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
+        conda render . $CFGS --dump
         conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" $CFGS ${{ inputs.build-options }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
