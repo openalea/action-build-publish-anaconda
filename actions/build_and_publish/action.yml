@@ -115,7 +115,7 @@ runs:
         # if recipe/conda_build_config.yaml exists, append it
         if [ -f conda_build_config.yaml ]; then
           echo "Found local override file: $(pwd)/conda_build_config.yaml"
-          CFGS="-m conda_build_config.yaml $CFGS "
+          CFGS="$CFGS -m conda_build_config.yaml"
         else
           echo "No local override config"
         fi
