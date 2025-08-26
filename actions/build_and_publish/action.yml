@@ -115,14 +115,14 @@ runs:
         # if recipe/conda_build_config.yaml exists, append it
         if [ -f conda_build_config.yaml ]; then
           echo "Found local override file: $(pwd)/conda_build_config.yaml"
-          CFGS="$CFGS -e conda_build_config.yaml"
+          CFGS="$CFGS -m conda_build_config.yaml"
         else
           echo "No local override config"
         fi
         echo "Build config options: ${CFGS}"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
-        conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" $CFGS ${{ inputs.build-options }}
+        conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
