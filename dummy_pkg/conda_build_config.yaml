@@ -1,0 +1,4 @@
+c_compiler:
+  - gcc                        # [linux]
+  - clang                      # [osx]
+  - m2w64_c_compiler           # [win]
