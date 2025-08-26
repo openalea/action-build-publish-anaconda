@@ -82,7 +82,8 @@ on:
       use_local_actions:
         description: "Use actions from CI local branch (debugging purposes). Should be false except for testing"
         required: false
-        default: "false"
+        default: false
+        type: boolean
 
     secrets:
       anaconda_token:
@@ -115,18 +116,28 @@ jobs:
           echo "git-ref=${{ inputs.force-ref || github.ref }}" >> $GITHUB_OUTPUT
           echo "git-event=${{ inputs.force-event || github.event_name }}" >> $GITHUB_OUTPUT
 
-      - name: Decide which action to run
-        id: actionref
-        run: |
-          if [ "${{ github.event.inputs.use_local_actions }}" = "true" ]; then
-            echo "ref=./actions/setup-ci" >> $GITHUB_OUTPUT
-          else
-            echo "ref=openalea/action-build-publish-anaconda/actions/setup-ci@main" >> $GITHUB_OUTPUT
-          fi
+      - name: Run local action (testing)
+        id: sett
+        if: ${{ inputs.use_local_actions == 'true' }}
+        uses: ./actions/setup-ci
+        with:
+          git-ref: ${{ steps.setcontext.outputs.git-ref }}
+          git-event: ${{ steps.setcontext.outputs.git-event }}
+          conda-directory: ${{ inputs.conda-directory }}
+          python-minor-version: ${{ inputs.python-minor-version }}
+          operating-system: ${{ inputs.operating-system }}
+          organisation: ${{ inputs.organisation }}
+          dev-label: ${{ inputs.dev-label }}
+          rc-label: ${{ inputs.rc-label }}
+          force-channel-priority: ${{ inputs.force-channel-priority }}
+          force-build-matrix: ${{ inputs.force-build-matrix }}
+          force-skip-promotion: ${{ inputs.force-skip-promotion }}
+          force-skip-publish: ${{ inputs.force-skip-publish }}
 
-      - name: Run composite action
-        id: set
-        uses: ${{ steps.actionref.outputs.ref }}
+      - name: Run remote action (production)
+        id: setp
+        if: ${{ inputs.use_local_actions != 'true' }}
+        uses: openalea/action-build-publish-anaconda/actions/setup-ci@main
         with:
           git-ref: ${{ steps.setcontext.outputs.git-ref }}
           git-event: ${{ steps.setcontext.outputs.git-event }}
@@ -163,8 +174,9 @@ jobs:
             echo "ref=openalea/action-build-publish-anaconda/actions/build_and_publish@main" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build and Publish
-        uses: ${{ steps.actionref.outputs.ref }}
+      - name: Build and Publish (local action)
+        if: ${{ inputs.use_local_actions == 'true' }}
+        uses: ./actions/build_and_publish
         env:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
         with:
@@ -178,3 +190,18 @@ jobs:
           label: ${{ needs.setup-ci.outputs.publish_to }}
           build-options: ${{ inputs.build_options }}
 
+      - name: Build and Publish (remote action)
+        if: ${{ inputs.use_local_actions != 'true' }}
+        uses: openalea/action-build-publish-anaconda/actions/build_and_publish@main
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
+        with:
+          os_name: ${{ matrix.os }}
+          conda: ${{ inputs.conda-directory }}
+          python: ${{ matrix.python-minor-version }}
+          channels: ${{ needs.setup-ci.outputs.channels }}
+          token: ${{ secrets.anaconda_token }}
+          publish: ${{ needs.setup-ci.outputs.publish }}
+          publish_only_on: ${{ needs.setup-ci.outputs.publish_only_on }}
+          label: ${{ needs.setup-ci.outputs.publish_to }}
+          build-options: ${{ inputs.build_options }}
