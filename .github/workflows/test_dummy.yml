@@ -29,6 +29,5 @@ jobs:
       conda-directory: ${{ inputs.package }}
       force-ref: ${{ inputs.git-ref }}
       force-event: ${{ inputs.git-event }}
-      use_local_actions: true
     secrets:
       anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
