@@ -119,6 +119,7 @@ runs:
         else
           echo "No local override config"
         fi
+        echo "Build config options: ${CFGS}"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
         conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" $CFGS ${{ inputs.build-options }}
