@@ -110,19 +110,21 @@ runs:
           echo "Error: No Python variant found for ${PYTHON_VERSION} in conda_build_config.yaml"
           exit 1
         fi
-        # base pinning file (conda-forge)
-        export CFGS="-m $CONDA_PREFIX/conda_build_config.yaml"
-        # if recipe/conda_build_config.yaml exists, append it
-        if [ -f conda_build_config.yaml ]; then
-          echo "Found local override file: $(pwd)/conda_build_config.yaml"
-          CFGS="$CFGS -m conda_build_config.yaml"
+        CONDA_FORGE_PINNING="${CONDA_PREFIX}/conda_build_config.yaml"
+        # If a local conda_build_config.yaml exists next to meta.yaml, rename it
+        LOCAL_CONFIG="conda_build_config.yaml"
+        if [[ -f "$LOCAL_CONFIG" ]]; then
+          RENAMED_LOCAL="local_overrides.yaml"
+          mv "$LOCAL_CONFIG" "$RENAMED_LOCAL"
+          echo "Detected local config: renamed to $RENAMED_LOCAL"
+          EXTRA_M="-m $RENAMED_LOCAL"
         else
-          echo "No local override config"
+          echo "No local conda_build_config.yaml found"
+          EXTRA_M=""
         fi
-        # echo "Build config options: ${CFGS}"
         out_dir=$(mktemp -d conda-build-dir.XXXXXX)
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
-        conda build . --output-folder "$out_dir" --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
+        conda build . --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
