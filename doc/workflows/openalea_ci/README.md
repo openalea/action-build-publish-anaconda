@@ -37,11 +37,11 @@ build:
 
 ### Activate OpenAlea_CI on your package
 
-From your github repo, online : 
-- Open 'Actions' tab 
-- click 'new workflow'. 
+From your github repo, online :
+- Open 'Actions' tab
+- click 'new workflow'.
 - Scroll down and select 'by Openalea / openalea CI workflow'
-- Commit 
+- Commit
 
 Or, using git, add the following template in your source dir, using the following path: `.github/workflows/openalea_ci.yml`.
 
@@ -77,6 +77,12 @@ Note that to publish your package to your anaconda channel, you must meet one of
 - push or merge PR on master. This will trigger an upload on the 'dev' label.
 - push a tag starting with 'v' that defines a new version of your package. This will trigger uploading on the `rc` label.
 - create a release from Github UI. This will promote your package to 'main'. This action is part of OpenAlea Release collective process: do not use except invited by Openalea developpers.
+
+### Run your workflow locally
+
+During the development process, you might find yourself needing to test your package build without pushing to GitHub. However, using `conda-build` directly can mess with your local environment. To avoid this, we recommand to use the [GitHub Local Actions](https://marketplace.visualstudio.com/items?itemName=SanjulaGanepola.github-local-actions) VS-Code extension.
+
+If you don't use VS-Code, you can still use [`nektos/act`](https://nektosact.com/), a tool that allows you to run GitHub Actions locally, which is the core component of the extension mentioned above.
 
 ### (optional) Customize your action
 
