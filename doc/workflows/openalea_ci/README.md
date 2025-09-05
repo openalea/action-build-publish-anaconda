@@ -81,7 +81,7 @@ Note that to publish your package to your anaconda channel, you must meet one of
 ### (optional) Customize your action
 
 You can customize the workflow with different inputs to make test or escape CI rules for a while.
-For example, if you want to run CI only on push on branches without launching test nor publishing or promoting anything, but just trigger conda build on `ubuntu-latest` and `macos-latest`, `python 3.10` only, then your workflow file would look like this:
+For example, if you want to run CI only on push on branches without launching test nor publishing anything, but just trigger conda build on `ubuntu-latest` and `macos-latest`, `python 3.10` only, then your workflow file would look like this:
 
 ```yaml
 
@@ -101,10 +101,9 @@ jobs:
     with:
       python-minor-version: "[ 10 ]"
       operating-system: '["ubuntu-latest", "macos-latest"]'
-      force-build-matrix: "true"
+      force-full-matrix: "true"
       build-options: "--no-test"
-      force-skip-publish: "true"
-      force-skip-promotion: "true"
+      force-no-publication: "true"
 
 
 ```
