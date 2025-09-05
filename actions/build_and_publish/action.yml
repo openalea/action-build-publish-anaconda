@@ -93,13 +93,6 @@ runs:
         conda install -q conda-build conda-forge-pinning
         echo "::endgroup::"
       shell: bash -l {0}
-    - name: Setup anaconda-client
-      if: ${{ inputs.publish == 'true' }}
-      run: |
-        echo "::group::Setup anaconda-client"
-        conda install -q anaconda-client
-        echo "::endgroup::"
-      shell: bash -l {0}
     - name: Package compilation
       id: package-compilation
       working-directory: ./${{ inputs.conda }}
@@ -172,6 +165,13 @@ runs:
         echo "should_upload=$should_upload"
         echo "should_upload=$should_upload" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
+    - name: Setup anaconda-client
+      if: ${{ steps.check-upload.outputs.should_upload == 'true' }}
+      run: |
+        echo "::group::Setup anaconda-client"
+        conda install -q anaconda-client
+        echo "::endgroup::"
+      shell: bash -l {0}
     - name: Package uploading
       id: package-uploading
       if: ${{ steps.check-upload.outputs.should_upload == 'true' }}
