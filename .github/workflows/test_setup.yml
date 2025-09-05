@@ -59,6 +59,7 @@ jobs:
           echo "build_os:             ${{ steps.setci.outputs.build_os }}"
           echo "build_py:             ${{ steps.setci.outputs.build_py }}"
           echo "publish:              ${{ steps.setci.outputs.publish }}"
+          echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
           echo "publish_to:           ${{ steps.setci.outputs.publish_to }}"
           echo "publish_if_py:        ${{ steps.setci.outputs.publish_if_py }}"
           echo "publish_if_os:        ${{ steps.setci.outputs.publish_if_os }}"
