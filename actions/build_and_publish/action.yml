@@ -132,12 +132,49 @@ runs:
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
+    - name: Determine upload
+      id: check-upload
+      shell: bash
+      run: |
+        echo "::group::Determine uploading"
+        should_upload=false
+
+        if [[ "${{ inputs.publish }}" == "true" ]]; then
+          os_match=false
+          py_match=false
+
+          # Check OS list (skip if [])
+          if [[ '${{ inputs.publish_if_os }}' == '[]' ]]; then
+            os_match=true
+          else
+            for os in $(echo '${{ inputs.publish_if_os }}' | jq -r '.[]'); do
+              if [[ "$os" == "${{ inputs.os_name }}" ]]; then
+                os_match=true
+              fi
+            done
+          fi
+
+          # Check Python list (skip if [])
+          if [[ '${{ inputs.publish_if_py }}' == '[]' ]]; then
+            py_match=true
+          else
+            for py in $(echo '${{ inputs.publish_if_py }}' | jq -r '.[]'); do
+              if [[ "$py" == "${{ inputs.python }}" ]]; then
+                py_match=true
+              fi
+            done
+          fi
+
+          if [[ "$os_match" == "true" && "$py_match" == "true" ]]; then
+            should_upload=true
+          fi
+        fi
+        echo "should_upload=$should_upload"
+        echo "should_upload=$should_upload" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
     - name: Package uploading
       id: package-uploading
-      if: >-
-        ${{ inputs.publish == 'true'
-        && (length(fromJSON(inputs.publish_if_os)) == 0 || contains(fromJSON(inputs.publish_if_os), inputs.os_name))
-        && (length(fromJSON(inputs.publish_if_py)) == 0 || contains(fromJSON(inputs.publish_if_py), inputs.python)) }}
+      if: ${{ steps.check-upload.outputs.should_upload == 'true' }}
       working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Conda packages uploading"
