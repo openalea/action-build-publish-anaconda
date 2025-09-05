@@ -254,7 +254,6 @@ runs:
           if (( is_master )); then
             publish=true
             publish_if_py="[$py_latest]"
-            publish_if_os="$os"
             publish_to="$dev_label"
           elif (( is_tag )); then
             publish=true
