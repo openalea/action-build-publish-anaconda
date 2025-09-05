@@ -22,8 +22,8 @@ inputs:
     required: false
     default: '13'
   token:
-    description: 'Anaconda access Token (required)'
-    required: true
+    description: 'Anaconda access Token (required for publishing)'
+    required: false
   channels:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false

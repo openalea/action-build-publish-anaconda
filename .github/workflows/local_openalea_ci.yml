@@ -1,0 +1,63 @@
+name: Emulation of Openalea CI main workflow for local tests/builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      conda-directory:
+        description: 'Directory containing the conda recipe. Default is "conda".'
+        default: "conda"
+        required: false
+        type: string
+
+      python-minor-version:
+        description: 'Targeted python minor version'
+        default: "13"
+        required: false
+        type: string
+
+      organisation:
+        description: 'Channel of the organisation hosting the publications'
+        default: 'https://conda.anaconda.org/openalea3'
+        required: false
+        type: string
+
+      force-channel-priority:
+        description: 'Force channels priority used for build (coma separated format), regardless of context. If false (default), priority list is computed by action depending on context'
+        default: 'false'
+        required: false
+        type: string
+
+      build-options:
+        description: 'Build options for conda build.'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  local-ci:
+    name: Local CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Call Setup-CI action
+        id: setup_ci
+        uses: openalea/action-build-publish-anaconda/actions/setup-ci@main
+        with:
+          git-ref: 'refs/heads/master'
+          git-event: 'push'
+          conda-directory: ${{ inputs.conda-directory }}
+          organisation: ${{ inputs.organisation }}
+          force-channel-priority: ${{ inputs.force-channel-priority }}
+
+      - name: Call Build and Publish
+        uses: openalea/action-build-publish-anaconda/actions/build_and_publish@main
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.setup-ci.outputs.version }}
+        with:
+          conda: ${{ inputs.conda-directory }}
+          python: ${{ inputs.python-minor-version }}
+          channels: ${{ steps.setup-ci.outputs.channels }}
+          publish: false
+          build-options: ${{ inputs.build_options }}
