@@ -60,10 +60,10 @@ outputs:
     value: ${{ steps.set-pub.outputs.publish }}
   publish_if_py:
     description: "Publish only if build_py belongs to this list of python minor versions. Leave empty to pass this test"
-    value: ${{ steps.set-pub.outputs.publish }}
+    value: ${{ steps.set-pub.outputs.publish_if_py }}
   publish_if_os:
     description: "Publish only if build_os belongs to this list of os. Leave empty to pass this test."
-    value: ${{ steps.set-pub.outputs.publish }}
+    value: ${{ steps.set-pub.outputs.publish_if_os }}
   channels:
     description: "A comma separated string of channels to pick-up packages during builds. Channel priority is strict: first is used first"
     value: ${{ steps.set-channel.outputs.channels }}
