@@ -16,11 +16,11 @@ inputs:
     required: false
     default: 'conda'
   python-minor-version:
-    description: 'List of python minor versions to build/deploy the package. Leave empty to auto-fetch from conda-forge.'
+    description: 'List of python minor versions covered by CI. Leave empty to auto-fetch from conda-forge.'
     default: ""
     required: false
   operating-system:
-    description: 'List of OS for build/deploy.'
+    description: 'List of OS covered by CI.'
     default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
     required: false
   organisation:
@@ -39,16 +39,12 @@ inputs:
     description: 'Force channels priority used for build (coma separated format), regardless of context. If false (default), priority list is computed by action depending on context'
     default: 'false'
     required: false
-  force-build-matrix:
-    description: 'Force full input matrix builds regardless of context.'
+  force-full-matrix:
+    description: 'Force build on full os x py matrix.'
     default: 'false'
     required: false
-  force-skip-publish:
-    description: 'Force skipping publication (forbid action to publish anything on anaconda)'
-    default: 'false'
-    required: false
-  force-skip-promotion:
-    description: 'Force skipping promotion (forbid action to change label of packages on anaconda)'
+  force-no-publication:
+    description: 'Prevent publication (forbid action to publish anything on anaconda)'
     default: 'false'
     required: false
 
@@ -62,24 +58,18 @@ outputs:
   publish:
     description: "True if publication is required"
     value: ${{ steps.set-pub.outputs.publish }}
-  publish_only_on:
-    description: 'Restrict publishing to a specific OS (e.g., ubuntu-latest). Leave blank to publish without restriction.'
-    value: ${{ steps.set-pub.outputs.publish_only_on }}
-  promote:
-    description: "True if promotion only is required"
-    value: ${{ steps.set-pub.outputs.promote }}
+  publish_if_py:
+    description: "Publish only if build_py belongs to this list of python minor versions. Leave empty to pass this test"
+    value: ${{ steps.set-pub.outputs.publish }}
+  publish_if_os:
+    description: "Publish only if build_os belongs to this list of os. Leave empty to pass this test."
+    value: ${{ steps.set-pub.outputs.publish }}
   channels:
     description: "A comma separated string of channels to pick-up packages during builds. Channel priority is strict: first is used first"
     value: ${{ steps.set-channel.outputs.channels }}
   publish_to:
     description: "label to publish to"
     value: ${{ steps.set-pub.outputs.publish_to }}
-  promote_from:
-    description: "label to promote from"
-    value: ${{ steps.set-pub.outputs.promote_from }}
-  promote_to:
-    description: "label to promote to"
-    value: ${{ steps.set-pub.outputs.promote_to }}
   version:
     description: "package version"
     value: ${{ steps.setv.outputs.version }}
@@ -180,7 +170,7 @@ runs:
       id: fetch-py
       shell: bash
       run: |
-        echo "::group::Determine python minor version"
+        echo "::group::Determine python minor version and py_latest"
         if [ -n "${{ inputs.python-minor-version }}" ]; then
           pylist="${{ inputs.python-minor-version }}"
         else
@@ -193,6 +183,9 @@ runs:
         fi
         echo "Python minor versions: $pylist"
         echo "py-minors=$pylist" >> "$GITHUB_OUTPUT"
+        py_latest=$(echo "$pylist" | jq 'max')
+        echo "py_latest: $py_latest"
+        echo "py_latest=$py_latest" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
     - name: Set OS × Python build matrix and build options depending on event
       id: set-matrix
@@ -202,31 +195,27 @@ runs:
         to_bool() {
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
-        force_build_matrix=$(to_bool "${{ inputs.force-build-matrix }}")
+        force_full_matrix=$(to_bool "${{ inputs.force-full-matrix }}")
         noarch=$(to_bool "${{ steps.check-meta.outputs.noarch }}")
         is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
-        is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
-        is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
+        is_pr=$(to_bool "${{ steps.context.outputs.is_pr }}")
         #
         os='${{ inputs.operating-system }}'
         py='${{ steps.fetch-py.outputs.py-minors }}'
-        if (( !force_build_matrix )); then
-          # tags and release only are built on full matrix
-          if (( !is_tag && !is_release )); then
+        py_latest='${{ steps.fetch-py.outputs.py_latest }}'
+        if (( !force_full_matrix )); then
+          # Only branch and pr are not built on full matrix
+          if (( is_branch )); then
+            py='[]'
+            os='[]'
+          elif (( is_pr )); then
+            # limit to highest py
+            highest=$(echo "$py" | jq 'max')
+            echo "highest py version: $highest"
+            py="[$py_latest]"
             # limit os
             if (( noarch )); then
               os='["ubuntu-latest"]'
-            elif (( is_branch )); then
-              os='[]'
-            fi
-            # limit py
-            if (( is_branch )); then
-              py='[]'
-            else
-              # others are limited to highest py
-              highest=$(echo "$py" | jq 'max')
-              echo "highest py version: $highest"
-              py="[$highest]"
             fi
           fi
         fi
@@ -246,8 +235,7 @@ runs:
         to_string() {
           [ "$1" -eq 1 ] && echo "true" || echo "false"
         }
-        skip_publication=$(to_bool "${{ inputs.force-skip-publication }}")
-        skip_promotion=$(to_bool "${{ inputs.force-skip-promotion }}")
+        skip_publication=$(to_bool "${{ inputs.force-no-publication }}")
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
@@ -255,16 +243,18 @@ runs:
         dev_label="${{ inputs.dev-label }}"
         rc_label="${{ inputs.rc-label }}"
         release_label="main"
+        os='${{ inputs.operating-system }}'
+        py_latest='${{ steps.fetch-py.outputs.py_latest }}'
         #
         publish=false
-        publish_only_on=''
         publish_to=''
-        promote=false
-        promote_from=''
-        promote_to=''
+        publish_if_py=''
+        publish_if_os=''
         if (( !skip_publication )); then
           if (( is_master )); then
             publish=true
+            publish_if_py="[$py_latest]"
+            publish_if_os="$os"
             publish_to="$dev_label"
           elif (( is_tag )); then
             publish=true
@@ -275,33 +265,19 @@ runs:
           fi
           publish=$(to_bool "$publish")
           if (( publish && noarch )); then
-            publish_only_on='ubuntu-latest'
+            publish_if_os='["ubuntu-latest"]'
           fi
           publish=$(to_string "$publish")
         fi
-        #if (( !skip_promotion )); then
-        #  if (( is_release )); then
-        #    promote=true
-        #    promote_from="$rc_label"
-        #    promote_to="$release_label"
-        #  fi
-        #  if [[ "$promote_from" == "$promote_to" ]]; then
-        #    promote=false
-        #  fi
-        #fi
         echo "Publication setings:"
         echo "  Publish: $publish"
-        echo "  Publish only on:   $publish_only_on"
+        echo "  Publish if os:   $publish_if_os"
+        echo "  Publish if py:   $publish_if_py"
         echo "  Publish to:   $publish_to"
-        echo "  Promote: $promote"
-        echo "  Promote from: $promote_from"
-        echo "  Promote to: $promote_to"
         echo "publish=$publish" >> "$GITHUB_OUTPUT"
-        echo "promote=$promote" >> "$GITHUB_OUTPUT"
+        echo "publish_if_py=$publish_if_py" >> "$GITHUB_OUTPUT"
+        echo "publish_if_os=$publish_if_os" >> "$GITHUB_OUTPUT"
         echo "publish_to=$publish_to" >> "$GITHUB_OUTPUT"
-        echo "publish_only_on=$publish_only_on" >> "$GITHUB_OUTPUT"
-        echo "promote_from=$promote_from" >> "$GITHUB_OUTPUT"
-        echo "promote_to=$promote_to" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
     - name: Compute priority conda channels used for builds
       id: set-channel
