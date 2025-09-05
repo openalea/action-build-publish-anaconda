@@ -5,8 +5,12 @@ on:
     inputs:
       conda-directory:
         description: 'Directory containing the conda recipe'
-        required: false
-        default: 'dummy_pkg'
+        required: true
+        type: choice
+        options:
+          - dummy_pkg
+          - dummy_pkg_noarch
+        default: dummy_pkg
       force-full-matrix:
         description: 'Force build on full os x py matrix.'
         default: 'false'
