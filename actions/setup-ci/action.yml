@@ -49,6 +49,9 @@ inputs:
     required: false
 
 outputs:
+  py_latest:
+    description: "latest python version covered by CI"
+    value: ${{ steps.fetch-py.outputs.py_latest }}
   build_os:
     description: "Selected OS to build on"
     value: ${{ steps.set-matrix.outputs.build_os }}
