@@ -10,13 +10,13 @@ on:
         type: string
 
       python-minor-version:
-        description: 'List of python minor versions to build/deploy the package. Leave empty to auto-fetch from conda-forge.'
+        description: 'List of python minor versions covered by CI. Leave empty to auto-fetch from conda-forge.'
         default: ""
         required: false
         type: string
 
       operating-system:
-        description: 'List of OS for build/deploy.'
+        description: 'List of OS covered by CI.'
         default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
         required: false
         type: string
@@ -45,20 +45,14 @@ on:
         required: false
         type: string
 
-      force-build-matrix:
-        description: 'Force full input matrix builds regardless of context.'
+      force-full-matrix:
+        description: 'Force build on full os x py matrix.'
         default: false
         required: false
         type: boolean
 
-      force-skip-promotion:
-        description: 'Force skipping publication (forbid action to publish anything on anaconda)'
-        default: false
-        required: false
-        type: boolean
-
-      force-skip-publish:
-        description: 'Force skipping promotion (forbid action to change label of packages on anaconda)'
+      force-no-publication:
+        description: 'Prevent publication (forbid ci to publish anything on anaconda)'
         default: false
         required: false
         type: boolean
@@ -91,14 +85,11 @@ jobs:
     outputs:
       build_os: ${{ steps.set.outputs.build_os }}
       build_py: ${{ steps.set.outputs.build_py }}
-      build_options: ${{ steps.set.outputs.build_options }}
       channels: ${{ steps.set.outputs.channels }}
       publish: ${{ steps.set.outputs.publish }}
-      publish_only_on: ${{ steps.set.outputs.publish_only_on }}
+      publish_if_py: ${{ steps.set.outputs.publish_if_py }}
+      publish_if_os: ${{ steps.set.outputs.publish_if_os }}
       publish_to: ${{ steps.set.outputs.publish_to }}
-      promote: ${{ steps.set.outputs.promote }}
-      promote_from: ${{ steps.set.outputs.promote_from }}
-      promote_to: ${{ steps.set.outputs.promote_to }}
       version: ${{ steps.set.outputs.version }}
     steps:
       - name: Checkout
@@ -125,9 +116,8 @@ jobs:
           dev-label: ${{ inputs.dev-label }}
           rc-label: ${{ inputs.rc-label }}
           force-channel-priority: ${{ inputs.force-channel-priority }}
-          force-build-matrix: ${{ inputs.force-build-matrix }}
-          force-skip-promotion: ${{ inputs.force-skip-promotion }}
-          force-skip-publish: ${{ inputs.force-skip-publish }}
+          force-full-matrix: ${{ inputs.force-full-matrix }}
+          force-no-publication: ${{ inputs.force-no-publication }}
 
   build-and-publish:
     name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
@@ -155,6 +145,7 @@ jobs:
           channels: ${{ needs.setup-ci.outputs.channels }}
           token: ${{ secrets.anaconda_token }}
           publish: ${{ needs.setup-ci.outputs.publish }}
-          publish_only_on: ${{ needs.setup-ci.outputs.publish_only_on }}
+          publish_if_py: ${{ needs.setup-ci.outputs.publish_if_py }}
+          publish_if_os: ${{ needs.setup-ci.outputs.publish_if_os }}
           label: ${{ needs.setup-ci.outputs.publish_to }}
           build-options: ${{ inputs.build_options }}
