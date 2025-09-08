@@ -81,7 +81,7 @@ Note that to publish your package to your anaconda channel, you must meet one of
 ### (optional) Customize your action
 
 You can customize the workflow with different inputs to make test or escape CI rules for a while.
-For example, if you want to run CI only on push on branches without launching test nor publishing or promoting anything, but just trigger conda build on `ubuntu-latest` and `macos-latest`, `python 3.10` only, then your workflow file would look like this:
+For example, if you want to run CI only on push on branches without launching test nor publishing anything, but just trigger conda build on `ubuntu-latest` and `macos-latest`, `python 3.10` only, then your workflow file would look like this:
 
 ```yaml
 
@@ -101,10 +101,9 @@ jobs:
     with:
       python-minor-version: "[ 10 ]"
       operating-system: '["ubuntu-latest", "macos-latest"]'
-      force-build-matrix: "true"
+      force-full-matrix: "true"
       build-options: "--no-test"
-      force-skip-publish: "true"
-      force-skip-promotion: "true"
+      force-no-publication: "true"
 
 
 ```
@@ -118,15 +117,14 @@ jobs:
 |              <a name="input_build-options"></a>[build-options](#input_build-options)               | string  |  false   |                                                                             |                                                                            Build options for conda build.                                                                            |
 |           <a name="input_conda-directory"></a>[conda-directory](#input_conda-directory)            | string  |  false   |                                  `"conda"`                                  |                                                           Directory containing the conda recipe. <br>Default is "conda".                                                             |
 |                    <a name="input_dev-label"></a>[dev-label](#input_dev-label)                     | string  |  false   |                                   `"dev"`                                   |                                            The label used for publishing <br>development versions (latest version of master/main branch)                                             |
-|       <a name="input_force-build-matrix"></a>[force-build-matrix](#input_force-build-matrix)       | boolean |  false   |                                   `false`                                   |                                                              Force full input matrix builds <br>regardless of context.                                                               |
 | <a name="input_force-channel-priority"></a>[force-channel-priority](#input_force-channel-priority) | string  |  false   |                                  `"false"`                                  | Force channels priority used for <br>build (coma separated format), regardless of context. <br>If false (default), priority list <br>is computed by action depending <br>on context  |
 |                 <a name="input_force-event"></a>[force-event](#input_force-event)                  | string  |  false   |                                                                             |                                                      If defined, override actual calling <br>event (eg push, pull-request...)                                                        |
+|        <a name="input_force-full-matrix"></a>[force-full-matrix](#input_force-full-matrix)         | boolean |  false   |                                   `false`                                   |                                                                       Force build on full os <br>x py matrix.                                                                        |
+|    <a name="input_force-no-publication"></a>[force-no-publication](#input_force-no-publication)    | boolean |  false   |                                   `false`                                   |                                                           Prevent publication (forbid ci to publish anything on anaconda)                                                            |
 |                    <a name="input_force-ref"></a>[force-ref](#input_force-ref)                     | string  |  false   |                                                                             |                                                          If defined, override actual calling <br>ref (eg refs/heads/main)                                                            |
-|    <a name="input_force-skip-promotion"></a>[force-skip-promotion](#input_force-skip-promotion)    | boolean |  false   |                                   `false`                                   |                                                     Force skipping publication (forbid action to publish anything on anaconda)                                                       |
-|       <a name="input_force-skip-publish"></a>[force-skip-publish](#input_force-skip-publish)       | boolean |  false   |                                   `false`                                   |                                                  Force skipping promotion (forbid action to change label of packages on anaconda)                                                    |
-|          <a name="input_operating-system"></a>[operating-system](#input_operating-system)          | string  |  false   | `"[\"ubuntu-latest\", \"macos-latest\", \"macos-13\", \"windows-latest\"]"` |                                                                             List of OS for build/deploy.                                                                             |
+|          <a name="input_operating-system"></a>[operating-system](#input_operating-system)          | string  |  false   | `"[\"ubuntu-latest\", \"macos-latest\", \"macos-13\", \"windows-latest\"]"` |                                                                            List of OS covered by <br>CI.                                                                             |
 |                <a name="input_organisation"></a>[organisation](#input_organisation)                | string  |  false   |                  `"https://conda.anaconda.org/openalea3"`                   |                                                              Channel of the organisation hosting <br>the publications                                                                |
-|    <a name="input_python-minor-version"></a>[python-minor-version](#input_python-minor-version)    | string  |  false   |                                                                             |                                   List of python minor versions <br>to build/deploy the package. Leave <br>empty to auto-fetch from conda-forge.                                     |
+|    <a name="input_python-minor-version"></a>[python-minor-version](#input_python-minor-version)    | string  |  false   |                                                                             |                                          List of python minor versions <br>covered by CI. Leave empty <br>to auto-fetch from conda-forge.                                            |
 |                      <a name="input_rc-label"></a>[rc-label](#input_rc-label)                      | string  |  false   |                                   `"rc"`                                    |                                                    The label used for publishing <br>release candidates versions (latest v* tag)                                                     |
 
 <!-- AUTO-DOC-INPUT:END -->
