@@ -15,17 +15,17 @@ It allows trigerring different CI jobs, depending on the context:
 Note that for pure python packages, the publication is only triggered after build on ubuntu-latest.
 The associated development workflow is:
 - create a branch for new development
-- push on git (no ci triggered at this stage)
-- when done, open a PR (trigger build on py_latest + test without publication)
+- push on git (CI does nothing at this stage)
+- when done, open a PR (CI will build on py_latest and test the package, but do not publish it)
 - check CI results, ask for review, ammend PR (CI is re-run after each push)
-- when CI and review are okay, merge PR (CI trigger build on py_latest + publication on dev channel)
+- when CI and review are okay, merge PR (CI will build on py_latest and publish on dev channel)
 - repeat open branch / PR / merge as much as needed
 - when a new stable version of the package is ready for publication on openalea, 
   go to 'actions' tab of your Github project, click on 'OpenAlea CI' and 'Run'. 
   this will trigger a CI build on all supported os x py version.
-- If CI check is okay, congrats, you can push a new tag (vx.x.x). This will
-  publish your package on rc (release candidate).
-- Publication on public openalea main channel will be done by OpenAlea core developper team.
+- If CI check is okay, congrats, you can push a new tag (vx.x.x). CI will build, test and
+  publish your package on rc (release candidate) channel.
+- Publication on openalea main channel will be done by OpenAlea core developer team or during Release coding sprints.
 
 
 ## Documentation
