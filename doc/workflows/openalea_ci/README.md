@@ -25,7 +25,7 @@ build:
   string: py{{ PY_VER }}
 ```
 
-If your package is a pure Python package, we also recommend to decalare it :
+If your package is a pure Python package (no compilation), you should also add:
 
 ```yaml
 ...
@@ -66,6 +66,16 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
+    inputs:
+      check_before_tag:
+        description: "Run OpenAlea CI pre-tag build"
+        required: false
+        default: "true"
+        type: boolean
+
+run-name: >
+  ${{ github.event_name == 'workflow_dispatch' && 'OpenAlea CI pre-tag build' || 'OpenAlea CI' }}
 
 jobs:
   build:
@@ -73,10 +83,13 @@ jobs:
     secrets:
       anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
 ```
-Note that to publish your package to your anaconda channel, you must meet one of the following conditions :
+
+In every-day life, you will not have to modify this file, as it handles the behaviour of OpenAleaCI for you, 
+depending on the development step.
+Note that to publish your package to anaconda channel, you must meet one of the following conditions :
 - push or merge PR on master. This will trigger an upload on the 'dev' label.
 - push a tag starting with 'v' that defines a new version of your package. This will trigger uploading on the `rc` label.
-- create a release from Github UI. This will promote your package to 'main'. This action is part of OpenAlea Release collective process: do not use except invited by Openalea developpers.
+- create a release from Github UI. This will trigger an upload on the 'main' label. This action is part of OpenAlea Release collective process: do not use except invited by Openalea developpers.
 
 ### (optional) Customize your action
 
