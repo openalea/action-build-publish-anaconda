@@ -136,8 +136,11 @@ runs:
         is_branch=false
         is_release=false
         is_tag=false
+        is_pretag=false
         is_pr=false
-        if [[ "$event" == "push" ]]; then
+        if [[ "$event" == 'workflow_dispatch' ]]; then
+          is_pretag=true
+        elif [[ "$event" == "push" ]]; then
           # pushing tag + commit together on master should result in is_tag=true, is_master=false (desired to avoid concurent builds)
           if [[ "$ref" == refs/tags/v* ]]; then
             is_tag=true
@@ -158,11 +161,13 @@ runs:
         echo "  Push on branch: $is_branch"
         echo "  Push on master: $is_master"
         echo "  Pull request:   $is_pr"
+        echo "  Pre tag:        $is_pretag"
         echo "  Push tag:       $is_tag"
         echo "  Release:        $is_release"
         echo "is_master=$is_master" >> "$GITHUB_OUTPUT"
         echo "is_branch=$is_branch" >> "$GITHUB_OUTPUT"
         echo "is_release=$is_release" >> "$GITHUB_OUTPUT"
+        echo "is_pretag=$is_pretag" >> "$GITHUB_OUTPUT"
         echo "is_tag=$is_tag" >> "$GITHUB_OUTPUT"
         echo "is_pr=$is_pr" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
@@ -198,25 +203,26 @@ runs:
         force_full_matrix=$(to_bool "${{ inputs.force-full-matrix }}")
         noarch=$(to_bool "${{ steps.check-meta.outputs.noarch }}")
         is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
+        is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_pr=$(to_bool "${{ steps.context.outputs.is_pr }}")
         #
         os='${{ inputs.operating-system }}'
         py='${{ steps.fetch-py.outputs.py-minors }}'
         py_latest='${{ steps.fetch-py.outputs.py_latest }}'
         if (( !force_full_matrix )); then
-          # Only branch and pr are not built on full matrix
+          # Only branch, master and pr are not built on full matrix
           if (( is_branch )); then
             py='[]'
             os='[]'
-          elif (( is_pr )); then
+          elif (( is_pr || is_master)); then
             # limit to highest py
             highest=$(echo "$py" | jq 'max')
             echo "highest py version: $highest"
             py="[$py_latest]"
             # limit os
-            if (( noarch )); then
-              os='["ubuntu-latest"]'
-            fi
+            # if (( noarch )); then
+            #  os='["ubuntu-latest"]'
+            # fi
           fi
         fi
         echo "Selected operating systems to build on: $os"
@@ -253,7 +259,7 @@ runs:
         if (( !skip_publication )); then
           if (( is_master )); then
             publish=true
-            publish_if_py="[$py_latest]"
+            # publish_if_py="[$py_latest]"
             publish_to="$dev_label"
           elif (( is_tag )); then
             publish=true
@@ -285,6 +291,7 @@ runs:
         echo "::group::Determine channels priority"
         is_release=$([[ "${{ steps.context.outputs.is_release }}" == 'true' ]] && echo 1 || echo 0)
         is_tag=$([[ "${{ steps.context.outputs.is_tag }}" == 'true' ]] && echo 1 || echo 0)
+        is_pretag=$([[ "${{ steps.context.outputs.is_pretag }}" == 'true' ]] && echo 1 || echo 0)
         set_priority=$([[ "${{ inputs.force-channel-priority }}" == 'false' ]] && echo 1 || echo 0)
         dev_label="${{ inputs.dev-label }}"
         rc_label="${{ inputs.rc-label }}"
@@ -295,7 +302,7 @@ runs:
           channels="${{ inputs.force-channel-priority }}"
         elif (( is_release )); then
           channels="$base_url/$release_label,conda-forge"
-        elif (( is_tag )); then
+        elif (( is_tag || is_pretag )); then
           channels="$base_url/$rc_label,$base_url/$release_label,conda-forge"
         fi
         echo "Channels: $channels"
@@ -310,6 +317,7 @@ runs:
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
+        is_pretag=$(to_bool "${{ steps.context.outputs.is_pretag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         #
         latest_tag=$(git ls-remote --tags origin "v*" | \
@@ -329,7 +337,11 @@ runs:
           IFS='.' read -r major minor micro <<< "$full_version"
           echo "Major: $major, Minor: $minor, Micro: $micro"
           micro=$((micro + 1))  # increment the patch/micro version
-          version="${major}.${minor}.${micro}.dev"
+          if (( is_pretag )); then
+            version="${major}.${minor}.${micro}.rc"
+          else
+            version="${major}.${minor}.${micro}.dev"
+          fi
         fi
         echo "Package version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
