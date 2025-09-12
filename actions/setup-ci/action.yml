@@ -76,6 +76,9 @@ outputs:
   version:
     description: "package version"
     value: ${{ steps.setv.outputs.version }}
+  package:
+    description: "package name"
+    value: ${{ steps.setid.outputs.package_name }}
 
 runs:
   using: "composite"
@@ -348,4 +351,26 @@ runs:
         fi
         echo "Package version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
+        echo "::endgroup"
+    - name: Determine package name
+      id: setid
+      shell: bash
+      run: |
+        echo "::group::Determine package name"
+        meta="${{ inputs.conda-directory }}/meta.yaml"
+        # Try to read package name from recipe/meta.yaml
+        if [ -f "$meta" ]; then
+          raw_name=$(grep -E '^ *name:' $meta | head -1 | awk '{print $2}')
+        else
+          raw_name=""
+        fi
+        # If name is a Jinja template, fallback to root dir name
+        if [[ "$raw_name" == *"{{"* ]]; then
+          package_name=$(basename "$GITHUB_WORKSPACE")
+        else
+          package_name="$raw_name"
+        fi
+
+        echo "Detected package name: $package_name"
+        echo "package_name=$package_name" >> $GITHUB_OUTPUT
         echo "::endgroup"

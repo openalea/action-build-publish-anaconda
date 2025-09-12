@@ -52,7 +52,8 @@ jobs:
           force-no-publication: ${{ inputs.force-no-publication }}
       - name: Test results
         run: |
-          echo "package:              ${{ inputs.conda-directory }}"
+          echo "conda directory:      ${{ inputs.conda-directory }}"
+          echo "package:              ${{ steps.setci.outputs.package }}"
           echo "version:              ${{ steps.setci.outputs.version }}"
           echo "simulated ref:        ${{ matrix.ref }}"
           echo "simulated event:      ${{ matrix.event }}"
