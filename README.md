@@ -20,9 +20,9 @@ The associated development workflow is:
   publish your package on rc (release candidate) channel.
 - Publication on openalea main channel will be done by OpenAlea core developer team or during Release coding sprints.
 
-## Instalation
+## Installation
 
-If you belong to openalea organisation, please follow [these instalation instructions](./doc/workflows/openalea_ci/README.md) to activate CI on your repo.
+If you belong to openalea organisation, please follow [these installation instructions](./doc/workflows/openalea_ci/README.md) to activate CI on your repo.
 
 If you want to test it in another context, just add and [configure to your needs](./doc/workflows/openalea_ci/README.md) the following `.github/workflows/openalea_ci.yml` file in your repository:
 
@@ -46,6 +46,16 @@ By default OpenAlea CI listen to git-events happening on your repo and launch a 
 ![Build Flow](images/CI_workflow.png)
 
 Note that for pure python packages, the publication is only triggered after build on ubuntu-latest.
+
+## Run CI workflow locally
+
+During the development process, you might find yourself needing to test your package build without pushing to GitHub. However, using `conda-build` directly can mess with your local environment. To avoid this, we recommand to use the [GitHub Local Actions](https://marketplace.visualstudio.com/items?itemName=SanjulaGanepola.github-local-actions) VS-Code extension.
+
+If you don't use VS-Code, you can still use [`nektos/act`](https://nektosact.com/), a tool that allows you to run GitHub Actions locally, which is the core component of the extension mentioned above.
+
+The most relevant case for testing openalea_ci workflow is probably when you're developing on your branch my_awesome_branch. However, you need to have an associated Pull Request to trigger the workflow (a "simple" push event on a development branch doesn't trigger any workflow, cf. https://github.com/openalea/action-build-publish-anaconda/blob/main/images/CI_workflow.png).
+
+This can be specified in the VS-CODE "Github Local Actions" / "Workflows" section / "Run event" (thunder icon) - Pull Request event or directly running act pull_request.
 
 
 ## Documentation
