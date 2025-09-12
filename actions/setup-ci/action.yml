@@ -326,8 +326,9 @@ runs:
         latest_tag=$(git ls-remote --tags origin "v*" | \
              sed -n 's/.*refs\/tags\/\(v[0-9].*\)/\1/p' | \
              grep -v '\^{}' | \
-             sort -V | tail -n1)
+             sort -V | tail -n1 || true)
         if [ -z "$latest_tag" ]; then
+          echo "Warning: No tag beggining with v found, fall back to default version"
           latest_tag="v0.0.0"
         fi
         echo "Latest v* tag: $latest_tag"
