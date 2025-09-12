@@ -24,7 +24,7 @@ on:
 
       force-ubuntu-only:
         description: 'Force build on ubuntu only'
-        default: 'true'
+        default: true
         required: false
 
 jobs:
