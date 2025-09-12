@@ -57,6 +57,12 @@ on:
         required: false
         type: boolean
 
+      force-no-clean:
+        description: 'Prevent cleaning (forbid action to clean anything on anaconda)'
+        default: false
+        required: false
+        type: boolean
+
       build-options:
         description: 'Build options for conda build.'
         required: false
@@ -92,6 +98,9 @@ jobs:
       publish_if_os: ${{ steps.set.outputs.publish_if_os }}
       publish_to: ${{ steps.set.outputs.publish_to }}
       version: ${{ steps.set.outputs.version }}
+      clean: ${{ steps.set.outputs.clean }}
+      clean-package: ${{ steps.set.outputs.clean-package }}
+      clean-label: ${{ steps.set.outputs.clean-label }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,8 +114,8 @@ jobs:
       - name: Call Setup-CI action
         id: set
         # Uncomment the next line to run the local version of the action for testing
-        # uses: ./actions/setup-ci
-        uses: openalea/action-build-publish-anaconda/actions/setup-ci@main
+        uses: ./actions/setup-ci
+        # uses: openalea/action-build-publish-anaconda/actions/setup-ci@main
         with:
           git-ref: ${{ steps.setcontext.outputs.git-ref }}
           git-event: ${{ steps.setcontext.outputs.git-event }}
@@ -119,6 +128,7 @@ jobs:
           force-channel-priority: ${{ inputs.force-channel-priority }}
           force-full-matrix: ${{ inputs.force-full-matrix }}
           force-no-publication: ${{ inputs.force-no-publication }}
+          force-no-clean: ${{ inputs.force-no-clean }}
 
   build-and-publish:
     name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
@@ -151,3 +161,21 @@ jobs:
           publish_if_os: ${{ needs.setup-ci.outputs.publish_if_os }}
           label: ${{ needs.setup-ci.outputs.publish_to }}
           build-options: ${{ inputs.build_options }}
+  clean-channel:
+    name: Clean channel
+    runs-on: ubuntu-latest
+    needs: [setup-ci, build-and-publish]
+    if: ${{ needs.setup-ci.outputs.publish }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Clean-up Channel
+        # Uncomment the next line to run the local version of the action for testing
+        uses: ./actions/cleanup-label
+        #  uses: openalea/action-build-publish-anaconda/actions/cleanup-label@main
+        with:
+          anaconda_token: ${{ secrets.anaconda_token }}
+          target-package: ${{ needs.setup-ci.outputs.clean-package }}
+          target-label: ${{ needs.setup-ci.outputs.clean-label }}
+          latest-version: ${{ needs.setup-ci.outputs.version }}
+

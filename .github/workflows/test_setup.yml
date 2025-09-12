@@ -19,6 +19,10 @@ on:
         description: 'Prevent publication (forbid action to publish anything on anaconda)'
         default: 'false'
         required: false
+      force-no-clean:
+        description: 'Prevent cleaning (forbid action to clean anything on anaconda)'
+        default: 'false'
+        required: false
 
 jobs:
   test:
@@ -50,6 +54,7 @@ jobs:
           git-event: ${{ matrix.event }}
           force-full-matrix: ${{ inputs.force-full-matrix }}
           force-no-publication: ${{ inputs.force-no-publication }}
+          force-no-clean: ${{ inputs.force-no-clean }}
       - name: Test results
         run: |
           echo "conda directory:      ${{ inputs.conda-directory }}"
