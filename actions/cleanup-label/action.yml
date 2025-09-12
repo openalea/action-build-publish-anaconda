@@ -62,7 +62,11 @@ runs:
         echo "anaconda_login: $anaconda_login"
         echo "package_name:   $package_name"
         echo "builds: $builds"
-        echo "builds=$builds" >> $GITHUB_OUTPUT
+        {
+          echo "builds<<EOF"
+          echo "$builds"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
         echo "::endgroup::"
     - name: Cleanup label ${{ inputs.target-label }}
       id: promote
