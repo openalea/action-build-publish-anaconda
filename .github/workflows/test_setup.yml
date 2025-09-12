@@ -32,6 +32,8 @@ jobs:
             event: "pull_request"
           - ref: "refs/heads/main"
             event: "push"
+          - ref: "refs/heads/main"
+            event: "workflow_dispatch"
           - ref: "refs/tags/vx.x.x"
             event: "push"
           - ref: "refs/tags/vx.x.x"
