@@ -88,7 +88,7 @@ runs:
           echo "${v/.dev/~dev}"
         }
 
-        echo "$builds" | while read -r line; do
+        while read -r line; do
           # Skip empty lines
           [ -z "$line" ] && continue
           # Extract the build path (remove leading "+ ")
@@ -108,5 +108,5 @@ runs:
               echo "DRY-RUN: package not removed"
             fi
           fi
-        done
+        done  <<< "$builds"
         echo "::endgroup::"
