@@ -74,8 +74,8 @@ runs:
       run: |
         echo "::group::Cleanup label"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
-        threshold=${{ inputs.target-version }}
-        builds=${{ steps.extract.outputs.builds }}
+        threshold="${{ inputs.target-version }}"
+        builds="${{ steps.extract.outputs.builds }}"
         # Function to normalize versions so .dev is considered older than release
         normalize_version() {
           v="$1"
