@@ -38,6 +38,6 @@ jobs:
       conda-directory: ${{ inputs.package }}
       force-ref: ${{ inputs.git-ref }}
       force-event: ${{ inputs.git-event }}
-      force-ubuntu-only: ${{ inputs.force-ubuntu-only }}
+      force-ubuntu-only: ${{ inputs.force-ubuntu-only == 'true' }}
     secrets:
       anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
