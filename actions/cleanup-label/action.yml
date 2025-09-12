@@ -98,7 +98,7 @@ runs:
           if [ "$latest" != "$nv" ]; then
             echo "Removing $build_path (version $version < threshold $threshold)"
             # Uncomment once tested:
-            # anaconda remove --force "$build_path"
+            anaconda remove --force "$build_path"
           fi
         done
         #if [ "${{ inputs.dry_run }}" = "false" ]; then
