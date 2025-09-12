@@ -57,7 +57,7 @@ runs:
           print(data.get('project', {}).get('name'))
           ")
         fi
-        builds=$(anaconda show $anaconda_login/$package_name --label ${{ inputs.target-label }})
+        builds=$(anaconda show $anaconda_login/$package_name | grep ${{ inputs.target-label }})
         echo "Extracted meta information:"
         echo "anaconda_login: $anaconda_login"
         echo "package_name:   $package_name"
