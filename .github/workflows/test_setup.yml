@@ -59,6 +59,7 @@ jobs:
           force-full-matrix: ${{ inputs.force-full-matrix }}
           force-no-publication: ${{ inputs.force-no-publication }}
           force-no-clean: ${{ inputs.force-no-clean }}
+          force-ubuntu-only: ${{ inputs.force-ubuntu-only }}
       - name: Test results
         run: |
           echo "conda directory:      ${{ inputs.conda-directory }}"
