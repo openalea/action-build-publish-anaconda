@@ -10,19 +10,19 @@ inputs:
     description: 'Anaconda access Token (required)'
     required: true
   target-package:
-    description: 'Name of the package to be cleaned up'
+    description: 'Name of the package to clean'
     default: ''
     required: false
   target-label:
-    description: 'Name of the label to be cleaned up'
+    description: 'Name of the label to clean'
     default: 'dev'
     required: false
-  target-version:
-    description: 'Maximum version number allowed on target label. All version < to this number will be cleaned'
+  latest-version:
+    description: 'Latest published version. All inferior version present on target-label will be removed'
     default: ''
     required: false
   dry_run:
-    description: 'Dry run only, echo command, do not actually clean-up (default false)'
+    description: 'Dry run only, do not actually clean-up (default false)'
     default: 'false'
     required: false
 
@@ -41,27 +41,27 @@ runs:
       shell: bash -l {0}
       run: |
         conda install -q anaconda-client
-    - name: Extract meta information
+    - name: Extract builds from Anaconda channel
       id: extract
       shell: bash -l {0}
       run: |
-        echo "::group::Extract meta-informations"
+        echo "::group::Extract builds from Anaconda"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
         package_name=${{ inputs.target-package }}
         if [ -z "$package_name" ]; then
-          package_name=$(python -c "
-          import tomllib
-          with open('pyproject.toml', 'rb') as f:
-              data = tomllib.load(f)
-          print(data.get('project', {}).get('name'))
-          ")
+          echo "No package specified, skip clean-up"
+          exit 0
         fi
         builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep $package_name || true)
         echo "Extracted meta information:"
         echo "anaconda_login: $anaconda_login"
         echo "package_name:   $package_name"
         echo "builds: $builds"
+        if [ -z "$builds" ]; then
+          echo "No builds found, skip clean-up"
+          exit 0
+        fi
         {
           echo "builds<<EOF"
           echo "$builds"
@@ -69,13 +69,18 @@ runs:
         } >> $GITHUB_OUTPUT
         echo "::endgroup::"
     - name: Cleanup label ${{ inputs.target-label }}
-      id: promote
+      id: clean
       shell: bash -l {0}
       run: |
         echo "::group::Cleanup label"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
-        threshold="${{ inputs.target-version }}"
+        threshold="${{ inputs.latest-version }}"
         builds="${{ steps.extract.outputs.builds }}"
+        
+        if [ -z "$threshold" ]; then
+          echo "Latest published version not specified, skipp cleanup."
+          exit 0
+        fi
         # Function to normalize versions so .dev is considered older than release
         normalize_version() {
           v="$1"
@@ -97,13 +102,11 @@ runs:
           latest=$(printf "%s\n%s\n" "$nv" "$nth" | sort -V | tail -n1)
           if [ "$latest" != "$nv" ]; then
             echo "Removing $build_path (version $version < threshold $threshold)"
-            # Uncomment once tested:
-            anaconda remove --force "$build_path"
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              anaconda remove --force "$build_path"
+            else
+              echo "DRY-RUN: package not removed"
+            fi
           fi
         done
-        #if [ "${{ inputs.dry_run }}" = "false" ]; then
-        #  eval "$command"
-        #else
-        #  echo "Dry run enabled. Command not executed."
-        #fi  
         echo "::endgroup::"
