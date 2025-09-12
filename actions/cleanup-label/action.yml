@@ -49,7 +49,7 @@ runs:
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
         package_name=${{ inputs.target-package }}
-        if [-z "$package_name"]; then
+        if [ -z "$package_name"]; then
           package_name=$(python -c "
           import tomllib
           with open('pyproject.toml', 'rb') as f:
@@ -57,7 +57,7 @@ runs:
           print(data.get('project', {}).get('name'))
           ")
         fi
-        builds=$(anaconda show $anaconda_login/$package_name | grep ${{ inputs.target-label }})
+        builds=$(anaconda show $anaconda_login/$package_name | grep ${{ inputs.target-label }} || true)
         echo "Extracted meta information:"
         echo "anaconda_login: $anaconda_login"
         echo "package_name:   $package_name"
