@@ -24,7 +24,11 @@ on:
 
       force-ubuntu-only:
         description: 'Force build on ubuntu only'
-        default: true
+        type: choice
+        options:
+          - "true"
+          - "false"
+        default: "true"
         required: false
 
 jobs:
