@@ -5,18 +5,18 @@ on:
     inputs:
       conda-directory:
         description: 'Directory containing the conda recipe'
-        required: false
-        default: 'dummy_pkg'
-      force-build-matrix:
-        description: 'Force full input matrix builds whatever the context.'
+        required: true
+        type: choice
+        options:
+          - dummy_pkg
+          - dummy_pkg_noarch
+        default: dummy_pkg
+      force-full-matrix:
+        description: 'Force build on full os x py matrix.'
         default: 'false'
         required: false
-      force-skip-promotion:
-        description: 'Force skipping promotion.'
-        default: 'false'
-        required: false
-      force-skip-publish:
-        description: 'Force skipping publication.'
+      force-no-publication:
+        description: 'Prevent publication (forbid action to publish anything on anaconda)'
         default: 'false'
         required: false
 
@@ -32,6 +32,8 @@ jobs:
             event: "pull_request"
           - ref: "refs/heads/main"
             event: "push"
+          - ref: "refs/heads/main"
+            event: "workflow_dispatch"
           - ref: "refs/tags/vx.x.x"
             event: "push"
           - ref: "refs/tags/vx.x.x"
@@ -46,24 +48,21 @@ jobs:
           conda-directory: ${{ inputs.conda-directory }}
           git-ref: ${{ matrix.ref }}
           git-event: ${{ matrix.event }}
-          force-build-matrix: ${{ inputs.force-build-matrix }}
-          force-skip-promotion: ${{ inputs.force-skip-promotion }}
-          force-skip-publish: ${{ inputs.force-skip-publish }}
+          force-full-matrix: ${{ inputs.force-full-matrix }}
+          force-no-publication: ${{ inputs.force-no-publication }}
       - name: Test results
         run: |
           echo "package:              ${{ inputs.conda-directory }}"
           echo "version:              ${{ steps.setci.outputs.version }}"
           echo "simulated ref:        ${{ matrix.ref }}"
           echo "simulated event:      ${{ matrix.event }}"
-          echo "force-build-matrix:   ${{ inputs.force-build-matrix }}"
-          echo "force-skip-promotion: ${{ inputs.force-skip-promotion }}"
-          echo "force-skip-publish:   ${{ inputs.force-skip-publish }}"
+          echo "force-full-matrix:    ${{ inputs.force-full-matrix }}"
+          echo "force-no-publication: ${{ inputs.force-no-publication }}"
           echo "build_os:             ${{ steps.setci.outputs.build_os }}"
           echo "build_py:             ${{ steps.setci.outputs.build_py }}"
           echo "publish:              ${{ steps.setci.outputs.publish }}"
-          echo "publish_only_on:      ${{ steps.setci.outputs.publish_only_on }}"
+          echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
           echo "publish_to:           ${{ steps.setci.outputs.publish_to }}"
-          echo "promote:              ${{ steps.setci.outputs.promote }}"
-          echo "promote_from:         ${{ steps.setci.outputs.promote_from }}"
-          echo "promote_to:           ${{ steps.setci.outputs.promote_to }}"
+          echo "publish_if_py:        ${{ steps.setci.outputs.publish_if_py }}"
+          echo "publish_if_os:        ${{ steps.setci.outputs.publish_if_os }}"
           echo "channels:             ${{ steps.setci.outputs.channels }}"
