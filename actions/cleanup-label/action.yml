@@ -49,19 +49,16 @@ runs:
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
         package_name=${{ inputs.target-package }}
-        if [ -z "$package_name" ]; then
-          echo "No package specified, skip clean-up"
-          return 0 2>/dev/null || exit 0
+        builds=""
+        if [ -n "$package_name" ]; then
+          builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep "$package_name" || true)
+        else
+          echo "Empty package name, skip cleaning"
         fi
-        builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep $package_name || true)
         echo "Extracted meta information:"
         echo "anaconda_login: $anaconda_login"
         echo "package_name:   $package_name"
         echo "builds: $builds"
-        if [ -z "$builds" ]; then
-          echo "No builds found, skip clean-up"
-          return 0 2>/dev/null || exit 0
-        fi
         {
           echo "builds<<EOF"
           echo "$builds"
@@ -76,39 +73,38 @@ runs:
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         threshold="${{ inputs.latest-version }}"
         builds="${{ steps.extract.outputs.builds }}"
-        
-        if [ -z "$threshold" ]; then
-          echo "Latest published version not specified, skipp cleanup."
-          return 0 2>/dev/null || exit 0
-        fi
-        # Function to normalize versions so .dev is considered older than release
-        normalize_version() {
-          v="$1"
-          # Replace ".dev" with "~dev", since ~ sorts before digits/letters in sort -V
-          echo "${v/.dev/~dev}"
-        }
+        if [ -z "$builds" ] || [ -z "$threshold" ]; then
+          echo "Nothing to clean (no builds or missing threshold)."
+        else
+          # Function to normalize versions so .dev is considered older than release
+          normalize_version() {
+            v="$1"
+            # Replace ".dev" with "~dev", since ~ sorts before digits/letters in sort -V
+            echo "${v/.dev/~dev}"
+          }
 
-        while read -r line; do
-          # Skip empty lines
-          [ -z "$line" ] && continue
-          # Extract the build path (remove leading "+ ")
-          build_path=$(echo "$line" | sed -E 's/^[[:space:]]*\+ //')
-          # Extract version string from the path (user/pkg/version/...)
-          version=$(echo "$build_path" | cut -d'/' -f3)
-          # Normalize both threshold and version
-          nv=$(normalize_version "$version")
-          nth=$(normalize_version "$threshold")
-          # Compare with sort -V
-          latest=$(printf "%s\n%s\n" "$nv" "$nth" | sort -V | tail -n1)
-          if [ "$latest" != "$nv" ]; then
-            echo "Removing $build_path (version $version < threshold $threshold)"
-            if [ "${{ inputs.dry-run }}" = "false" ]; then
-              anaconda remove --force "$build_path"
+          while read -r line; do
+            # Skip empty lines
+            [ -z "$line" ] && continue
+            # Extract the build path (remove leading "+ ")
+            build_path=$(echo "$line" | sed -E 's/^[[:space:]]*\+ //')
+            # Extract version string from the path (user/pkg/version/...)
+            version=$(echo "$build_path" | cut -d'/' -f3)
+            # Normalize both threshold and version
+            nv=$(normalize_version "$version")
+            nth=$(normalize_version "$threshold")
+            # Compare with sort -V
+            latest=$(printf "%s\n%s\n" "$nv" "$nth" | sort -V | tail -n1)
+            if [ "$latest" != "$nv" ]; then
+              echo "Removing $build_path (version $version < threshold $threshold)"
+              if [ "${{ inputs.dry-run }}" = "false" ]; then
+                anaconda remove --force "$build_path"
+              else
+                echo "DRY-RUN: package not removed"
+               fi
             else
-              echo "DRY-RUN: package not removed"
+              echo "Keeping $build_path (version $version >= threshold $threshold)"
             fi
-          else
-            echo "Keeping $build_path (version $version >= threshold $threshold)"
-          fi
-        done  <<< "$builds"
+          done  <<< "$builds"
+        fi
         echo "::endgroup::"
