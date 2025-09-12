@@ -1,0 +1,84 @@
+name: 'cleanup-channel'
+description: 'Cleanup channel to ensure that more recent version are always picked-up'
+author: 'Christian Fournier'
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  anaconda_token:
+    description: 'Anaconda access Token (required)'
+    required: true
+  target-package:
+    description: 'Name of the package to be cleaned up'
+    default: ''
+    required: false
+  target-label:
+    description: 'Name of the label to be cleaned up'
+    default: 'dev'
+    required: false
+  target-version:
+    description: 'Maximum version number allowed on target label. All version <= to this number will be cleaned'
+    default: ''
+    required: false
+  dry_run:
+    description: 'Dry run only, echo command, do not actually clean-up (default false)'
+    default: 'false'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Conda environment
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        channels: conda-forge
+        auto-update-conda: false
+        miniforge-version: latest
+        conda-remove-defaults: true
+        channel-priority: strict
+    - name: Install Anaconda client
+      shell: bash -l {0}
+      run: |
+        conda install -q anaconda-client
+    - name: Extract meta information
+      id: extract
+      shell: bash -l {0}
+      run: |
+        echo "::group::Extract meta-informations"
+        export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
+        anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
+        package_name=${{ inputs.target-package }}
+        if [-z "$package_name"]; then
+          package_name=$(python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+          print(data.get('project', {}).get('name'))
+          ")
+        fi
+        builds=$(anaconda show $anaconda_login/$package_name --label ${{ inputs.target-label }})
+        echo "Extracted meta information:"
+        echo "anaconda_login: $anaconda_login"
+        echo "package_name:   $package_name"
+        echo "builds: $builds"
+        echo "anaconda_login=$anaconda_login" >> $GITHUB_OUTPUT
+        echo "package_name=$package_name" >> $GITHUB_OUTPUT
+        echo "::endgroup::"
+    - name: Cleanup label ${{ inputs.target-label }}
+      id: promote
+      shell: bash -l {0}
+      run: |
+        echo "::group::Cleanup label"
+        export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
+        user="${{ steps.extract.outputs.anaconda_login }}"
+        package="${{ steps.extract.outputs.package_name }}"
+        command="anaconda move $user/$package/$versio"
+        echo "command: $command"
+        echo "command=$command" >> $GITHUB_OUTPUT
+        #if [ "${{ inputs.dry_run }}" = "false" ]; then
+        #  eval "$command"
+        #else
+        #  echo "Dry run enabled. Command not executed."
+        #fi  
+        echo "::endgroup::"
