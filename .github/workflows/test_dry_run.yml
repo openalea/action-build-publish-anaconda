@@ -31,8 +31,8 @@ jobs:
         with:
           target-package: 'dummy-package'
           target-label: ${{ inputs.target-label }}
-          latest-version: ${{ inputs.target-package }}
-          dry-run: ${{ inputs.target-package }}
+          latest-version: ${{ inputs.latest-version }}
+          dry-run: ${{ inputs.dry-run }}
           anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
 
 

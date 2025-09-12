@@ -21,7 +21,7 @@ inputs:
     description: 'Latest published version. All inferior version present on target-label will be removed'
     default: ''
     required: false
-  dry_run:
+  dry-run:
     description: 'Dry run only, do not actually clean-up (default false)'
     default: 'false'
     required: false
@@ -51,7 +51,7 @@ runs:
         package_name=${{ inputs.target-package }}
         if [ -z "$package_name" ]; then
           echo "No package specified, skip clean-up"
-          exit 0
+          return 0 2>/dev/null || exit 0
         fi
         builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep $package_name || true)
         echo "Extracted meta information:"
@@ -60,7 +60,7 @@ runs:
         echo "builds: $builds"
         if [ -z "$builds" ]; then
           echo "No builds found, skip clean-up"
-          exit 0
+          return 0 2>/dev/null || exit 0
         fi
         {
           echo "builds<<EOF"
@@ -79,7 +79,7 @@ runs:
         
         if [ -z "$threshold" ]; then
           echo "Latest published version not specified, skipp cleanup."
-          exit 0
+          return 0 2>/dev/null || exit 0
         fi
         # Function to normalize versions so .dev is considered older than release
         normalize_version() {
@@ -102,7 +102,7 @@ runs:
           latest=$(printf "%s\n%s\n" "$nv" "$nth" | sort -V | tail -n1)
           if [ "$latest" != "$nv" ]; then
             echo "Removing $build_path (version $version < threshold $threshold)"
-            if [ "${{ inputs.dry_run }}" = "false" ]; then
+            if [ "${{ inputs.dry-run }}" = "false" ]; then
               anaconda remove --force "$build_path"
             else
               echo "DRY-RUN: package not removed"
