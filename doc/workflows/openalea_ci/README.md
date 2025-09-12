@@ -37,11 +37,11 @@ build:
 
 ### Activate OpenAlea_CI on your package
 
-From your github repo, online : 
-- Open 'Actions' tab 
-- click 'new workflow'. 
+From your github repo, online :
+- Open 'Actions' tab
+- click 'new workflow'.
 - Scroll down and select 'by Openalea / openalea CI workflow'
-- Commit 
+- Commit
 
 Or, using git, add the following template in your source dir, using the following path: `.github/workflows/openalea_ci.yml`.
 
