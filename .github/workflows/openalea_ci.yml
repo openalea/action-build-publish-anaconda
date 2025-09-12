@@ -83,6 +83,7 @@ jobs:
     name: Setup CI
     runs-on: ubuntu-latest
     outputs:
+      py_latest: ${{ steps.set.outputs.py_latest }}
       build_os: ${{ steps.set.outputs.build_os }}
       build_py: ${{ steps.set.outputs.build_py }}
       channels: ${{ steps.set.outputs.channels }}
@@ -140,6 +141,7 @@ jobs:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
         with:
           os_name: ${{ matrix.os }}
+          condapython: ${{ needs.setup-ci.outputs.py_latest }}
           conda: ${{ inputs.conda-directory }}
           python: ${{ matrix.python-minor-version }}
           channels: ${{ needs.setup-ci.outputs.channels }}
