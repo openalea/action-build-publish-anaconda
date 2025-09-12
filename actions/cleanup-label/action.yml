@@ -107,6 +107,8 @@ runs:
             else
               echo "DRY-RUN: package not removed"
             fi
+          else
+            echo "Keeping $build_path (version $version >= threshold $threshold)"
           fi
         done  <<< "$builds"
         echo "::endgroup::"
