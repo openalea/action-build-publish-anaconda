@@ -63,6 +63,12 @@ on:
         required: false
         type: boolean
 
+      force-ubuntu-only:
+        description: 'Force build on ubuntu only'
+        default: false
+        required: false
+        type: boolean
+
       build-options:
         description: 'Build options for conda build.'
         required: false
@@ -125,6 +131,7 @@ jobs:
           organisation: ${{ inputs.organisation }}
           dev-label: ${{ inputs.dev-label }}
           rc-label: ${{ inputs.rc-label }}
+          force-ubuntu-only: ${{ inputs.force-ubuntu-only }}
           force-channel-priority: ${{ inputs.force-channel-priority }}
           force-full-matrix: ${{ inputs.force-full-matrix }}
           force-no-publication: ${{ inputs.force-no-publication }}
@@ -165,7 +172,7 @@ jobs:
     name: Clean channel
     runs-on: ubuntu-latest
     needs: [setup-ci, build-and-publish]
-    if: ${{ needs.setup-ci.outputs.publish }}
+    if: ${{ needs.setup-ci.outputs.clean }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

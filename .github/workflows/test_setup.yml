@@ -23,6 +23,10 @@ on:
         description: 'Prevent cleaning (forbid action to clean anything on anaconda)'
         default: 'false'
         required: false
+      force-ubuntu-only:
+        description: 'Force build on ubuntu only'
+        default: 'false'
+        required: false
 
 jobs:
   test:
@@ -65,6 +69,7 @@ jobs:
           echo "force-full-matrix:    ${{ inputs.force-full-matrix }}"
           echo "force-no-publication: ${{ inputs.force-no-publication }}"
           echo "force-no-clean:       ${{ inputs.force-no-clean }}"
+          echo "force-ubuntu-only:    ${{ inputs.force-ubuntu-only }}"
           echo "build_os:             ${{ steps.setci.outputs.build_os }}"
           echo "build_py:             ${{ steps.setci.outputs.build_py }}"
           echo "channels:             ${{ steps.setci.outputs.channels }}"

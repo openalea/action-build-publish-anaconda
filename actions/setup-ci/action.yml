@@ -51,6 +51,10 @@ inputs:
     description: 'Prevent cleaning (forbid action to clean anything on anaconda)'
     default: 'false'
     required: false
+  force-ubuntu-only:
+    description: 'Force build on ubuntu only'
+    default: 'false'
+    required: false
 
 outputs:
   py_latest:
@@ -217,7 +221,7 @@ runs:
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
         force_full_matrix=$(to_bool "${{ inputs.force-full-matrix }}")
-        noarch=$(to_bool "${{ steps.check-meta.outputs.noarch }}")
+        ubuntu_only=$(to_bool "${{ inputs.force-ubuntu-only }}")
         is_branch=$(to_bool "${{ steps.context.outputs.is_branch }}")
         is_master=$(to_bool "${{ steps.context.outputs.is_master }}")
         is_pr=$(to_bool "${{ steps.context.outputs.is_pr }}")
@@ -226,6 +230,10 @@ runs:
         py='${{ steps.fetch-py.outputs.py-minors }}'
         py_latest='${{ steps.fetch-py.outputs.py_latest }}'
         if (( !force_full_matrix )); then
+          # ubuntu only
+          if (( ubuntu_only )); then
+            os='["ubuntu-latest"]'
+          fi
           # Only branch, master and pr are not built on full matrix
           if (( is_branch )); then
             py='[]'
@@ -235,10 +243,6 @@ runs:
             highest=$(echo "$py" | jq 'max')
             echo "highest py version: $highest"
             py="[$py_latest]"
-            # limit os
-            # if (( noarch )); then
-            #  os='["ubuntu-latest"]'
-            # fi
           fi
         fi
         echo "Selected operating systems to build on: $os"
