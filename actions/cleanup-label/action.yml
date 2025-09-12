@@ -18,7 +18,7 @@ inputs:
     default: 'dev'
     required: false
   target-version:
-    description: 'Maximum version number allowed on target label. All version <= to this number will be cleaned'
+    description: 'Maximum version number allowed on target label. All version < to this number will be cleaned'
     default: ''
     required: false
   dry_run:
@@ -62,8 +62,7 @@ runs:
         echo "anaconda_login: $anaconda_login"
         echo "package_name:   $package_name"
         echo "builds: $builds"
-        echo "anaconda_login=$anaconda_login" >> $GITHUB_OUTPUT
-        echo "package_name=$package_name" >> $GITHUB_OUTPUT
+        echo "builds=$builds" >> $GITHUB_OUTPUT
         echo "::endgroup::"
     - name: Cleanup label ${{ inputs.target-label }}
       id: promote
@@ -71,11 +70,33 @@ runs:
       run: |
         echo "::group::Cleanup label"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
-        user="${{ steps.extract.outputs.anaconda_login }}"
-        package="${{ steps.extract.outputs.package_name }}"
-        command="anaconda move $user/$package/$versio"
-        echo "command: $command"
-        echo "command=$command" >> $GITHUB_OUTPUT
+        threshold=${{ inputs.target-version }}
+        builds=${{ steps.extract.outputs.builds }}
+        # Function to normalize versions so .dev is considered older than release
+        normalize_version() {
+          v="$1"
+          # Replace ".dev" with "~dev", since ~ sorts before digits/letters in sort -V
+          echo "${v/.dev/~dev}"
+        }
+
+        echo "$builds" | while read -r line; do
+          # Skip empty lines
+          [ -z "$line" ] && continue
+          # Extract the build path (remove leading "+ ")
+          build_path=$(echo "$line" | sed -E 's/^[[:space:]]*\+ //')
+          # Extract version string from the path (user/pkg/version/...)
+          version=$(echo "$build_path" | cut -d'/' -f3)
+          # Normalize both threshold and version
+          nv=$(normalize_version "$version")
+          nth=$(normalize_version "$threshold")
+          # Compare with sort -V
+          latest=$(printf "%s\n%s\n" "$nv" "$nth" | sort -V | tail -n1)
+          if [ "$latest" != "$nv" ]; then
+            echo "Removing $build_path (version $version < threshold $threshold)"
+            # Uncomment once tested:
+            # anaconda remove --force "$build_path"
+          fi
+        done
         #if [ "${{ inputs.dry_run }}" = "false" ]; then
         #  eval "$command"
         #else
