@@ -19,6 +19,14 @@ on:
         description: 'Prevent publication (forbid action to publish anything on anaconda)'
         default: 'false'
         required: false
+      force-no-clean:
+        description: 'Prevent cleaning (forbid action to clean anything on anaconda)'
+        default: 'false'
+        required: false
+      force-ubuntu-only:
+        description: 'Force build on ubuntu only'
+        default: 'false'
+        required: false
 
 jobs:
   test:
@@ -50,19 +58,26 @@ jobs:
           git-event: ${{ matrix.event }}
           force-full-matrix: ${{ inputs.force-full-matrix }}
           force-no-publication: ${{ inputs.force-no-publication }}
+          force-no-clean: ${{ inputs.force-no-clean }}
+          force-ubuntu-only: ${{ inputs.force-ubuntu-only }}
       - name: Test results
         run: |
-          echo "package:              ${{ inputs.conda-directory }}"
+          echo "conda directory:      ${{ inputs.conda-directory }}"
           echo "version:              ${{ steps.setci.outputs.version }}"
+          echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
           echo "simulated ref:        ${{ matrix.ref }}"
           echo "simulated event:      ${{ matrix.event }}"
           echo "force-full-matrix:    ${{ inputs.force-full-matrix }}"
           echo "force-no-publication: ${{ inputs.force-no-publication }}"
+          echo "force-no-clean:       ${{ inputs.force-no-clean }}"
+          echo "force-ubuntu-only:    ${{ inputs.force-ubuntu-only }}"
           echo "build_os:             ${{ steps.setci.outputs.build_os }}"
           echo "build_py:             ${{ steps.setci.outputs.build_py }}"
+          echo "channels:             ${{ steps.setci.outputs.channels }}"
           echo "publish:              ${{ steps.setci.outputs.publish }}"
-          echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
           echo "publish_to:           ${{ steps.setci.outputs.publish_to }}"
           echo "publish_if_py:        ${{ steps.setci.outputs.publish_if_py }}"
           echo "publish_if_os:        ${{ steps.setci.outputs.publish_if_os }}"
-          echo "channels:             ${{ steps.setci.outputs.channels }}"
+          echo "clean:                ${{ steps.setci.outputs.clean }}"
+          echo "clean-package:        ${{ steps.setci.outputs.clean-package }}"
+          echo "clean-label:          ${{ steps.setci.outputs.clean-label }}"

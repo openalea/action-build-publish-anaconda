@@ -1,0 +1,111 @@
+name: 'cleanup-channel'
+description: 'Cleanup channel to ensure that more recent version are always picked-up'
+author: 'Christian Fournier'
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  anaconda_token:
+    description: 'Anaconda access Token (required)'
+    required: true
+  target-package:
+    description: 'Name of the package to clean'
+    default: ''
+    required: false
+  target-label:
+    description: 'Name of the label to clean'
+    default: 'dev'
+    required: false
+  latest-version:
+    description: 'Latest published version. All inferior version present on target-label will be removed'
+    default: ''
+    required: false
+  dry-run:
+    description: 'Dry run only, do not actually clean-up (default false)'
+    default: 'false'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Conda environment
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        channels: conda-forge
+        auto-update-conda: false
+        miniforge-version: latest
+        conda-remove-defaults: true
+        channel-priority: strict
+    - name: Install Anaconda client
+      shell: bash -l {0}
+      run: |
+        conda install -q anaconda-client
+    - name: Extract builds from Anaconda channel
+      id: extract
+      shell: bash -l {0}
+      run: |
+        echo "::group::Extract builds from Anaconda"
+        export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
+        anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
+        package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+        builds=""
+        if [ -n "$package_name" ]; then
+          builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep "$package_name" || true)
+        else
+          echo "Empty package name, skip cleaning"
+        fi
+        echo "Extracted meta information:"
+        echo "anaconda_login: $anaconda_login"
+        echo "package_name:   $package_name"
+        echo "builds: $builds"
+        {
+          echo "builds<<EOF"
+          echo "$builds"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
+        echo "::endgroup::"
+    - name: Cleanup label ${{ inputs.target-label }}
+      id: clean
+      if: ${{ inputs.target-label != 'main' }}
+      shell: bash -l {0}
+      run: |
+        echo "::group::Cleanup label"
+        export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
+        threshold="${{ inputs.latest-version }}"
+        builds="${{ steps.extract.outputs.builds }}"
+        if [ -z "$builds" ] || [ -z "$threshold" ]; then
+          echo "Nothing to clean (no builds or missing threshold)."
+        else
+          # Function to normalize versions so .dev is considered older than release
+          normalize_version() {
+            v="$1"
+            # Replace ".dev" with "~dev", since ~ sorts before digits/letters in sort -V
+            echo "${v/.dev/~dev}"
+          }
+
+          while read -r line; do
+            # Skip empty lines
+            [ -z "$line" ] && continue
+            # Extract the build path (remove leading "+ ")
+            build_path=$(echo "$line" | sed -E 's/^[[:space:]]*\+ //')
+            # Extract version string from the path (user/pkg/version/...)
+            version=$(echo "$build_path" | cut -d'/' -f3)
+            # Normalize both threshold and version
+            nv=$(normalize_version "$version")
+            nth=$(normalize_version "$threshold")
+            # Compare with sort -V
+            latest=$(printf "%s\n%s\n" "$nv" "$nth" | sort -V | tail -n1)
+            if [ "$latest" != "$nv" ]; then
+              echo "Removing $build_path (version $version < threshold $threshold)"
+              if [ "${{ inputs.dry-run }}" = "false" ]; then
+                anaconda remove --force "$build_path"
+              else
+                echo "DRY-RUN: package not removed"
+               fi
+            else
+              echo "Keeping $build_path (version $version >= threshold $threshold)"
+            fi
+          done  <<< "$builds"
+        fi
+        echo "::endgroup::"

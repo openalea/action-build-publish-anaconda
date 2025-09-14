@@ -22,6 +22,15 @@ on:
         required: false
         default: 'push'
 
+      force-ubuntu-only:
+        description: 'Force build on ubuntu only'
+        type: choice
+        options:
+          - "true"
+          - "false"
+        default: "true"
+        required: false
+
 jobs:
   run-on-dummy:
     uses: ./.github/workflows/openalea_ci.yml
@@ -29,5 +38,6 @@ jobs:
       conda-directory: ${{ inputs.package }}
       force-ref: ${{ inputs.git-ref }}
       force-event: ${{ inputs.git-event }}
+      force-ubuntu-only: ${{ inputs.force-ubuntu-only == 'true' }}
     secrets:
       anaconda_token: ${{ secrets.ANACONDA_TOKEN }}

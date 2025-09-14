@@ -1,0 +1,38 @@
+name: Test Cleanup on dummy package
+
+on:
+  workflow_dispatch:
+    inputs:
+      target-label:
+        description: 'Name of the label to clean'
+        required: true
+        type: choice
+        options:
+          - dev
+          - rc
+        default: dev
+      latest-version:
+        description: 'Latest published version. All inferior version present on target-label will be removed.'
+        default: '0.0.0'
+        required: false
+      dry-run:
+        description: 'Dry run only, do not actually clean-up'
+        default: 'true'
+        required: false
+jobs:
+  test-cleaning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo hosting action
+        uses: actions/checkout@v4
+      - name: Run cleanup-action on dummy-package
+        id: clean
+        uses: ./actions/cleanup-label
+        with:
+          target-package: 'dummy-package'
+          target-label: ${{ inputs.target-label }}
+          latest-version: ${{ inputs.latest-version }}
+          dry-run: ${{ inputs.dry-run }}
+          anaconda_token: ${{ secrets.ANACONDA_TOKEN }}
+
+
