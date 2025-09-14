@@ -67,6 +67,7 @@ runs:
         echo "::endgroup::"
     - name: Cleanup label ${{ inputs.target-label }}
       id: clean
+      if: ${{ inputs.target-label != 'main' }}
       shell: bash -l {0}
       run: |
         echo "::group::Cleanup label"
