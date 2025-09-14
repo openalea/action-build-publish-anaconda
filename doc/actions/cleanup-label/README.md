@@ -22,4 +22,20 @@ name: MyWorkflow
 ```
 ## Inputs
 
+<!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
+
+|                                   INPUT                                    |  TYPE  | REQUIRED |  DEFAULT  |                                           DESCRIPTION                                           |
+|----------------------------------------------------------------------------|--------|----------|-----------|-------------------------------------------------------------------------------------------------|
+| <a name="input_anaconda_token"></a>[anaconda_token](#input_anaconda_token) | string |   true   |           |                                Anaconda access Token (required)                                 |
+|           <a name="input_dry-run"></a>[dry-run](#input_dry-run)            | string |  false   | `"false"` |                   Dry run only, do not <br>actually clean-up (default false)                    |
+| <a name="input_latest-version"></a>[latest-version](#input_latest-version) | string |  false   |           | Latest published version. All inferior <br>version present on target-label will <br>be removed  |
+|    <a name="input_target-label"></a>[target-label](#input_target-label)    | string |  false   |  `"dev"`  |                                 Name of the label to <br>clean                                  |
+| <a name="input_target-package"></a>[target-package](#input_target-package) | string |  false   |           |                                Name of the package to <br>clean                                 |
+
+<!-- AUTO-DOC-INPUT:END -->
+
 ## Outputs
+
+<!-- AUTO-DOC-OUTPUT:START - Do not remove or modify this section -->
+No outputs.
+<!-- AUTO-DOC-OUTPUT:END -->
