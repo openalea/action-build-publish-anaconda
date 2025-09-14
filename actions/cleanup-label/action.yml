@@ -48,7 +48,7 @@ runs:
         echo "::group::Extract builds from Anaconda"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
-        package_name=${{ inputs.target-package }} | sed -E 's/^[[:space:]]+|[[:space:]]+$//g'
+        package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
         builds=""
         if [ -n "$package_name" ]; then
           builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep "$package_name" || true)
