@@ -125,6 +125,12 @@ runs:
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
       shell: bash -l {0}
+    - name: Upload Conda build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: conda-package-py3-${{ inputs.python }}-${{ inputs.os_name }}
+        path: |
+          ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda
     - name: Determine upload
       id: check-upload
       shell: bash
