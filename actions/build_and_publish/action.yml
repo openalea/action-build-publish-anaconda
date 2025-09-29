@@ -138,7 +138,7 @@ runs:
           ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda
         retention-days: 10
     - name: Test built Conda package
-      shell: bash
+      shell: bash -l {0}
       run: |
         echo "::group::Test package"
         PACKAGE=$(ls ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda)
