@@ -127,6 +127,7 @@ runs:
       shell: bash -l {0}
     - name: Upload Conda build artifact
       uses: actions/upload-artifact@v4
+      working-directory: ./${{ inputs.conda }}
       with:
         name: conda-package-py3-${{ inputs.python }}-${{ inputs.os_name }}
         path: |
