@@ -123,10 +123,17 @@ runs:
           echo "No local conda_build_config.yaml found"
           EXTRA_M=""
         fi
-        out_dir=$(mktemp -d -p "$PWD" conda-build-dir.XXXXXX)
+        out_dir=$(mktemp -d "${PWD}/conda-build-dir.XXXXXX")
+        echo "Building Conda package into $out_dir"
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
         conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
-        echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
+        # On Windows, convert the path to native form for upload-artifact:
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          win_out_dir=$(cygpath -w "$out_dir")
+          echo "out_dir=$win_out_dir" >> "$GITHUB_OUTPUT"
+        else
+          echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
+        fi
         echo "upload_artifact: ${{ inputs.upload_artifact }}"
         echo "::endgroup::"
       shell: bash -l {0}
