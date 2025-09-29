@@ -127,13 +127,14 @@ runs:
         echo "Building Conda package into $out_dir"
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
         conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
+        echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
         # On Windows, convert the path to native form for upload-artifact:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          win_out_dir=$(cygpath -w "$out_dir")
-          echo "out_dir=$win_out_dir" >> "$GITHUB_OUTPUT"
+          artifact_dir=$(cygpath -w "$out_dir")
         else
-          echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
+          artifact_dir=$out_dir
         fi
+        echo "artifact_dir=$artifact_dir" >> "$GITHUB_OUTPUT"
         echo "upload_artifact: ${{ inputs.upload_artifact }}"
         echo "::endgroup::"
       shell: bash -l {0}
@@ -143,7 +144,7 @@ runs:
       with:
         name: conda-package-py3${{ inputs.python }}-${{ inputs.os_name }}
         path: |
-          ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda
+          ${{ steps.package-compilation.outputs.artifact_dir }}/*/*.conda
         retention-days: 10
     - name: Test built Conda package
       shell: bash -l {0}
