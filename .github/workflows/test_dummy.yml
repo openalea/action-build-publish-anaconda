@@ -15,12 +15,23 @@ on:
       git-ref:
         description: 'github.ref to simulate (eg: refs/heads/master, refs/tags/v*, ...)'
         required: false
-        default: 'refs/heads/master'
+        type: choice
+        options:
+          - refs/heads/branch
+          - refs/heads/master
+          - refs/tags/v*
+        default: refs/heads/master
 
       git-event:
         description: 'github.event_name to simulate (eg push, release)'
         required: false
-        default: 'push'
+        type: choice
+        options:
+          - pull_request
+          - push
+          - workflow_dispatch
+          - release
+        default: push
 
       force-ubuntu-only:
         description: 'Force build on ubuntu only'
