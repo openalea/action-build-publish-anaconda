@@ -123,7 +123,7 @@ runs:
           echo "No local conda_build_config.yaml found"
           EXTRA_M=""
         fi
-        out_dir=$(mktemp -d "${PWD}/conda-build-dir.XXXXXX")
+        out_dir=$(mktemp -d "${GITHUB_WORKSPACE}/conda-build-dir.XXXXXX")
         echo "Building Conda package into $out_dir"
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
         conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
