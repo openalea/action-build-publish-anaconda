@@ -244,18 +244,7 @@ runs:
       shell: bash
       run: |
         echo "::group::Determine artifact uploading"
-        to_bool() {
-          [[ "$1" == "true" ]] && echo 1 || echo 0
-        }
-        to_string() {
-          [ "$1" -eq 1 ] && echo "true" || echo "false"
-        }
-        is_pr=$(to_bool "${{ steps.context.outputs.is_pr }}")
-        upload_artifact=false
-        if (( is_pr )); then
-          upload_artifact=true
-        fi
-        upload_artifact=$(to_string "$upload_artifact")
+        upload_artifact="${{ steps.context.outputs.is_pr }}"
         echo "Upload artifact:   $upload_artifact"
         echo "upload_artifact=$upload_artifact" >> "$GITHUB_OUTPUT"
     - name: Set publication variables depending on event
