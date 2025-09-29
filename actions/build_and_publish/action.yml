@@ -127,7 +127,7 @@ runs:
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
         conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
         echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
-        echo "upload_artifact: $upload_artifact"
+        echo "upload_artifact: ${{ inputs.upload_artifact }}"
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Upload Conda build artifact
