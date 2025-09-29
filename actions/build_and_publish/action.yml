@@ -131,7 +131,7 @@ runs:
       shell: bash -l {0}
     - name: Upload Conda build artifact
       uses: actions/upload-artifact@v4
-      if: ${{ inputs.upload_artifact == 'true' }}
+      if: ${{ fromJSON(inputs.upload_artifact) }}
       with:
         name: conda-package-py3${{ inputs.python }}-${{ inputs.os_name }}
         path: |
