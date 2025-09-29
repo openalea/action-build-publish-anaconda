@@ -152,8 +152,8 @@ jobs:
 
       - name: Build and Publish
         # Uncomment the next line to run the local version of the action for testing
-        # uses: ./actions/build_and_publish
-        uses: openalea/action-build-publish-anaconda/actions/build_and_publish@main
+        uses: ./actions/build_and_publish
+        # uses: openalea/action-build-publish-anaconda/actions/build_and_publish@main
         env:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
         with:
