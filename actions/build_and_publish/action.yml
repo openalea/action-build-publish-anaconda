@@ -141,7 +141,7 @@ runs:
       shell: bash
       run: |
         echo "::group::Test package"
-        PACKAGE=$(ls ${{ steps.build-conda.outputs.out_dir }}/*/*.conda)
+        PACKAGE=$(ls ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda)
         conda build --test "$PACKAGE"
         echo "::endgroup::"
     - name: Determine upload
