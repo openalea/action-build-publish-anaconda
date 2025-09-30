@@ -51,19 +51,20 @@ name: MyWorkflow
 
 <!-- AUTO-DOC-OUTPUT:START - Do not remove or modify this section -->
 
-|                                  OUTPUT                                   |  TYPE  |                                                             DESCRIPTION                                                              |
-|---------------------------------------------------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|
-|        <a name="output_build_os"></a>[build_os](#output_build_os)         | string |                                                       Selected OS to build on                                                        |
-|        <a name="output_build_py"></a>[build_py](#output_build_py)         | string |                                           Selected Python minor versions to <br>build on                                             |
-|        <a name="output_channels"></a>[channels](#output_channels)         | string | A comma separated string of <br>channels to pick-up packages during <br>builds. Channel priority is strict: <br>first is used first  |
-|             <a name="output_clean"></a>[clean](#output_clean)             | string |                                                     True if cleaning is required                                                     |
-|    <a name="output_clean-label"></a>[clean-label](#output_clean-label)    | string |                                                            label to clean                                                            |
-| <a name="output_clean-package"></a>[clean-package](#output_clean-package) | string |                                                           package to clean                                                           |
-|          <a name="output_publish"></a>[publish](#output_publish)          | string |                                                   True if publication is required                                                    |
-| <a name="output_publish_if_os"></a>[publish_if_os](#output_publish_if_os) | string |               Publish only if build_os belongs <br>to this list of os. <br>Use empty list ([]) to <br>pass this test.                |
-| <a name="output_publish_if_py"></a>[publish_if_py](#output_publish_if_py) | string |      Publish only if build_py belongs <br>to this list of python <br>minor versions. Use empty list <br>([]) to pass this test       |
-|     <a name="output_publish_to"></a>[publish_to](#output_publish_to)      | string |                                                         label to publish to                                                          |
-|       <a name="output_py_latest"></a>[py_latest](#output_py_latest)       | string |                                               latest python version covered by <br>CI                                                |
-|          <a name="output_version"></a>[version](#output_version)          | string |                                                           package version                                                            |
+|                                     OUTPUT                                      |  TYPE  |                                                             DESCRIPTION                                                              |
+|---------------------------------------------------------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|
+|           <a name="output_build_os"></a>[build_os](#output_build_os)            | string |                                                       Selected OS to build on                                                        |
+|           <a name="output_build_py"></a>[build_py](#output_build_py)            | string |                                           Selected Python minor versions to <br>build on                                             |
+|           <a name="output_channels"></a>[channels](#output_channels)            | string | A comma separated string of <br>channels to pick-up packages during <br>builds. Channel priority is strict: <br>first is used first  |
+|                <a name="output_clean"></a>[clean](#output_clean)                | string |                                                     True if cleaning is required                                                     |
+|       <a name="output_clean-label"></a>[clean-label](#output_clean-label)       | string |                                                            label to clean                                                            |
+|    <a name="output_clean-package"></a>[clean-package](#output_clean-package)    | string |                                                           package to clean                                                           |
+|             <a name="output_publish"></a>[publish](#output_publish)             | string |                                                   True if publication is required                                                    |
+|    <a name="output_publish_if_os"></a>[publish_if_os](#output_publish_if_os)    | string |               Publish only if build_os belongs <br>to this list of os. <br>Use empty list ([]) to <br>pass this test.                |
+|    <a name="output_publish_if_py"></a>[publish_if_py](#output_publish_if_py)    | string |      Publish only if build_py belongs <br>to this list of python <br>minor versions. Use empty list <br>([]) to pass this test       |
+|        <a name="output_publish_to"></a>[publish_to](#output_publish_to)         | string |                                                         label to publish to                                                          |
+|          <a name="output_py_latest"></a>[py_latest](#output_py_latest)          | string |                                               latest python version covered by <br>CI                                                |
+| <a name="output_upload_artifact"></a>[upload_artifact](#output_upload_artifact) | string |                                            True if build artifact should <br>be uploaded                                             |
+|             <a name="output_version"></a>[version](#output_version)             | string |                                                           package version                                                            |
 
 <!-- AUTO-DOC-OUTPUT:END -->
