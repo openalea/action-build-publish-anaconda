@@ -28,6 +28,10 @@ inputs:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
     default: 'conda-forge'
+  upload_artifact:
+    description: 'Whether the package build should be upload as an artifact on GitHub'
+    required: false
+    default: 'false'
   publish:
     description: 'Whether we publish the package build on anaconda cloud or not.'
     required: false
@@ -93,7 +97,7 @@ runs:
         conda install -q conda-build conda-forge-pinning
         echo "::endgroup::"
       shell: bash -l {0}
-    - name: Package compilation
+    - name: Package building (no test)
       id: package-compilation
       working-directory: ./${{ inputs.conda }}
       run: |
@@ -119,12 +123,34 @@ runs:
           echo "No local conda_build_config.yaml found"
           EXTRA_M=""
         fi
-        out_dir=$(mktemp -d conda-build-dir.XXXXXX)
+        out_dir=$(mktemp -d "${GITHUB_WORKSPACE}/conda-build-dir.XXXXXX")
+        echo "Building Conda package into $out_dir"
         echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
-        conda build . --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
-        echo "out_dir=$out_dir" >> "$GITHUB_OUTPUT"
+        conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
+        pkg_path=$(find "$out_dir" -name "*.conda" -type f | head -n1)
+        # On Windows, convert the path to native form:
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          pkg_path=$(cygpath -w "$pkg_path")
+        fi
+        echo "built file: $pkg_path"
+        echo "pkg_path=$pkg_path" >> "$GITHUB_OUTPUT"
+        echo "upload_artifact: ${{ inputs.upload_artifact }}"
         echo "::endgroup::"
       shell: bash -l {0}
+    - name: Upload Conda build artifact
+      uses: actions/upload-artifact@v4
+      if: ${{ fromJSON(inputs.upload_artifact) }}
+      with:
+        name: conda-package-py3${{ inputs.python }}-${{ inputs.os_name }}
+        path: |
+          ${{ steps.package-compilation.outputs.pkg_path }}
+        retention-days: 10
+    - name: Test built Conda package
+      shell: bash -l {0}
+      run: |
+        echo "::group::Test package"
+        conda build --test "${{ steps.package-compilation.outputs.pkg_path }}"
+        echo "::endgroup::"
     - name: Determine upload
       id: check-upload
       shell: bash
@@ -175,13 +201,11 @@ runs:
     - name: Package uploading
       id: package-uploading
       if: ${{ steps.check-upload.outputs.should_upload == 'true' }}
-      working-directory: ./${{ inputs.conda }}
       run: |
         echo "::group::Conda packages uploading"
         export ANACONDA_API_TOKEN=${{ inputs.token }}
-        for BUILD_FILE in ${{ steps.package-compilation.outputs.out_dir }}/*/*.conda; do
-          echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
-          anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}" 
-        done
+        BUILD_FILE="${{ steps.package-compilation.outputs.pkg_path }}"
+        echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
+        anaconda upload --force --no-progress --label "${{ inputs.label }}" "${BUILD_FILE}" 
         echo "::endgroup::"
       shell: bash -l {0}

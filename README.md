@@ -9,7 +9,7 @@ These actions have been primariliy developed for the needs of [`OpenAlea` projec
 The associated development workflow is:
 - create a branch for new development
 - push on git (CI does nothing at this stage)
-- when done, open a PR (CI will build on py_latest and test the package, but do not publish it)
+- when done, open a PR (CI will build on py_latest, upload an build artifact on action page, and test the package, but do not publish it on anaconda)
 - check CI results, ask for review, ammend PR (CI is re-run after each push)
 - when CI and review are okay, merge PR (CI will build on py_latest and publish on dev channel)
 - repeat open branch / PR / merge as much as needed

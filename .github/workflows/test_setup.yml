@@ -74,6 +74,7 @@ jobs:
           echo "build_os:             ${{ steps.setci.outputs.build_os }}"
           echo "build_py:             ${{ steps.setci.outputs.build_py }}"
           echo "channels:             ${{ steps.setci.outputs.channels }}"
+          echo "upload_artifact:      ${{ steps.setci.outputs.upload_artifact }}"
           echo "publish:              ${{ steps.setci.outputs.publish }}"
           echo "publish_to:           ${{ steps.setci.outputs.publish_to }}"
           echo "publish_if_py:        ${{ steps.setci.outputs.publish_if_py }}"

@@ -99,6 +99,7 @@ jobs:
       build_os: ${{ steps.set.outputs.build_os }}
       build_py: ${{ steps.set.outputs.build_py }}
       channels: ${{ steps.set.outputs.channels }}
+      upload_artifact: ${{ steps.set.outputs.upload_artifact }}
       publish: ${{ steps.set.outputs.publish }}
       publish_if_py: ${{ steps.set.outputs.publish_if_py }}
       publish_if_os: ${{ steps.set.outputs.publish_if_os }}
@@ -163,6 +164,7 @@ jobs:
           python: ${{ matrix.python-minor-version }}
           channels: ${{ needs.setup-ci.outputs.channels }}
           token: ${{ secrets.anaconda_token }}
+          upload_artifact: ${{ needs.setup-ci.outputs.upload_artifact }}
           publish: ${{ needs.setup-ci.outputs.publish }}
           publish_if_py: ${{ needs.setup-ci.outputs.publish_if_py }}
           publish_if_os: ${{ needs.setup-ci.outputs.publish_if_os }}
