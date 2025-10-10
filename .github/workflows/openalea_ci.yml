@@ -17,7 +17,7 @@ on:
 
       operating-system:
         description: 'List of OS covered by CI.'
-        default: '["ubuntu-latest", "macos-latest", "macos-13", "windows-latest"]'
+        default: '["ubuntu-latest", "macos-latest", "macos-15-intel", "windows-latest"]'
         required: false
         type: string
 
