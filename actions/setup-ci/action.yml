@@ -297,6 +297,7 @@ runs:
           publish=$(to_bool "$publish")
           if (( publish && noarch )); then
             publish_if_os='["ubuntu-latest"]'
+            publish_if_py="[$py_latest]"
           fi
           publish=$(to_string "$publish")
         fi
