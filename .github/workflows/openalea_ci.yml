@@ -121,8 +121,8 @@ jobs:
       - name: Call Setup-CI action
         id: set
         # Uncomment the next line to run the local version of the action for testing
-        uses: ./actions/setup-ci
-        # uses: openalea/action-build-publish-anaconda/actions/setup-ci@main
+        # uses: ./actions/setup-ci
+        uses: openalea/action-build-publish-anaconda/actions/setup-ci@main
         with:
           git-ref: ${{ steps.setcontext.outputs.git-ref }}
           git-event: ${{ steps.setcontext.outputs.git-event }}
