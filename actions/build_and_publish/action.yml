@@ -96,11 +96,6 @@ runs:
         miniforge-version: latest
         conda-remove-defaults: true
         channel-priority: ${{ inputs.channel_priority }}
-      run: |
-        echo "::group::Setup conda options"
-        echo "Channels: ${{ inputs.channels }}"
-        echo "Channel Priority: ${{ inputs.channel_priority }}"
-        echo "::endgroup::"
     - name: Setup conda-build
       run: |
         echo "::group::Setup conda-build"
