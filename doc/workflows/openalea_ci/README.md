@@ -19,10 +19,6 @@ package:
   version: {{ version }}
 
 ...
-
-build:
-  ...
-  string: py{{ PY_VER }}
 ```
 
 If your package is a pure Python package (no compilation), you should also add:
