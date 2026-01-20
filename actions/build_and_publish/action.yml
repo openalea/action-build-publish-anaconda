@@ -28,6 +28,11 @@ inputs:
     description: 'Optional Extra anaconda channels to use. Coma-separated syntax. Default `conda-forge`.'
     required: false
     default: 'conda-forge'
+  channel_priority:
+    description: 'Controls how strict is channel order for resolving dependencies (strict = never fall back to lower-priority channels,
+     flexible = allow lower-priority channels for dependencies, disabled = prioritize version over channel)'
+    required: false
+    default: 'strict'
   upload_artifact:
     description: 'Whether the package build should be upload as an artifact on GitHub'
     required: false
@@ -90,7 +95,7 @@ runs:
         auto-update-conda: false
         miniforge-version: latest
         conda-remove-defaults: true
-        channel-priority: strict
+        channel-priority: ${{ inputs.channel_priority }}
     - name: Setup conda-build
       run: |
         echo "::group::Setup conda-build"

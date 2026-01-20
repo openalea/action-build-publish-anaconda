@@ -39,6 +39,14 @@ on:
         required: false
         type: string
 
+      channel_priority:
+        description: 'Controls how strict is channel order for resolving dependencies (strict = never fall back to lower-priority channels,
+                    flexible = allow lower-priority channels for dependencies, disabled = prioritize version over channel)'
+        required: false
+        default: 'strict'
+        type: string
+
+
       force-channel-priority:
         description: 'Force channels priority used for build (coma separated format), regardless of context. If false (default), priority list is computed by action depending on context'
         default: 'false'
@@ -163,6 +171,7 @@ jobs:
           conda: ${{ inputs.conda-directory }}
           python: ${{ matrix.python-minor-version }}
           channels: ${{ needs.setup-ci.outputs.channels }}
+          channel_priority: ${{ inputs.channel_priority }}
           token: ${{ secrets.anaconda_token }}
           upload_artifact: ${{ needs.setup-ci.outputs.upload_artifact }}
           publish: ${{ needs.setup-ci.outputs.publish }}
