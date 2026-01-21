@@ -63,6 +63,7 @@ jobs:
       - name: Test results
         run: |
           echo "conda directory:      ${{ inputs.conda-directory }}"
+          echo "package:              ${{ steps.setci.outputs.pkg-name }}"
           echo "version:              ${{ steps.setci.outputs.version }}"
           echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
           echo "simulated ref:        ${{ matrix.ref }}"
@@ -80,5 +81,4 @@ jobs:
           echo "publish_if_py:        ${{ steps.setci.outputs.publish_if_py }}"
           echo "publish_if_os:        ${{ steps.setci.outputs.publish_if_os }}"
           echo "clean:                ${{ steps.setci.outputs.clean }}"
-          echo "clean-package:        ${{ steps.setci.outputs.clean-package }}"
           echo "clean-label:          ${{ steps.setci.outputs.clean-label }}"

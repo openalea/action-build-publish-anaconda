@@ -84,15 +84,15 @@ outputs:
   publish_to:
     description: "label to publish to"
     value: ${{ steps.set-pub.outputs.publish_to }}
+  package-name:
+    description: "package name"
+    value: ${{ steps.find.outputs.clean-package }}
   version:
     description: "package version"
     value: ${{ steps.setv.outputs.version }}
   clean:
     description: "True if cleaning is required"
     value: ${{ steps.set-clean.outputs.clean }}
-  clean-package:
-    description: "package to clean"
-    value: ${{ steps.set-clean.outputs.clean-package }}
   clean-label:
     description: "label to clean"
     value: ${{ steps.set-clean.outputs.clean-label }}
@@ -374,6 +374,66 @@ runs:
         echo "Package version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
         echo "::endgroup"
+    - name: Detect package name
+      id: find-name
+      shell: bash
+      run: |
+        echo "::group::Find package name"
+        python - <<'EOF'
+        import os
+        import sys
+        from pathlib import Path
+
+        name = None
+
+        # 1) pyproject.toml
+        if Path("pyproject.toml").exists():
+            try:
+                import tomllib
+                with open("pyproject.toml", "rb") as f:
+                    data = tomllib.load(f)
+
+                    if "project" in data and "name" in data["project"]:
+                        name = data["project"]["name"]
+                    elif "tool" in data and "poetry" in data["tool"]:
+                        name = data["tool"]["poetry"].get("name")
+            except Exception as e:
+                print(f"Failed reading pyproject.toml: {e}")
+
+        # 2) setup.cfg
+        if name is None and Path("setup.cfg").exists():
+            try:
+                import configparser
+                cfg = configparser.ConfigParser()
+                cfg.read("setup.cfg")
+                if cfg.has_option("metadata", "name"):
+                    name = cfg.get("metadata", "name")
+                except Exception as e:
+                    print(f"Failed reading setup.cfg: {e}")
+
+        #3) setup.py (best-effort heuristic)
+        if name is None and Path("setup.py").exists():
+            try:
+                import re
+                text = Path("setup.py").read_text()
+                m = re.search(r"name\s*=\s*[\"']([^\"']+)[\"']", text)
+                if m:
+                    name = m.group(1)
+            except Exception as e:
+                print(f"Failed reading setup.py: {e}")
+        
+        if not name:
+            print("Could not detect package name from metadata")
+            name = ''
+
+        print(f"Detected package name: {name}")
+
+        # Export to GitHub Actions output
+        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+            fh.write(f"pkg-name={name}\n")
+
+        EOF
+        echo "::endgroup"
     - name: Determine cleaning
       id: set-clean
       shell: bash
@@ -391,7 +451,6 @@ runs:
         dev_label="${{ inputs.dev-label }}"
         rc_label="${{ inputs.rc-label }}"
         clean=false
-        clean_package=''
         clean_label=''
         if (( !skip_cleaning )); then
           if (( is_tag )); then
@@ -402,30 +461,9 @@ runs:
             clean_label="$rc_label"
           fi
           clean=$(to_bool "$clean")
-          if (( clean )); then
-            # retrieve (part of) package name
-            meta="${{ inputs.conda-directory }}/meta.yaml"
-            # Try to read package name from recipe/meta.yaml
-            if [ -f "$meta" ]; then
-              raw_name=$(grep -E '^ *name:' $meta | head -1 | awk '{print $2}')
-            else
-              raw_name=""
-            fi
-            # If name is a Jinja template, fallback to root dir name
-            if [[ "$raw_name" == *"{{"* ]]; then
-              package_name=$(basename "$GITHUB_WORKSPACE")
-            else
-              package_name="$raw_name"
-            fi
-          fi
-          clean=$(to_string "$clean")
-          clean_package="$package_name"
-        fi
         echo "Cleanup setings:"
         echo "  Clean:           $clean"
-        echo "  Clean package:   $clean_package"
         echo "  Clean label:     $clean_label"
         echo "clean=$clean" >> "$GITHUB_OUTPUT"
-        echo "clean-package=$clean_package" >> "$GITHUB_OUTPUT"
         echo "clean-label=$clean_label" >> "$GITHUB_OUTPUT"
         echo "::endgroup"

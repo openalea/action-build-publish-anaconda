@@ -112,9 +112,9 @@ jobs:
       publish_if_py: ${{ steps.set.outputs.publish_if_py }}
       publish_if_os: ${{ steps.set.outputs.publish_if_os }}
       publish_to: ${{ steps.set.outputs.publish_to }}
+      pkg-name: ${{ steps.find-name.outputs.pkg-name }}
       version: ${{ steps.set.outputs.version }}
       clean: ${{ steps.set.outputs.clean }}
-      clean-package: ${{ steps.set.outputs.clean-package }}
       clean-label: ${{ steps.set.outputs.clean-label }}
     steps:
       - name: Checkout
@@ -193,7 +193,7 @@ jobs:
         uses: openalea/action-build-publish-anaconda/actions/cleanup-label@main
         with:
           anaconda_token: ${{ secrets.anaconda_token }}
-          target-package: ${{ needs.setup-ci.outputs.clean-package }}
+          target-package: ${{ needs.setup-ci.outputs.pkg-name }}
           target-label: ${{ needs.setup-ci.outputs.clean-label }}
           latest-version: ${{ needs.setup-ci.outputs.version }}
 
