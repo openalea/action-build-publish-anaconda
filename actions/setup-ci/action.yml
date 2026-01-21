@@ -408,8 +408,8 @@ runs:
                 cfg.read("setup.cfg")
                 if cfg.has_option("metadata", "name"):
                     name = cfg.get("metadata", "name")
-                except Exception as e:
-                    print(f"Failed reading setup.cfg: {e}")
+            except Exception as e:
+                print(f"Failed reading setup.cfg: {e}")
 
         #3) setup.py (best-effort heuristic)
         if name is None and Path("setup.py").exists():
