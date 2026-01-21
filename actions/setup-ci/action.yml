@@ -442,9 +442,6 @@ runs:
         to_bool() {
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
-        to_string() {
-          [ "$1" -eq 1 ] && echo "true" || echo "false"
-        }
         skip_cleaning=$(to_bool "${{ inputs.force-no-clean }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
@@ -460,7 +457,6 @@ runs:
             clean=true
             clean_label="$rc_label"
           fi
-          clean=$(to_bool "$clean")
         fi
         echo "Cleanup setings:"
         echo "  Clean:           $clean"
