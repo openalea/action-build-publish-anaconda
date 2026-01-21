@@ -461,6 +461,7 @@ runs:
             clean_label="$rc_label"
           fi
           clean=$(to_bool "$clean")
+        fi
         echo "Cleanup setings:"
         echo "  Clean:           $clean"
         echo "  Clean label:     $clean_label"
