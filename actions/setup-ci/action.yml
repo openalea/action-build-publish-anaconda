@@ -86,7 +86,7 @@ outputs:
     value: ${{ steps.set-pub.outputs.publish_to }}
   package-name:
     description: "package name"
-    value: ${{ steps.find.outputs.clean-package }}
+    value: ${{ steps.find-name.outputs.package-name }}
   version:
     description: "package version"
     value: ${{ steps.setv.outputs.version }}
@@ -451,7 +451,7 @@ runs:
 
         # Export to GitHub Actions output
         with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-            fh.write(f"pkg-name={name}\n")
+            fh.write(f"package-name={name}\n")
 
         EOF
         echo "::endgroup"
