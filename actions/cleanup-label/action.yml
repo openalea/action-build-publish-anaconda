@@ -46,11 +46,12 @@ runs:
       shell: bash -l {0}
       run: |
         echo "::group::Extract builds from Anaconda"
+        echo "target-package: ${{ inputs.target-package }}"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
-        anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
-        package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
         echo "Extracted meta information:"
+        anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
         echo "anaconda_login: $anaconda_login"
+        package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
         echo "package_name:   $package_name" 
         builds=""
         if [ -n "$package_name" ]; then
