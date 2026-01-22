@@ -49,15 +49,15 @@ runs:
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
         package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+        echo "Extracted meta information:"
+        echo "anaconda_login: $anaconda_login"
+        echo "package_name:   $package_name" 
         builds=""
         if [ -n "$package_name" ]; then
           builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep "$package_name" || true)
         else
           echo "Empty package name, skip cleaning"
         fi
-        echo "Extracted meta information:"
-        echo "anaconda_login: $anaconda_login"
-        echo "package_name:   $package_name"
         echo "builds: $builds"
         {
           echo "builds<<EOF"

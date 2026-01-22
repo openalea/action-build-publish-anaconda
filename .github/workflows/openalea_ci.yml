@@ -190,7 +190,7 @@ jobs:
       - name: Clean-up Channel
         # Uncomment the next line to run the local version of the action for testing
         # uses: ./actions/cleanup-label
-        uses: openalea/action-build-publish-anaconda/actions/cleanup-label@main
+        uses: openalea/action-build-publish-anaconda/actions/cleanup-label@88-package-name
         with:
           anaconda_token: ${{ secrets.anaconda_token }}
           target-package: ${{ needs.setup-ci.outputs.package-name }}
