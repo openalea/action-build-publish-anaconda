@@ -377,50 +377,71 @@ runs:
     - name: Detect package name
       id: find-name
       shell: bash
+      env:
+        RECIPE_DIR: ${{ inputs.conda-directory }}
       run: |
         echo "::group::Find package name"
         python - <<'EOF'
         import os
         import sys
+        import re
         from pathlib import Path
 
         name = None
-
-        # 1) pyproject.toml
-        if Path("pyproject.toml").exists():
+        
+        # 0) meta.yaml
+        recipe_dir = Path(os.environ.get("RECIPE_DIR", ".")).resolve()
+        meta_path = recipe_dir / 'meta.yaml'
+        if meta_path.exists():
             try:
-                import tomllib
-                with open("pyproject.toml", "rb") as f:
-                    data = tomllib.load(f)
+                text = meta_path.read_text()
 
-                    if "project" in data and "name" in data["project"]:
-                        name = data["project"]["name"]
-                    elif "tool" in data and "poetry" in data["tool"]:
-                        name = data["tool"]["poetry"].get("name")
-            except Exception as e:
-                print(f"Failed reading pyproject.toml: {e}")
+                # Remove Jinja blocks {{ ... }}
+                text = re.sub(r"\{\{.*?\}\}", "", text)
 
-        # 2) setup.cfg
-        if name is None and Path("setup.cfg").exists():
-            try:
-                import configparser
-                cfg = configparser.ConfigParser()
-                cfg.read("setup.cfg")
-                if cfg.has_option("metadata", "name"):
-                    name = cfg.get("metadata", "name")
-            except Exception as e:
-                print(f"Failed reading setup.cfg: {e}")
-
-        #3) setup.py (best-effort heuristic)
-        if name is None and Path("setup.py").exists():
-            try:
-                import re
-                text = Path("setup.py").read_text()
-                m = re.search(r"name\s*=\s*[\"']([^\"']+)[\"']", text)
+                # Extract: name: something
+                m = re.search(r"^\s*name\s*:\s*([A-Za-z0-9_.-]+)$", text, re.MULTILINE)
                 if m:
                     name = m.group(1)
             except Exception as e:
-                print(f"Failed reading setup.py: {e}")
+                print(f"Failed reading meta.yaml: {e}")
+
+        if not name:
+            # 1) pyproject.toml
+            if Path("pyproject.toml").exists():
+                try:
+                    import tomllib
+                    with open("pyproject.toml", "rb") as f:
+                        data = tomllib.load(f)
+    
+                        if "project" in data and "name" in data["project"]:
+                            name = data["project"]["name"]
+                        elif "tool" in data and "poetry" in data["tool"]:
+                            name = data["tool"]["poetry"].get("name")
+                except Exception as e:
+                    print(f"Failed reading pyproject.toml: {e}")
+    
+            # 2) setup.cfg
+            if name is None and Path("setup.cfg").exists():
+                try:
+                    import configparser
+                    cfg = configparser.ConfigParser()
+                    cfg.read("setup.cfg")
+                    if cfg.has_option("metadata", "name"):
+                        name = cfg.get("metadata", "name")
+                except Exception as e:
+                    print(f"Failed reading setup.cfg: {e}")
+    
+            #3) setup.py (best-effort heuristic)
+            if name is None and Path("setup.py").exists():
+                try:
+                    import re
+                    text = Path("setup.py").read_text()
+                    m = re.search(r"name\s*=\s*[\"']([^\"']+)[\"']", text)
+                    if m:
+                        name = m.group(1)
+                except Exception as e:
+                    print(f"Failed reading setup.py: {e}")
         
         if not name:
             print("Could not detect package name from metadata")
