@@ -63,7 +63,7 @@ jobs:
       - name: Test results
         run: |
           echo "conda directory:      ${{ inputs.conda-directory }}"
-          echo "package:              ${{ steps.setci.outputs.pkg-name }}"
+          echo "package:              ${{ steps.setci.outputs.package-name }}"
           echo "version:              ${{ steps.setci.outputs.version }}"
           echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
           echo "simulated ref:        ${{ matrix.ref }}"
