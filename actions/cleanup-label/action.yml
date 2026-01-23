@@ -47,7 +47,7 @@ runs:
       run: |
         echo "::group::Extract builds from Anaconda"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
-        anaconda login --verbose --token "${{ inputs.anaconda_token }}" --yes
+        anaconda login --verbose --hostname anaconda.org --token "${{ inputs.anaconda_token }}" --yes
         anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
         package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
         builds=""
