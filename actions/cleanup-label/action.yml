@@ -46,25 +46,27 @@ runs:
       shell: bash -l {0}
       run: |
         echo "::group::Extract builds from Anaconda"
-        export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         # Install jq if missing (Ubuntu runner usually has it, but just in case)
         if ! command -v jq >/dev/null; then
           sudo apt-get update
           sudo apt-get install -y jq
         fi
-
+        
+        export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
         RESPONSE=$(curl -s -H "Authorization: token $ANACONDA_API_TOKEN" https://api.anaconda.org/user)
-
         echo "API raw response:"
         echo "$RESPONSE"
         anaconda_login=$(echo "$RESPONSE" | jq -r .login)
+        
         package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
         builds=""
+        
         if [ -n "$package_name" ]; then
           builds=$(anaconda label --show ${{ inputs.target-label }} 2>&1 | grep "$package_name" || true)
         else
           echo "Empty package name, skip cleaning"
         fi
+        
         echo "Extracted meta information:"
         echo "anaconda_login: $anaconda_login"
         echo "package_name:   $package_name"
