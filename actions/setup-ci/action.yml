@@ -381,7 +381,7 @@ runs:
         RECIPE_DIR: ${{ inputs.conda-directory }}
       run: |
         echo "::group::Find package name"
-        python - <<'EOF'
+        PACKAGE_NAME=$(python - <<'EOF'
         import os
         import sys
         import re
@@ -447,13 +447,12 @@ runs:
             print("Could not detect package name from metadata")
             name = ''
 
-        print(f"Detected package name: {name}")
-
-        # Export to GitHub Actions output
-        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-            fh.write(f"package_name={name}\n")
-
-        EOF
+        print(name)
+        
+        EOF)
+        
+        echo "Detected package name: $PACKAGE_NAME"
+        echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
     - name: Determine cleaning
       id: set-clean
