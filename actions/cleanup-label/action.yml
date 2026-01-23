@@ -69,6 +69,7 @@ runs:
         
         echo "Extracted meta information:"
         echo "anaconda_login: $anaconda_login"
+        echo "target: ${{ inputs.target-package }}"
         echo "package_name:   $package_name"
         echo "builds: $builds"
         {
