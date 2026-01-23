@@ -47,8 +47,17 @@ runs:
       run: |
         echo "::group::Extract builds from Anaconda"
         export ANACONDA_API_TOKEN=${{ inputs.anaconda_token }}
-        anaconda login --verbose --hostname anaconda.org --token "${{ inputs.anaconda_token }}" --yes
-        anaconda_login=$(anaconda whoami 2>&1 | awk '/^Username:/ {print $2}')
+        # Install jq if missing (Ubuntu runner usually has it, but just in case)
+        if ! command -v jq >/dev/null; then
+          sudo apt-get update
+          sudo apt-get install -y jq
+        fi
+
+        RESPONSE=$(curl -s -H "Authorization: token $ANACONDA_API_TOKEN" https://api.anaconda.org/user)
+
+        echo "API raw response:"
+        echo "$RESPONSE"
+        anaconda_login=$(echo "$RESPONSE" | jq -r .login)
         package_name="$(echo "${{ inputs.target-package }}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
         builds=""
         if [ -n "$package_name" ]; then
