@@ -86,7 +86,7 @@ outputs:
     value: ${{ steps.set-pub.outputs.publish_to }}
   package_name:
     description: "package name"
-    value: ${{ steps.find-name.outputs.package_name }}
+    value: ${{ steps.findpkg.outputs.package_name }}
   version:
     description: "package version"
     value: ${{ steps.setv.outputs.version }}
@@ -375,7 +375,7 @@ runs:
         echo "version=$version" >> $GITHUB_OUTPUT
         echo "::endgroup"
     - name: Detect package name
-      id: find-name
+      id: findpkg
       shell: bash
       env:
         RECIPE_DIR: ${{ inputs.conda-directory }}
