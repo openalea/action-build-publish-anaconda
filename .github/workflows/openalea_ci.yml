@@ -129,8 +129,8 @@ jobs:
       - name: Call Setup-CI action
         id: set
         # Uncomment the next line to run the local version of the action for testing
-        uses: ./actions/setup-ci
-        # uses: openalea/action-build-publish-anaconda/actions/setup-ci@88-package-name
+        # uses: ./actions/setup-ci
+        uses: openalea/action-build-publish-anaconda/actions/setup-ci@88-package-name
         with:
           git-ref: ${{ steps.setcontext.outputs.git-ref }}
           git-event: ${{ steps.setcontext.outputs.git-event }}
@@ -161,8 +161,8 @@ jobs:
 
       - name: Build and Publish
         # Uncomment the next line to run the local version of the action for testing
-        uses: ./actions/build_and_publish
-        # uses: openalea/action-build-publish-anaconda/actions/build_and_publish@88-package-name
+        # uses: ./actions/build_and_publish
+        uses: openalea/action-build-publish-anaconda/actions/build_and_publish@88-package-name
         env:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ needs.setup-ci.outputs.version }}
         with:
@@ -189,8 +189,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Clean-up Channel
         # Uncomment the next line to run the local version of the action for testing
-        uses: ./actions/cleanup-label
-        # uses: openalea/action-build-publish-anaconda/actions/cleanup-label@88-package-name
+        # uses: ./actions/cleanup-label
+        uses: openalea/action-build-publish-anaconda/actions/cleanup-label@88-package-name
         with:
           anaconda_token: ${{ secrets.anaconda_token }}
           target-package: ${{ needs.setup-ci.outputs.package_name }}
