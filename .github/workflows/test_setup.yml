@@ -56,6 +56,8 @@ jobs:
           conda-directory: ${{ inputs.conda-directory }}
           git-ref: ${{ matrix.ref }}
           git-event: ${{ matrix.event }}
+          operating-system: '["ubuntu-latest", "macos-latest", "macos-15-intel", "windows-latest"]'
+          python-minor-version: '[10, 11, 12, 13]'
           force-full-matrix: ${{ inputs.force-full-matrix }}
           force-no-publication: ${{ inputs.force-no-publication }}
           force-no-clean: ${{ inputs.force-no-clean }}
