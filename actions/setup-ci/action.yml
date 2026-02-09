@@ -213,7 +213,7 @@ runs:
         fi
         echo "Selected operating systems to build on: $os"
         echo "Selected Python minor versions to build on: $py"
-        echo "highest py version: $highest"
+        echo "highest py version: $highest_py"
         echo "build_os=$os" >> "$GITHUB_OUTPUT"
         echo "build_py=$py" >> "$GITHUB_OUTPUT"
         echo "highest_py=$highest_py" >> "$GITHUB_OUTPUT"
