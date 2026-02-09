@@ -16,11 +16,11 @@ inputs:
     required: false
     default: 'conda'
   python-minor-version:
-    description: 'List of python minor versions covered by CI. Leave empty to auto-fetch from conda-forge.'
-    default: ""
+    description: 'Json formatted list of python minor versions to build release on. eg. "[10, 11]"'
+    default: '[10, 11, 12, 13]'
     required: false
   operating-system:
-    description: 'List of OS covered by CI.'
+    description: 'Json formatted list of OS to build release on. E.g. ["ubuntu-latest", "macos-latest"]'
     default: '["ubuntu-latest", "macos-latest", "macos-15-intel", "windows-latest"]'
     required: false
   organisation:
