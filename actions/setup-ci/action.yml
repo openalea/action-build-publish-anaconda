@@ -255,7 +255,7 @@ runs:
         rc_label="${{ inputs.rc-label }}"
         release_label="main"
         os='${{ inputs.operating-system }}'
-        py_latest='${{ steps.fetch-py.outputs.py_latest }}'
+        highest_py='${{ steps.set-matrix.outputs.highest_py }}'
         #
         publish=false
         publish_to=''
@@ -264,7 +264,7 @@ runs:
         if (( !skip_publication )); then
           if (( is_master )); then
             publish=true
-            # publish_if_py="[$py_latest]"
+            # publish_if_py="[$highest_py]"
             publish_to="$dev_label"
           elif (( is_tag )); then
             publish=true
@@ -276,7 +276,7 @@ runs:
           publish=$(to_bool "$publish")
           if (( publish && noarch )); then
             publish_if_os='["ubuntu-latest"]'
-            publish_if_py="[$py_latest]"
+            publish_if_py="[$highest_py]"
           fi
           publish=$(to_string "$publish")
         fi

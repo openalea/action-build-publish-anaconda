@@ -64,7 +64,7 @@ jobs:
         run: |
           echo "conda directory:      ${{ inputs.conda-directory }}"
           echo "version:              ${{ steps.setci.outputs.version }}"
-          echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
+          echo "highest_py:           ${{ steps.setci.outputs.highest_py }}"
           echo "simulated ref:        ${{ matrix.ref }}"
           echo "simulated event:      ${{ matrix.event }}"
           echo "force-full-matrix:    ${{ inputs.force-full-matrix }}"
