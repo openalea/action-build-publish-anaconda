@@ -56,6 +56,8 @@ jobs:
           conda-directory: ${{ inputs.conda-directory }}
           git-ref: ${{ matrix.ref }}
           git-event: ${{ matrix.event }}
+          operating-system: '["ubuntu-latest", "macos-latest", "macos-15-intel", "windows-latest"]'
+          python-minor-version: '[10, 11, 12, 13]'
           force-full-matrix: ${{ inputs.force-full-matrix }}
           force-no-publication: ${{ inputs.force-no-publication }}
           force-no-clean: ${{ inputs.force-no-clean }}
@@ -64,7 +66,7 @@ jobs:
         run: |
           echo "conda directory:      ${{ inputs.conda-directory }}"
           echo "version:              ${{ steps.setci.outputs.version }}"
-          echo "py_latest:            ${{ steps.setci.outputs.py_latest }}"
+          echo "highest_py:           ${{ steps.setci.outputs.highest_py }}"
           echo "simulated ref:        ${{ matrix.ref }}"
           echo "simulated event:      ${{ matrix.event }}"
           echo "force-full-matrix:    ${{ inputs.force-full-matrix }}"
