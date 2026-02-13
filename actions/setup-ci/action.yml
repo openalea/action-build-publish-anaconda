@@ -84,9 +84,6 @@ outputs:
   publish_to:
     description: "label to publish to"
     value: ${{ steps.set-pub.outputs.publish_to }}
-  package_name:
-    description: "package name"
-    value: ${{ steps.findpkg.outputs.package_name }}
   version:
     description: "package version"
     value: ${{ steps.setv.outputs.version }}
@@ -352,86 +349,6 @@ runs:
         fi
         echo "Package version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
-        echo "::endgroup"
-    - name: Detect package name
-      id: findpkg
-      shell: bash
-      env:
-        RECIPE_DIR: ${{ inputs.conda-directory }}
-      run: |
-        echo "::group::Find package name"
-        PACKAGE_NAME=$(python - <<'EOF'
-        import os
-        import sys
-        import re
-        from pathlib import Path
-
-        name = None
-        
-        # 0) meta.yaml
-        recipe_dir = Path(os.environ.get("RECIPE_DIR", ".")).resolve()
-        meta_path = recipe_dir / 'meta.yaml'
-        if meta_path.exists():
-            try:
-                text = meta_path.read_text()
-
-                # Remove Jinja blocks {{ ... }}
-                text = re.sub(r"\{\{.*?\}\}", "", text)
-
-                # Extract: name: something
-                m = re.search(r"^\s*name\s*:\s*([A-Za-z0-9_.-]+)$", text, re.MULTILINE)
-                if m:
-                    name = m.group(1)
-            except Exception as e:
-                print(f"Failed reading meta.yaml: {e}")
-
-        if not name:
-            # 1) pyproject.toml
-            if Path("pyproject.toml").exists():
-                try:
-                    import tomllib
-                    with open("pyproject.toml", "rb") as f:
-                        data = tomllib.load(f)
-    
-                        if "project" in data and "name" in data["project"]:
-                            name = data["project"]["name"]
-                        elif "tool" in data and "poetry" in data["tool"]:
-                            name = data["tool"]["poetry"].get("name")
-                except Exception as e:
-                    print(f"Failed reading pyproject.toml: {e}")
-    
-            # 2) setup.cfg
-            if name is None and Path("setup.cfg").exists():
-                try:
-                    import configparser
-                    cfg = configparser.ConfigParser()
-                    cfg.read("setup.cfg")
-                    if cfg.has_option("metadata", "name"):
-                        name = cfg.get("metadata", "name")
-                except Exception as e:
-                    print(f"Failed reading setup.cfg: {e}")
-    
-            #3) setup.py (best-effort heuristic)
-            if name is None and Path("setup.py").exists():
-                try:
-                    import re
-                    text = Path("setup.py").read_text()
-                    m = re.search(r"name\s*=\s*[\"']([^\"']+)[\"']", text)
-                    if m:
-                        name = m.group(1)
-                except Exception as e:
-                    print(f"Failed reading setup.py: {e}")
-        
-        if not name:
-            print("Could not detect package name from metadata")
-            name = ''
-
-        print(name)
-        
-        EOF)
-        
-        echo "Detected package name: $PACKAGE_NAME"
-        echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
     - name: Determine cleaning
       id: set-clean
