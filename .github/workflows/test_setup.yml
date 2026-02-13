@@ -82,5 +82,4 @@ jobs:
           echo "publish_if_py:        ${{ steps.setci.outputs.publish_if_py }}"
           echo "publish_if_os:        ${{ steps.setci.outputs.publish_if_os }}"
           echo "clean:                ${{ steps.setci.outputs.clean }}"
-          echo "clean-package:        ${{ steps.setci.outputs.clean-package }}"
           echo "clean-label:          ${{ steps.setci.outputs.clean-label }}"

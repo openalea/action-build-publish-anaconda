@@ -114,7 +114,6 @@ jobs:
       publish_to: ${{ steps.set.outputs.publish_to }}
       version: ${{ steps.set.outputs.version }}
       clean: ${{ steps.set.outputs.clean }}
-      clean-package: ${{ steps.set.outputs.clean-package }}
       clean-label: ${{ steps.set.outputs.clean-label }}
     steps:
       - name: Checkout
@@ -155,11 +154,14 @@ jobs:
       matrix:
         os: ${{ fromJson(needs.setup-ci.outputs.build_os) }}
         python-minor-version: ${{ fromJson(needs.setup-ci.outputs.build_py) }}
+    outputs:
+      package_name: ${{ steps.build.outputs.package_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build and Publish
+        id: build
         # Uncomment the next line to run the local version of the action for testing
         # uses: ./actions/build_and_publish
         uses: openalea/action-build-publish-anaconda/actions/build_and_publish@main
@@ -193,7 +195,7 @@ jobs:
         uses: openalea/action-build-publish-anaconda/actions/cleanup-label@main
         with:
           anaconda_token: ${{ secrets.anaconda_token }}
-          target-package: ${{ needs.setup-ci.outputs.clean-package }}
+          target-package: ${{ needs.build-and-publish.outputs.package_name }}
           target-label: ${{ needs.setup-ci.outputs.clean-label }}
           latest-version: ${{ needs.setup-ci.outputs.version }}
 

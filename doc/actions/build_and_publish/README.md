@@ -49,6 +49,17 @@ name: MyWorkflow
 
 <!-- AUTO-DOC-INPUT:END -->
 
+## Outputs
+
+<!-- AUTO-DOC-OUTPUT:START - Do not remove or modify this section -->
+
+|                                 OUTPUT                                 |  TYPE  |             DESCRIPTION              |
+|------------------------------------------------------------------------|--------|--------------------------------------|
+|    <a name="output_built_file"></a>[built_file](#output_built_file)    | string | Name of the file built <br>by conda  |
+| <a name="output_package_name"></a>[package_name](#output_package_name) | string |             Package name             |
+
+<!-- AUTO-DOC-OUTPUT:END -->
+
 ## ANACONDA_TOKEN
 
 This token's purpose is to let your github project access your anaconda repository to publish your package on your channel once it has been successfully built.

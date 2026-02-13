@@ -46,6 +46,11 @@ runs:
       shell: bash -l {0}
       run: |
         echo "::group::Extract builds from Anaconda"
+        echo "Running cleanup-label with:"
+        echo "target-package: ${{ inputs.target-package }}"
+        echo "target-label: ${{ inputs.target-label }}"
+        echo "latest-version: ${{ inputs.latest-version }}"
+        
         # Install jq if missing (Ubuntu runner usually has it, but just in case)
         if ! command -v jq >/dev/null; then
           sudo apt-get update

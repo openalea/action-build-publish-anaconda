@@ -90,9 +90,6 @@ outputs:
   clean:
     description: "True if cleaning is required"
     value: ${{ steps.set-clean.outputs.clean }}
-  clean-package:
-    description: "package to clean"
-    value: ${{ steps.set-clean.outputs.clean-package }}
   clean-label:
     description: "label to clean"
     value: ${{ steps.set-clean.outputs.clean-label }}
@@ -361,16 +358,12 @@ runs:
         to_bool() {
           [[ "$1" == "true" ]] && echo 1 || echo 0
         }
-        to_string() {
-          [ "$1" -eq 1 ] && echo "true" || echo "false"
-        }
         skip_cleaning=$(to_bool "${{ inputs.force-no-clean }}")
         is_tag=$(to_bool "${{ steps.context.outputs.is_tag }}")
         is_release=$(to_bool "${{ steps.context.outputs.is_release }}")
         dev_label="${{ inputs.dev-label }}"
         rc_label="${{ inputs.rc-label }}"
         clean=false
-        clean_package=''
         clean_label=''
         if (( !skip_cleaning )); then
           if (( is_tag )); then
@@ -380,31 +373,10 @@ runs:
             clean=true
             clean_label="$rc_label"
           fi
-          clean=$(to_bool "$clean")
-          if (( clean )); then
-            # retrieve (part of) package name
-            meta="${{ inputs.conda-directory }}/meta.yaml"
-            # Try to read package name from recipe/meta.yaml
-            if [ -f "$meta" ]; then
-              raw_name=$(grep -E '^ *name:' $meta | head -1 | awk '{print $2}')
-            else
-              raw_name=""
-            fi
-            # If name is a Jinja template, fallback to root dir name
-            if [[ "$raw_name" == *"{{"* ]]; then
-              package_name=$(basename "$GITHUB_WORKSPACE")
-            else
-              package_name="$raw_name"
-            fi
-          fi
-          clean=$(to_string "$clean")
-          clean_package="$package_name"
         fi
         echo "Cleanup setings:"
         echo "  Clean:           $clean"
-        echo "  Clean package:   $clean_package"
         echo "  Clean label:     $clean_label"
         echo "clean=$clean" >> "$GITHUB_OUTPUT"
-        echo "clean-package=$clean_package" >> "$GITHUB_OUTPUT"
         echo "clean-label=$clean_label" >> "$GITHUB_OUTPUT"
         echo "::endgroup"
