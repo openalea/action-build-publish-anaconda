@@ -57,6 +57,15 @@ inputs:
     description: 'Build options for conda build.'
     required: false
     default: ''
+
+outputs:
+  package_name:
+    description: "Package name"
+    value: ${{ steps.package-compilation.outputs.package_name }}
+  built_file:
+    description: "Name of the file built by conda"
+    value: ${{ steps.package-compilation.outputs.built_file }}
+
 runs:
   using: "composite"
   steps:
@@ -135,12 +144,19 @@ runs:
         conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --variants "{python: [${PYTHON_VERSION}], is_python_min: [true
         ]}" ${{ inputs.build-options }}
         pkg_path=$(find "$out_dir" -name "*.conda" -type f | head -n1)
+        built_file=${pkg_path##*/}
+        pkg_name=${built_file%.conda}
+        pkg_name=${pkg_name%%-[0-9]*}
         # On Windows, convert the path to native form:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           pkg_path=$(cygpath -w "$pkg_path")
         fi
-        echo "built file: $pkg_path"
+        echo "package name: $package_name"
+        echo "built file: $built_file"
+        echo "package path: $pkg_path"
         echo "pkg_path=$pkg_path" >> "$GITHUB_OUTPUT"
+        echo "built_file=$built_file" >> "$GITHUB_OUTPUT"
+        echo "package_name=$package_name" >> "$GITHUB_OUTPUT"
         echo "upload_artifact: ${{ inputs.upload_artifact }}"
         echo "::endgroup::"
       shell: bash -l {0}
