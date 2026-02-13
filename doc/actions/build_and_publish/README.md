@@ -49,6 +49,8 @@ name: MyWorkflow
 
 <!-- AUTO-DOC-INPUT:END -->
 
+## Outputs
+
 ## ANACONDA_TOKEN
 
 This token's purpose is to let your github project access your anaconda repository to publish your package on your channel once it has been successfully built.
