@@ -151,12 +151,12 @@ runs:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           pkg_path=$(cygpath -w "$pkg_path")
         fi
-        echo "package name: $package_name"
+        echo "package name: $pkg_name"
         echo "built file: $built_file"
         echo "package path: $pkg_path"
         echo "pkg_path=$pkg_path" >> "$GITHUB_OUTPUT"
         echo "built_file=$built_file" >> "$GITHUB_OUTPUT"
-        echo "package_name=$package_name" >> "$GITHUB_OUTPUT"
+        echo "package_name=$pkg_name" >> "$GITHUB_OUTPUT"
         echo "upload_artifact: ${{ inputs.upload_artifact }}"
         echo "::endgroup::"
       shell: bash -l {0}
