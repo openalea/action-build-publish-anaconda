@@ -130,8 +130,10 @@ runs:
         fi
         out_dir=$(mktemp -d "${GITHUB_WORKSPACE}/conda-build-dir.XXXXXX")
         echo "Building Conda package into $out_dir"
-        echo "Running 'conda build' with python ${PYTHON_VERSION} and variant ${PYTHON_VARIANT}"
-        conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --python "$PYTHON_VARIANT" ${{ inputs.build-options }}
+        echo "Running 'conda build' with python ${PYTHON_VERSION}"
+        # is_python_min is always true when building one variant only
+        conda build . --no-test --output-folder "$out_dir" -m "$CONDA_FORGE_PINNING" $EXTRA_M --variants "{python: [${PYTHON_VERSION}], is_python_min: [true
+        ]}" ${{ inputs.build-options }}
         pkg_path=$(find "$out_dir" -name "*.conda" -type f | head -n1)
         # On Windows, convert the path to native form:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
