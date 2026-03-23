@@ -97,7 +97,7 @@ runs:
         echo "::endgroup::"
       shell: bash
     - name: Setup Conda environment
-      uses: conda-incubator/setup-miniconda@v3
+      uses: conda-incubator/setup-miniconda@v3.3
       with:
         python-version: 3.${{ inputs.condapython }}
         channels: ${{ inputs.channels }}
