@@ -117,7 +117,7 @@ jobs:
       clean-label: ${{ steps.set.outputs.clean-label }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set calling context
         id: setcontext
@@ -158,7 +158,7 @@ jobs:
       package_name: ${{ steps.build.outputs.package_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build and Publish
         id: build
@@ -188,7 +188,7 @@ jobs:
     if: ${{ needs.setup-ci.outputs.clean == 'true' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Clean-up Channel
         # Uncomment the next line to run the local version of the action for testing
         # uses: ./actions/cleanup-label

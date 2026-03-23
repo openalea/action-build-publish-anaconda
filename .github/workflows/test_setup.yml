@@ -48,7 +48,7 @@ jobs:
             event: "release"
     steps:
       - name: Checkout repo hosting action
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Run setup-ci for different scenarios
         id: setci
         uses: ./actions/setup-ci

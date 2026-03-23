@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo hosting action
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Run cleanup-action on dummy-package
         id: clean
         uses: ./actions/cleanup-label
