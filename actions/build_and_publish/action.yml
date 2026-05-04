@@ -108,8 +108,7 @@ runs:
     - name: Setup conda-build
       run: |
         echo "::group::Setup conda-build"
-        conda install -n base -c conda-forge -c defaults -q conda-build conda-forge-pinning
-        conda list conda-build
+        conda install -n base -q conda-build conda-forge-pinning
         echo "::endgroup::"
       shell: bash -l {0}
     - name: Package building (no test)
