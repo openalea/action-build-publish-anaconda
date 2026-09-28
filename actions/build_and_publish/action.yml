@@ -16,11 +16,11 @@ inputs:
   condapython:
     description: 'Python3 minor version used for installing conda-build.'
     required: false
-    default: '13'
+    default: '11'
   python:
     description: 'Python3 minor version targeted by build.'
     required: false
-    default: '13'
+    default: '14'
   token:
     description: 'Anaconda access Token (required)'
     required: true
