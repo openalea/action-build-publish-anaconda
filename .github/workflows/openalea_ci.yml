@@ -17,7 +17,7 @@ on:
 
       operating-system:
         description: 'Json formatted list of OS used for building a release. E.g. ["ubuntu-latest", "macos-latest"]'
-        default: '["ubuntu-latest", "macos-latest", "macos-15-intel", "windows-latest"]'
+        default: '["ubuntu-latest", "macos-latest", "macos-15-intel", "windows-2022"]'
         required: false
         type: string
 
