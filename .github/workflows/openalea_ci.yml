@@ -180,7 +180,7 @@ jobs:
           publish_if_py: ${{ needs.setup-ci.outputs.publish_if_py }}
           publish_if_os: ${{ needs.setup-ci.outputs.publish_if_os }}
           label: ${{ needs.setup-ci.outputs.publish_to }}
-          build-options: ${{ inputs.build_options }}
+          build-options: ${{ inputs.build-options }}
   clean-channel:
     name: Clean channel
     runs-on: ubuntu-latest
