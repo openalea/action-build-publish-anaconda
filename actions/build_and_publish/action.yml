@@ -14,7 +14,7 @@ inputs:
     required: false
     default: '.'
   condapython:
-    description: 'Python3 minor version used for installing conda-build.'
+    description: 'Python3 minor version of the build tools environment (conda-build, anaconda-client).'
     required: false
     default: '11'
   python:
@@ -96,21 +96,51 @@ runs:
         fi
         echo "::endgroup::"
       shell: bash
-    - name: Setup Conda environment
-      uses: conda-incubator/setup-miniconda@v4
+    # All the tools in one environment, created by micromamba in a single solve (no
+    # miniforge download and base update). The environment contains conda itself:
+    # its name must not start with "_", so that conda takes it as its root prefix
+    # (`conda info --base`), where conda-forge-pinning puts conda_build_config.yaml and
+    # where conda-build finds condabin/conda.bat on Windows.
+    - name: Setup build tools (micromamba)
+      uses: mamba-org/setup-micromamba@v2
       with:
-        python-version: 3.${{ inputs.condapython }}
-        channels: ${{ inputs.channels }}
-        auto-update-conda: false
-        miniforge-version: latest
-        conda-remove-defaults: true
-        channel-priority: ${{ inputs.channel_priority }}
-    - name: Setup conda-build
-      run: |
-        echo "::group::Setup conda-build"
-        conda install -n base -q conda-build conda-forge-pinning
-        echo "::endgroup::"
+        environment-name: build-tools
+        create-args: >-
+          -c conda-forge
+          --strict-channel-priority
+          python=3.${{ inputs.condapython }}
+          conda-build
+          conda-forge-pinning
+          anaconda-client
+        init-shell: bash
+        cache-environment: false
+        cache-downloads: false
+    - name: Configure channels for conda-build
       shell: bash -l {0}
+      run: |
+        echo "::group::Configure channels for conda-build"
+        # conda (and so conda-build) reads the file named by CONDARC
+        condarc="$RUNNER_TEMP/condarc.yml"
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          condarc_bash=$(cygpath -u "$condarc")
+        else
+          condarc_bash="$condarc"
+        fi
+        {
+          echo "channels:"
+          IFS=',' read -ra chans <<< "${{ inputs.channels }}"
+          for c in "${chans[@]}"; do
+            c="${c//[[:space:]]/}"
+            [[ -n "$c" ]] && echo "  - $c"
+          done
+          echo "channel_priority: ${{ inputs.channel_priority }}"
+        } > "$condarc_bash"
+        echo "CONDARC=$condarc" >> "$GITHUB_ENV"
+        cat "$condarc_bash"
+        echo "Root prefix: $(conda info --base)"
+        conda --version
+        conda build --version
+        echo "::endgroup::"
     - name: Package building (no test)
       id: package-compilation
       working-directory: ./${{ inputs.conda }}
@@ -215,13 +245,6 @@ runs:
         echo "should_upload=$should_upload"
         echo "should_upload=$should_upload" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
-    - name: Setup anaconda-client
-      if: ${{ steps.check-upload.outputs.should_upload == 'true' }}
-      run: |
-        echo "::group::Setup anaconda-client"
-        conda install -q anaconda-client
-        echo "::endgroup::"
-      shell: bash -l {0}
     - name: Package uploading
       id: package-uploading
       if: ${{ steps.check-upload.outputs.should_upload == 'true' }}

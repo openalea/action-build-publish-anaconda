@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This repo host a collection of Github Actions and reusable workflows to build your Python software package and publish to an Anaconda repository.
-It is mostly inspired by existing projects such as [build-and-upload-conda-packages](https://github.com/marketplace/actions/build-and-upload-conda-packages) or [Publish Conda package to Anaconda.org](https://github.com/marketplace/actions/publish-conda-package-to-anaconda-org) and uses [Setup Miniconda](https://github.com/marketplace/actions/setup-miniconda).
+It is mostly inspired by existing projects such as [build-and-upload-conda-packages](https://github.com/marketplace/actions/build-and-upload-conda-packages) or [Publish Conda package to Anaconda.org](https://github.com/marketplace/actions/publish-conda-package-to-anaconda-org) and uses [setup-micromamba](https://github.com/mamba-org/setup-micromamba) to create the environment with the build tools.
 
 These actions have been primariliy developed for the needs of [`OpenAlea` project](https://openalea.readthedocs.io/en/latest/). 
 The associated development workflow is:

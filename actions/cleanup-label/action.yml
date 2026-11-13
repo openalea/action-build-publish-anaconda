@@ -29,18 +29,16 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Conda environment
-      uses: conda-incubator/setup-miniconda@v3
+    - name: Setup anaconda-client (micromamba)
+      uses: mamba-org/setup-micromamba@v2
       with:
-        channels: conda-forge
-        auto-update-conda: false
-        miniforge-version: latest
-        conda-remove-defaults: true
-        channel-priority: strict
-    - name: Install Anaconda client
-      shell: bash -l {0}
-      run: |
-        conda install -q anaconda-client
+        environment-name: anaconda-tools
+        create-args: >-
+          -c conda-forge
+          anaconda-client
+        init-shell: bash
+        cache-environment: false
+        cache-downloads: false
     - name: Extract builds from Anaconda channel
       id: extract
       shell: bash -l {0}
