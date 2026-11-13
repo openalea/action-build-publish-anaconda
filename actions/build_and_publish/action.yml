@@ -96,56 +96,77 @@ runs:
         fi
         echo "::endgroup::"
       shell: bash
-    # All the tools in one environment, created by micromamba in a single solve (no
-    # miniforge download and base update). The environment contains conda itself:
-    # its name must not start with "_", so that conda takes it as its root prefix
-    # (`conda info --base`), where conda-forge-pinning puts conda_build_config.yaml and
-    # where conda-build finds condabin/conda.bat on Windows.
+    # Same approach as conda-forge (conda-smithy, conda_install_tool: micromamba): a
+    # standalone micromamba creates, in a single solve, a conda installation holding
+    # all the tools, hands it its package cache, and is deleted. From then on only
+    # conda is used (activation, config), as with miniforge. The prefix is not in an
+    # `envs` directory, so conda takes it as its root prefix (`conda info --base`),
+    # where conda-forge-pinning puts conda_build_config.yaml and where conda-build
+    # finds condabin/conda.bat on Windows.
     - name: Setup build tools (micromamba)
-      uses: mamba-org/setup-micromamba@v2
-      with:
-        environment-name: build-tools
-        create-args: >-
-          -c conda-forge
-          --strict-channel-priority
-          python=3.${{ inputs.condapython }}
-          conda-build
-          conda-forge-pinning
-        init-shell: bash
-        cache-environment: false
-        cache-downloads: false
-    - name: Configure channels for conda-build
+      shell: bash
+      run: |
+        echo "::group::Setup build tools"
+        MICROMAMBA_VERSION="2.10.0-0"
+        case "$RUNNER_OS-$RUNNER_ARCH" in
+          Linux-X64)     plat=linux-64 ;;
+          Linux-ARM64)   plat=linux-aarch64 ;;
+          macOS-X64)     plat=osx-64 ;;
+          macOS-ARM64)   plat=osx-arm64 ;;
+          Windows-X64)   plat=win-64 ;;
+          *) echo "Unsupported runner $RUNNER_OS-$RUNNER_ARCH"; exit 1 ;;
+        esac
+        tmp=$(mktemp -d)
+        exe="$tmp/micromamba"
+        [[ "$RUNNER_OS" == "Windows" ]] && exe="$exe.exe"
+        url="https://github.com/mamba-org/micromamba-releases/releases/download/$MICROMAMBA_VERSION/micromamba-$plat"
+        curl --fail --retry 5 --retry-delay 5 -sSL -o "$exe" "$url"
+        expected=$(curl --fail --retry 5 --retry-delay 5 -sSL "$url.sha256" | cut -d' ' -f1)
+        if command -v sha256sum >/dev/null; then
+          actual=$(sha256sum "$exe" | cut -d' ' -f1)
+        else
+          actual=$(shasum -a 256 "$exe" | cut -d' ' -f1)
+        fi
+        [[ "$actual" == "$expected" ]] || { echo "micromamba checksum mismatch"; exit 1; }
+        chmod +x "$exe"
+
+        prefix="$HOME/build-tools"
+        root="$tmp/root"
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          prefix_native=$(cygpath -w "$prefix"); root_native=$(cygpath -w "$root")
+          conda_exe="$prefix/Scripts/conda.exe"
+        else
+          prefix_native="$prefix"; root_native="$root"
+          conda_exe="$prefix/bin/conda"
+        fi
+        "$exe" create --yes --root-prefix "$root_native" --prefix "$prefix_native" \
+          --override-channels --channel conda-forge --strict-channel-priority \
+          python=3.${{ inputs.condapython }} conda-build conda-forge-pinning
+        # micromamba's package cache is not moved to the prefix (as conda-forge does):
+        # micromamba 2 stores it by channel URL (pkgs/https/...), conda ignores it.
+        rm -rf "$tmp"
+
+        printf 'show_channel_urls: true\nauto_update_conda: false\n' > "$prefix/.condarc"
+        # Channels, priority and solver as environment variables: they have the
+        # highest precedence (a ~/.condarc would otherwise put its channels first).
+        chans=$(echo "${{ inputs.channels }}" | tr -d '[:space:]')
+        {
+          echo "CONDA_CHANNELS=$chans"
+          echo "CONDA_CHANNEL_PRIORITY=${{ inputs.channel_priority }}"
+          # same solver settings as conda-forge
+          echo "CONDA_SOLVER=libmamba"
+          echo "CONDA_LIBMAMBA_SOLVER_NO_CHANNELS_FROM_INSTALLED=1"
+        } >> "$GITHUB_ENV"
+
+        # Activate this conda in the login shells (`bash -l`) of the next steps
+        echo "eval \"\$('$conda_exe' shell.bash hook)\" && conda activate base" >> "$HOME/.bash_profile"
+        echo "::endgroup::"
+    - name: Show build tools configuration
       shell: bash -l {0}
       run: |
-        echo "::group::Configure channels for conda-build"
-        # setup-micromamba exports CONDARC, pointing to its own condarc (channels:
-        # conda-forge). conda reads it with the highest precedence and merges channel
-        # lists, so channels written in any other file would come after conda-forge.
-        # Rewrite that file instead (conda and micromamba both read it). Written
-        # directly: `conda config --append channels` on a file without channels
-        # would first insert `defaults`.
-        if [[ -z "$CONDARC" ]]; then
-          echo "Error: CONDARC is not set by setup-micromamba"
-          exit 1
-        fi
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          condarc_bash=$(cygpath -u "$CONDARC")
-        else
-          condarc_bash="$CONDARC"
-        fi
-        {
-          echo "channels:"
-          IFS=',' read -ra chans <<< "${{ inputs.channels }}"
-          for c in "${chans[@]}"; do
-            c="${c//[[:space:]]/}"
-            [[ -n "$c" ]] && echo "  - $c"
-          done
-          echo "channel_priority: ${{ inputs.channel_priority }}"
-          # conda >=26.10 ships several solver plugins: use the one of miniforge
-          echo "solver: libmamba"
-        } > "$condarc_bash"
+        echo "::group::Build tools configuration"
         conda config --show-sources
-        echo "Effective channels:"
+        echo "Effective settings:"
         conda config --show channels channel_priority solver
         echo "Root prefix: $(conda info --base)"
         conda --version
@@ -261,9 +282,9 @@ runs:
       run: |
         echo "::group::Conda packages uploading"
         # anaconda-client is only installed when something is uploaded (it also brings
-        # the anaconda-auth conda plugin, not needed by conda-build). CONDARC now lists
-        # the build channels: override them.
-        micromamba install -y -n build-tools --override-channels -c conda-forge anaconda-client
+        # the anaconda-auth conda plugin, not needed by conda-build). The configured
+        # channels are the build ones: override them.
+        conda install -y --quiet --override-channels -c conda-forge anaconda-client
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         BUILD_FILE="${{ steps.package-compilation.outputs.pkg_path }}"
         echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
