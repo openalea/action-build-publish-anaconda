@@ -158,8 +158,10 @@ runs:
           echo "CONDA_LIBMAMBA_SOLVER_NO_CHANNELS_FROM_INSTALLED=1"
         } >> "$GITHUB_ENV"
 
-        # Activate this conda in the login shells (`bash -l`) of the next steps
-        echo "eval \"\$('$conda_exe' shell.bash hook)\" && conda activate base" >> "$HOME/.bash_profile"
+        # Activate this conda in the login shells (`bash -l`) of the next steps. Leading
+        # newline: on macOS runners ~/.bash_profile exists and may not end with one.
+        printf '\n%s\n' "eval \"\$('$conda_exe' shell.bash hook)\" && conda activate base" >> "$HOME/.bash_profile"
+        echo "~/.bash_profile:"; cat "$HOME/.bash_profile"
         echo "::endgroup::"
     - name: Show build tools configuration
       shell: bash -l {0}
