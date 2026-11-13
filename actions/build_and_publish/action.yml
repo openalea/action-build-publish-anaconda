@@ -14,7 +14,7 @@ inputs:
     required: false
     default: '.'
   condapython:
-    description: 'Python3 minor version of the build tools environment (conda-build, anaconda-client).'
+    description: 'Python3 minor version of the build tools environment (conda-build, and anaconda-client for the upload).'
     required: false
     default: '11'
   python:
@@ -111,7 +111,6 @@ runs:
           python=3.${{ inputs.condapython }}
           conda-build
           conda-forge-pinning
-          anaconda-client
         init-shell: bash
         cache-environment: false
         cache-downloads: false
@@ -119,18 +118,33 @@ runs:
       shell: bash -l {0}
       run: |
         echo "::group::Configure channels for conda-build"
-        # Written in the .condarc of the tools env (`--system` = sys.prefix/.condarc,
-        # the root prefix of this conda), read by conda and so by conda-build.
-        # Not through the CONDARC variable: micromamba reads it too, when it activates
-        # the env at the start of each step, and aborted on Windows ("Configuration
-        # file specified but does not exist").
-        IFS=',' read -ra chans <<< "${{ inputs.channels }}"
-        for c in "${chans[@]}"; do
-          c="${c//[[:space:]]/}"
-          [[ -n "$c" ]] && conda config --system --append channels "$c"
-        done
-        conda config --system --set channel_priority ${{ inputs.channel_priority }}
+        # setup-micromamba exports CONDARC, pointing to its own condarc (channels:
+        # conda-forge). conda reads it with the highest precedence and merges channel
+        # lists, so channels written in any other file would come after conda-forge.
+        # Rewrite that file instead (conda and micromamba both read it). Written
+        # directly: `conda config --append channels` on a file without channels
+        # would first insert `defaults`.
+        if [[ -z "$CONDARC" ]]; then
+          echo "Error: CONDARC is not set by setup-micromamba"
+          exit 1
+        fi
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          condarc_bash=$(cygpath -u "$CONDARC")
+        else
+          condarc_bash="$CONDARC"
+        fi
+        {
+          echo "channels:"
+          IFS=',' read -ra chans <<< "${{ inputs.channels }}"
+          for c in "${chans[@]}"; do
+            c="${c//[[:space:]]/}"
+            [[ -n "$c" ]] && echo "  - $c"
+          done
+          echo "channel_priority: ${{ inputs.channel_priority }}"
+        } > "$condarc_bash"
         conda config --show-sources
+        echo "Effective channels:"
+        conda config --show channels channel_priority
         echo "Root prefix: $(conda info --base)"
         conda --version
         conda build --version
@@ -244,6 +258,10 @@ runs:
       if: ${{ steps.check-upload.outputs.should_upload == 'true' }}
       run: |
         echo "::group::Conda packages uploading"
+        # anaconda-client is only installed when something is uploaded (it also brings
+        # the anaconda-auth conda plugin, not needed by conda-build). CONDARC now lists
+        # the build channels: override them.
+        micromamba install -y -n build-tools --override-channels -c conda-forge anaconda-client
         export ANACONDA_API_TOKEN=${{ inputs.token }}
         BUILD_FILE="${{ steps.package-compilation.outputs.pkg_path }}"
         echo "Upload file ${BUILD_FILE} to Anaconda on label ${{ inputs.label }}"
