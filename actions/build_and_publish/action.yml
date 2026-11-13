@@ -141,10 +141,12 @@ runs:
             [[ -n "$c" ]] && echo "  - $c"
           done
           echo "channel_priority: ${{ inputs.channel_priority }}"
+          # conda >=26.10 ships several solver plugins: use the one of miniforge
+          echo "solver: libmamba"
         } > "$condarc_bash"
         conda config --show-sources
         echo "Effective channels:"
-        conda config --show channels channel_priority
+        conda config --show channels channel_priority solver
         echo "Root prefix: $(conda info --base)"
         conda --version
         conda build --version
